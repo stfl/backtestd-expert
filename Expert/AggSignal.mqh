@@ -3,8 +3,10 @@
 //|                   Copyright 2009-2017, MetaQuotes Software Corp. |
 //|                                              http://www.mql5.com |
 //+------------------------------------------------------------------+
-#include <ExpertBase.mqh>
+#include <Expert\ExpertBase.mqh>
 #include "Assert.mqh"
+#include <..\MyIndicators\Signals\CustomSignal.mqh>
+
 
 //+------------------------------------------------------------------+
 //| Macro definitions.                                               |
@@ -16,7 +18,7 @@
 //| Purpose: Base class trading signals.                             |
 //| Derives from class CExpertBase.                                  |
 //+------------------------------------------------------------------+
-class CAggSignal : public CExpertBase
+class CAggSignal : public CExpertSignal
   {
 protected:
    //--- variables
@@ -25,13 +27,13 @@ protected:
    CArrayObj         m_filters;        // array of all filters
 
 
-   CAggSignal *m_confirm;
-   CAggSignal *m_confirm2;
+   CCustomSignal *m_confirm;
+   CCustomSignal *m_confirm2;
    // CAggSignal *m_confirm3;
-   CAggSignal *m_continue;
-   CAggSignal *m_exit;
-   CAggSignal *m_volume;
-   CAggSignal *m_baseline;  // TODO write a CExpertBaselineSignal class
+   CCustomSignal *m_continue;
+   CCustomSignal *m_exit;
+   CCustomSignal *m_volume;
+   CCustomSignal *m_baseline;  // TODO write a CExpertBaselineSignal class
    CiATR          m_atr;
 
    CArrayObj         m_entry_filters;  // array of filters that are checked for an open/close signal
@@ -79,15 +81,15 @@ public:
    virtual bool      InitIndicators(CIndicators *indicators);
    //--- methods for working with additional filters
    // TODO private
-   bool      AddFilter(CAggSignal *filter); // { return AddEntryFilter(filter); }
+   bool      AddFilter(CCustomSignal *filter); // { return AddEntryFilter(filter); }
    // virtual bool      AddEntryFilter(CAggSignal *filter);
    // virtual bool      AddSideFilter(CAggSignal *filter);
    // virtual bool      AddExitFilter(CAggSignal *filter);
-   bool AddConfirmSignal(CAggSignal *filter);
-   bool AddConfirm2Signal(CAggSignal *filter);
-   bool AddBaselineSignal(CAggSignal *filter);
-   bool AddExitSignal(CAggSignal *filter);
-   bool AddVolumeSignal(CAggSignal *filter);
+   bool AddConfirmSignal(CCustomSignal *filter);
+   bool AddConfirm2Signal(CCustomSignal *filter);
+   bool AddBaselineSignal(CCustomSignal *filter);
+   bool AddExitSignal(CCustomSignal *filter);
+   bool AddVolumeSignal(CCustomSignal *filter);
    bool AddAtr(uint atr_period = 14);
    //--- methods for generating signals of entering the market
    virtual bool      CheckOpenLong(double &price,double &sl,double &tp,datetime &expiration);
@@ -110,7 +112,7 @@ public:
    //--- methods of checking if the market models are formed
    virtual int       LongCondition(void)                                      { return(0);     }
    virtual int       ShortCondition(void)                                     { return(0);     }
-   virtual double    Direction(void);
+   virtual double    Direction(void)                                          { return(0.); }
    void              SetDirection(void) { m_direction=Direction(); }
    
    virtual double    GetData(const int buffer_num)                            { return(0.0); }
@@ -161,20 +163,21 @@ public:
        return (base - price) <= atr_value;
     }
 
-   CAggSignal *ConfirmSignal()  { return m_confirm; }
-   CAggSignal *Confirm2Signal() { return m_confirm2; }
-   CAggSignal *ExitSignal()     { return m_exit; }
-   CAggSignal *BaselineSignal() { return m_baseline; }
-   CAggSignal *VolumeSignal()   { return m_volume; }
+   CCustomSignal *ConfirmSignal()  { return m_confirm; }
+   CCustomSignal *Confirm2Signal() { return m_confirm2; }
+   CCustomSignal *ExitSignal()     { return m_exit; }
+   CCustomSignal *BaselineSignal() { return m_baseline; }
+   CCustomSignal *VolumeSignal()   { return m_volume; }
 
    bool Volume() { return !m_volume || m_volume.LongSide(); }
    virtual bool LongSide(void)   ;//{ return m_filters.Total() }
    virtual bool ShortSide(void)  ;//{ return Side()      < 0 ? true : false; } 
-   virtual bool LongSignal(void) { return Direction() > 0 ? true : false; }
-   virtual bool ShortSignal(void){ return Direction() < 0 ? true : false; }
+   //virtual bool LongSignal(void) { return Direction() > 0 ? true : false; }
+   //virtual bool ShortSignal(void){ return Direction() < 0 ? true : false; }
 
    // if Side() is not defined, use the direction and scale it up to 100
-   virtual int  Side(void) { return(Direction()>0) ? 100 : -100; }
+   //virtual int  Side(void) { return(Direction()>0) ? 100 : -100; }
+
   };
 //+------------------------------------------------------------------+
 //| Constructor                                                      |
@@ -298,7 +301,7 @@ bool CAggSignal::InitIndicators(CIndicators *indicators)
 //+------------------------------------------------------------------+
 //| Setting an additional filter                                     |
 //+------------------------------------------------------------------+
-bool CAggSignal::AddFilter(CAggSignal *filter)
+bool CAggSignal::AddFilter(CCustomSignal *filter)
   {
 //--- check pointer
    if(filter==NULL)
@@ -336,35 +339,35 @@ bool CAggSignal::AddAtr(uint atr_period) {
    return true;
 }
 
-bool CAggSignal::AddConfirmSignal(CAggSignal *filter){
+bool CAggSignal::AddConfirmSignal(CCustomSignal *filter){
   if (!AddFilter(filter))
     return false;
   m_confirm = filter;
   return true;
 }
 
-bool CAggSignal::AddConfirm2Signal(CAggSignal *filter){
+bool CAggSignal::AddConfirm2Signal(CCustomSignal *filter){
   if (!AddFilter(filter))
     return false;
   m_confirm2 = filter;
   return true;
 }
 
-bool CAggSignal::AddBaselineSignal(CAggSignal *filter){
+bool CAggSignal::AddBaselineSignal(CCustomSignal *filter){
   if (!AddFilter(filter))
     return false;
   m_baseline = filter;
   return true;
 }
 
-bool CAggSignal::AddExitSignal(CAggSignal *filter){
+bool CAggSignal::AddExitSignal(CCustomSignal *filter){
   if (!AddFilter(filter))
     return false;
   m_exit = filter;
   return true;
 }
 
-bool CAggSignal::AddVolumeSignal(CAggSignal *filter){
+bool CAggSignal::AddVolumeSignal(CCustomSignal *filter){
   if (!AddFilter(filter))
     return false;
   m_volume = filter;
@@ -651,120 +654,11 @@ bool CAggSignal::CheckReverseShort(double &price,double &sl,double &tp,datetime 
 //--- there's a signal
    return(true);
   }
-//+------------------------------------------------------------------+
-//| Detecting the "weighted" direction                               |
-//+------------------------------------------------------------------+
-double CAggSignal::Direction(void)
-  {
-   long   mask;
-   int entry_direction;
-   int side;
-   double result=m_weight*(LongCondition()-ShortCondition());
-   double side_result=0.0;
-   int    number=(result==0.0)? 0 : 1;      // number of "voted"
-   
-   if (GetPointer(m_atr))
-      m_atr.Refresh();
-//---
-//--- loop by filters
-   for(int i=0;i<m_entry_filters.Total();i++)
-     {
-      //--- mask for bit maps
-      mask=((long)1)<<i;
-      //--- check of the flag of ignoring the signal of filter
-      if((m_ignore&mask)!=0)
-         continue;
-      CAggSignal *filter=m_entry_filters.At(i);
-      //--- check pointer
-      if(filter==NULL)
-         continue;
-      entry_direction=filter.Direction();
-      //side=filter.Side();
-      if(entry_direction!=0)
-        {
-         //printf(__FUNCTION__+": Signal "+i+" returned "+entry_direction); //+" and side "+side);
-        }
-      //--- the "prohibition" signal
-      if(entry_direction==EMPTY_VALUE)
-         return(EMPTY_VALUE);
-      //--- check of flag of inverting the signal of filter
-      if((m_invert&mask)!=0)
-        {
-         result-=entry_direction;
-         //side_result-=side;
-        }
-      else
-        {
-         result+=entry_direction;
-         //side_result+=side;
-        }
-      number++;
-     }
 
-//--- normalization
-//if(number!=0)
-//   result/=number;
-
-//TODO optimize to not calc everything on every tick
-/*if(abs(result)>=m_threshold_open))
-     {
-      return 0.0
-     }*/
-
-//--- check for state filters
-   int side_number=0;
-//--- loop by filters
-   for(int i=0;i<m_side_filters.Total();i++)
-     {
-      CAggSignal *filter=m_side_filters.At(i);
-      //--- check pointer
-      if(filter==NULL)
-         continue;
-      side=filter.Side();
-      if(side!=0)
-        {
-         //printf(__FUNCTION__+": Side Signal "+i+" returned "+side);
-        }
-      side_result+=side;
-      number++;
-     }
-
-//--- check the exit filters for a side as well
-//--- loop by filters
-/*   for(int i=0;i<m_exit_filters.Total();i++)
-     {
-      CAggSignal *filter=m_exit_filters.At(i);
-      //--- check pointer
-      if(filter==NULL)
-         continue;
-      side=filter.Side();
-      if(side!=0)
-        {
-         printf(__FUNCTION__+": Exit Signal "+i+" returned side "+side);
-        }
-      side_result+=side;
-      number++;
-     }
-   */
-
-//--- normalization
-   if(m_filters.Total()>0)
-     {
-      //printf(__FUNCTION__+": confirm result %.1f\tside result %.1f\t=> result: %.2f\t num: %d",
-      //       result,side_result,number==0? 0 :(result+side_result)/number,number);
-      // get the result by considering the sides of the indicators as well
-     }
-   if(number!=0)
-      result = (result + side_result)/number;
-
-//--- return the result
-   return(result);
-  }
-//+------------------------------------------------------------------+
 
 bool CAggSignal::LongSide(void) {
   if (m_filters.Total() == 0)
-    return Side() > 0 ? true : false;
+    assert(false, "no filters in AggSignal");
   // if the Signal is not configured it counts as true to give a wildcard for other signals
   return (!m_confirm  || m_confirm.LongSide())
       && (!m_confirm2 || m_confirm2.LongSide()) 
@@ -773,7 +667,7 @@ bool CAggSignal::LongSide(void) {
 
 bool CAggSignal::ShortSide(void){
   if (m_filters.Total() == 0)
-    return Side() < 0 ? true : false;
+    assert(false, "no filters in AggSignal");
   // if the Signal is not configured it counts as true to give a wildcard for other signals
   return (!m_confirm  || m_confirm.ShortSide())
       && (!m_confirm2 || m_confirm2.ShortSide()) 

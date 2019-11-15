@@ -11,12 +11,15 @@
 //+------------------------------------------------------------------+
 #include <Expert\Expert.mqh>
 //--- available signals
-#include <Expert\Signal\CustomSignal\SignalFactory.mqh>
+#include <..\MyIndicators\Signals\SignalFactory.mqh>
 //--- available trailing
 #include <Expert\Trailing\TrailingNone.mqh>
 //--- available money management
 #include <Expert\Money\MoneyFixedLot.mqh>
-#include <NewBar\CisNewBar.mqh>
+#include "..\NewBar\CisNewBar.mqh"
+#include "..\Expert\AggSignal.mqh"
+#include "..\Expert\BacktestExpert.mqh"
+
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
@@ -241,7 +244,7 @@ input double             Money_FixLot_Lots    =0.1;         // Fixed volume
 //+------------------------------------------------------------------+
 //| Global expert object                                             |
 //+------------------------------------------------------------------+
-CExpert ExtExpert;
+CBacktestExpert ExtExpert;
 CisNewBar isNewBarCurrentChart;            // instance of the CisNewBar class: current chart
 
 bool        CandleProcessed=false;
@@ -264,7 +267,7 @@ int OnInit()
     ExtExpert.TakeAtrMultiplier(Signal_TakeLevel);
      
 //--- Creating signal
-   CExpertSignal *signal=new CExpertSignal;
+   CAggSignal *signal=new CAggSignal;
    if(signal==NULL)
      {
       //--- failed
@@ -296,7 +299,7 @@ int OnInit()
       ExtExpert.Deinit();
       return(INIT_FAILED);
      }
-   CExpertSignal *confirm_signal=CSignalFactory::MakeSignal(Confirm_Indicator,
+   CCustomSignal *confirm_signal=CSignalFactory::MakeSignal(Confirm_Indicator,
                                                             Confirm_int,Confirm_double,
                                                             PERIOD_CURRENT,Confirm_Shift);
 
@@ -313,7 +316,7 @@ int OnInit()
 // -------------- add 2nd confirmation indicator  -----------------------------
    if(StringCompare(Confirm2_Indicator,"")!=0)
      {
-      CExpertSignal *confirm2_signal=CSignalFactory::MakeSignal(Confirm2_Indicator,
+      CCustomSignal *confirm2_signal=CSignalFactory::MakeSignal(Confirm2_Indicator,
                                                                 Confirm2_int,Confirm2_double,
                                                                 PERIOD_CURRENT,Confirm2_Shift);
 
@@ -331,7 +334,7 @@ int OnInit()
 // -------------- add exit indicator --------------------------------
    if(StringCompare(Exit_Indicator,"")!=0)
      {
-      CExpertSignal *exit_signal=CSignalFactory::MakeSignal(Exit_Indicator,
+      CCustomSignal *exit_signal=CSignalFactory::MakeSignal(Exit_Indicator,
                                                             Exit_int,Exit_double,
                                                             PERIOD_CURRENT,Exit_Shift);
 
@@ -350,7 +353,7 @@ int OnInit()
 // -------------- add baseline indicator --------------------------------   
    if(StringCompare(Baseline_Indicator,"")!=0)
      {
-      CExpertSignal *baseline_signal=CSignalFactory::MakeSignal(Baseline_Indicator,
+      CCustomSignal *baseline_signal=CSignalFactory::MakeSignal(Baseline_Indicator,
                                                                 Baseline_int,Baseline_double,
                                                                 PERIOD_CURRENT,Baseline_Shift);
 
@@ -368,7 +371,7 @@ int OnInit()
 // -------------- add volume indicator --------------------------------   
    if(StringCompare(Volume_Indicator,"")!=0)
      {
-      CExpertSignal *volume_signal=CSignalFactory::MakeSignal(Volume_Indicator,
+      CCustomSignal *volume_signal=CSignalFactory::MakeSignal(Volume_Indicator,
                                                               Volume_int,Volume_double,
                                                               PERIOD_CURRENT,Volume_Shift);
 
