@@ -1,0 +1,5 @@
+*.ex5
+.vscode/
+*~
+*.swp
+*.bak
