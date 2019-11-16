@@ -17,6 +17,19 @@ public:
    virtual bool      ShortSignal(void);
   };
 
+/* TODO
+use smth like:
+double CiBearsPower::Main(const int index) const
+  {
+   CIndicatorBuffer *buffer=At(0);
+//--- check
+   if(buffer==NULL)
+      return(EMPTY_VALUE);
+//---
+   return(buffer.At(index));
+  }
+*/
+
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+

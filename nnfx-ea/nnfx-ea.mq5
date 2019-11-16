@@ -43,7 +43,7 @@ enum ENUM_BACKTEST_MODE
 //| Inputs                                                           |
 //+------------------------------------------------------------------+
 //--- inputs for expert
-input string             Expert_Title         ="bt_ama";    // Document name
+input string             Expert_Title         ="backtest_ea";    // Document name
 ulong                    Expert_MagicNumber   =13876;       // 
 bool                     Expert_EveryTick     =false;       // 
 input int                Expert_ProcessOnTimeLeft=10*60;    // Time in seconds to run before the candle closes

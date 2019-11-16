@@ -25,18 +25,18 @@ protected:
    CArrayObj         m_filters;        // array of all filters
 
 
-   CCustomSignal *m_confirm;
-   CCustomSignal *m_confirm2;
+   CCustomSignal     *m_confirm;
+   CCustomSignal     *m_confirm2;
    // CAggSignal *m_confirm3;
-   CCustomSignal *m_continue;
-   CCustomSignal *m_exit;
-   CCustomSignal *m_volume;
-   CCustomSignal *m_baseline;  // TODO write a CExpertBaselineSignal class
-   CiATR          m_atr;
+   CCustomSignal     *m_continue;
+   CCustomSignal     *m_exit;
+   CCustomSignal     *m_volume;
+   CCustomSignal     *m_baseline;  // TODO write a CExpertBaselineSignal class
+   CiATR             m_atr;
 
    CArrayObj         m_entry_filters;  // array of filters that are checked for an open/close signal
    CArrayObj         m_side_filters;   // array of filters that are checked for a state
-   CArrayObj         m_exit_filters;   // array of filters that are checked for exit 
+   CArrayObj         m_exit_filters;   // array of filters that are checked for exit
    //--- Adjusted parameters
    double            m_weight;         // "weight" of a signal in a combined filter
    int               m_patterns_usage; // bit mask of  using of the market models of signals
@@ -51,7 +51,7 @@ protected:
    int               m_expiration;     // time of expiration of a pending order in bars
    double            m_direction;      // weighted direction
    double            m_side;           // the general side of the indicators
-   double            m_exit_direction; // 
+   double            m_exit_direction; //
 
 public:
                      CAggSignal(void);
@@ -79,16 +79,16 @@ public:
    virtual bool      InitIndicators(CIndicators *indicators);
    //--- methods for working with additional filters
    // TODO private
-   bool      AddFilter(CCustomSignal *filter); // { return AddEntryFilter(filter); }
+   bool              AddFilter(CCustomSignal *filter); // { return AddEntryFilter(filter); }
    // virtual bool      AddEntryFilter(CAggSignal *filter);
    // virtual bool      AddSideFilter(CAggSignal *filter);
    // virtual bool      AddExitFilter(CAggSignal *filter);
-   bool AddConfirmSignal(CCustomSignal *filter);
-   bool AddConfirm2Signal(CCustomSignal *filter);
-   bool AddBaselineSignal(CCustomSignal *filter);
-   bool AddExitSignal(CCustomSignal *filter);
-   bool AddVolumeSignal(CCustomSignal *filter);
-   bool AddAtr(uint atr_period = 14);
+   bool              AddConfirmSignal(CCustomSignal *filter);
+   bool              AddConfirm2Signal(CCustomSignal *filter);
+   bool              AddBaselineSignal(CCustomSignal *filter);
+   bool              AddExitSignal(CCustomSignal *filter);
+   bool              AddVolumeSignal(CCustomSignal *filter);
+   bool              AddAtr(uint atr_period = 14);
    //--- methods for generating signals of entering the market
    virtual bool      CheckOpenLong(double &price,double &sl,double &tp,datetime &expiration);
    virtual bool      CheckOpenShort(double &price,double &sl,double &tp,datetime &expiration);
@@ -112,64 +112,37 @@ public:
    virtual int       ShortCondition(void)                                     { return(0);     }
    virtual double    Direction(void)                                          { return(0.); }
    void              SetDirection(void) { m_direction=Direction(); }
-   
+
    virtual double    GetData(const int buffer_num)                            { return(0.0); }
-   double            GetAtrValue() { return m_atr.Main(m_every_tick ? 0 : 1); }
+   double            GetAtrValue() { m_atr.Refresh(); return m_atr.Main(m_every_tick ? 0 : 1); }
 
-   
-   bool ConfirmSignalLong()     { return m_confirm && m_confirm.LongSignal();  }
-   bool ConfirmSideLong()       { return !m_confirm  || m_confirm.LongSide();    }
-   bool Confirm2SideLong()      { return !m_confirm2 || m_confirm2.LongSide();   }
-   bool ContSignalLong()        { return m_continue && m_continue.LongSignal(); }
-   bool ExitSignalLong()        { return m_exit && m_exit.LongSignal();     }
-   bool BaselineSignalLong()    { return m_baseline && m_baseline.LongSignal(); }
-   bool BaselineSideLong()      { return !m_baseline || m_baseline.LongSide();   }
-   bool BaselineATRChannelLong() //{ return !m_baseline || m_baseline.LongSide();   }
-   {
-       if (!m_baseline)  // not baseline signal set, we are always true to allow backtesting without the baseline
-         return true;
-       if (!m_baseline.LongSide())
-         return false;
-       
-       double atr_value = GetAtrValue();
-       double price=(m_base_price==0.0) ? m_symbol.Ask() : m_base_price;
-       double base = m_baseline.GetData(0);
-       assert(base != EMPTY_VALUE, "baseline empty value");
-       //Print(__FUNCTION__," atr: ", atr_value, " diff: ", (price - base), " price: ", price);
-       return (price - base) <= atr_value;
-    }
+   bool              ConfirmSignalLong()     { return m_confirm && m_confirm.LongSignal();  }
+   bool              ConfirmSideLong()       { return !m_confirm  || m_confirm.LongSide();    }
+   bool              Confirm2SideLong()      { return !m_confirm2 || m_confirm2.LongSide();   }
+   bool              ContSignalLong()        { return m_continue && m_continue.LongSignal(); }
+   bool              ExitSignalLong()        { return m_exit && m_exit.LongSignal();     }
+   bool              BaselineSignalLong()    { return m_baseline && m_baseline.LongSignal(); }
+   bool              BaselineSideLong()      { return !m_baseline || m_baseline.LongSide();   }
+   bool              BaselineATRChannelLong();
 
+   bool              ConfirmSignalShort()     { return m_confirm && m_confirm.ShortSignal();  }
+   bool              ConfirmSideShort()       { return !m_confirm || m_confirm.ShortSide();    }
+   bool              Confirm2SideShort()      { return !m_confirm2 || m_confirm2.ShortSide();   }
+   bool              ContSignalShort()        { return m_continue && m_continue.ShortSignal(); }
+   bool              ExitSignalShort()        { return m_exit && m_exit.ShortSignal();     }
+   bool              BaselineSignalShort()    { return m_baseline && m_baseline.ShortSignal(); }
+   bool              BaselineSideShort()      { return !m_baseline || m_baseline.ShortSide();   }
+   bool              BaselineATRChannelShort();
 
-   bool ConfirmSignalShort()     { return m_confirm && m_confirm.ShortSignal();  }
-   bool ConfirmSideShort()       { return !m_confirm || m_confirm.ShortSide();    }
-   bool Confirm2SideShort()      { return !m_confirm2 || m_confirm2.ShortSide();   }
-   bool ContSignalShort()        { return m_continue && m_continue.ShortSignal(); }
-   bool ExitSignalShort()        { return m_exit && m_exit.ShortSignal();     }
-   bool BaselineSignalShort()    { return m_baseline && m_baseline.ShortSignal(); }
-   bool BaselineSideShort()      { return !m_baseline || m_baseline.ShortSide();   }
-   bool BaselineATRChannelShort()//{ return !m_baseline ||m_baseline.ShortSide();   }
-    {
-       if (!m_baseline)  // not baseline signal set, we are always true to allow backtesting without the baseline
-         return true;
-       if (!m_baseline.ShortSide())
-         return false;
-         
-       double atr_value = GetAtrValue();
-       double price=(m_base_price==0.0) ? m_symbol.Ask() : m_base_price;
-       double base = m_baseline.GetData(0);
-       //Print(__FUNCTION__," atr: ", atr_value, " diff: ", (base - price), " price: ", price);
-       return (base - price) <= atr_value;
-    }
+   CCustomSignal     *ConfirmSignal()  { return m_confirm; }
+   CCustomSignal     *Confirm2Signal() { return m_confirm2; }
+   CCustomSignal     *ExitSignal()     { return m_exit; }
+   CCustomSignal     *BaselineSignal() { return m_baseline; }
+   CCustomSignal     *VolumeSignal()   { return m_volume; }
 
-   CCustomSignal *ConfirmSignal()  { return m_confirm; }
-   CCustomSignal *Confirm2Signal() { return m_confirm2; }
-   CCustomSignal *ExitSignal()     { return m_exit; }
-   CCustomSignal *BaselineSignal() { return m_baseline; }
-   CCustomSignal *VolumeSignal()   { return m_volume; }
-
-   bool Volume() { return !m_volume || m_volume.LongSide(); }
-   virtual bool LongSide(void)   ;//{ return m_filters.Total() }
-   virtual bool ShortSide(void)  ;//{ return Side()      < 0 ? true : false; } 
+   bool              Volume() { return !m_volume || m_volume.LongSide(); }
+   virtual bool      LongSide(void)   ;//{ return m_filters.Total() }
+   virtual bool      ShortSide(void)  ;//{ return Side()      < 0 ? true : false; }
    //virtual bool LongSignal(void) { return Direction() > 0 ? true : false; }
    //virtual bool ShortSignal(void){ return Direction() < 0 ? true : false; }
 
@@ -177,22 +150,24 @@ public:
    //virtual int  Side(void) { return(Direction()>0) ? 100 : -100; }
 
   };
+
+
 //+------------------------------------------------------------------+
 //| Constructor                                                      |
 //+------------------------------------------------------------------+
 CAggSignal::CAggSignal(void) : m_base_price(0.0),
-                                     m_general(-1),// no "main" signal
-                                     m_weight(1.0),
-                                     m_patterns_usage(-1),   // all models are used
-                                     m_ignore(0),            // all additional filters are used
-                                     m_invert(0),
-                                     m_threshold_open(50),
-                                     m_threshold_close(100),
-                                     m_price_level(0.0),
-                                     m_stop_level(0.0),
-                                     m_take_level(0.0),
-                                     m_expiration(0),
-                                     m_direction(EMPTY_VALUE)
+   m_general(-1),// no "main" signal
+   m_weight(1.0),
+   m_patterns_usage(-1),   // all models are used
+   m_ignore(0),            // all additional filters are used
+   m_invert(0),
+   m_threshold_open(50),
+   m_threshold_close(100),
+   m_price_level(0.0),
+   m_stop_level(0.0),
+   m_take_level(0.0),
+   m_expiration(0),
+   m_direction(EMPTY_VALUE)
   {
   }
 //+------------------------------------------------------------------+
@@ -211,9 +186,9 @@ int CAggSignal::UsedSeries(void)
 //--- check of the flags of using timeseries in the additional filters
    int total=m_filters.Total();
 //--- loop by the additional filters
-   for(int i=0;i<total;i++)
+   for(int i=0; i<total; i++)
      {
-      CAggSignal *filter=m_filters.At(i);
+      CCustomSignal *filter=m_filters.At(i);
       //--- check pointer
       if(filter==NULL)
          return(false);
@@ -228,9 +203,9 @@ void CAggSignal::Magic(ulong value)
   {
    int total=m_filters.Total();
 //--- loop by the additional filters
-   for(int i=0;i<total;i++)
+   for(int i=0; i<total; i++)
      {
-      CAggSignal *filter=m_filters.At(i);
+      CCustomSignal *filter=m_filters.At(i);
       //--- check pointer
       if(filter==NULL)
          continue;
@@ -249,9 +224,9 @@ bool CAggSignal::ValidationSettings(void)
 //--- check of parameters in the additional filters
    int total=m_filters.Total();
 //--- loop by the additional filters
-   for(int i=0;i<total;i++)
+   for(int i=0; i<total; i++)
      {
-      CAggSignal *filter=m_filters.At(i);
+      CCustomSignal *filter=m_filters.At(i);
       //--- check pointer
       if(filter==NULL)
          return(false);
@@ -271,10 +246,10 @@ bool CAggSignal::InitIndicators(CIndicators *indicators)
    if(indicators==NULL)
       return(false);
 //---
-   CAggSignal *filter;
+   CCustomSignal *filter;
    int            total=m_filters.Total();
 //--- gather information about using of timeseries
-   for(int i=0;i<total;i++)
+   for(int i=0; i<total; i++)
      {
       filter=m_filters.At(i);
       m_used_series|=filter.UsedSeries();
@@ -283,7 +258,7 @@ bool CAggSignal::InitIndicators(CIndicators *indicators)
    if(!CExpertBase::InitIndicators(indicators))
       return(false);
 //--- initialization of indicators and timeseries in the additional filters
-   for(int i=0;i<total;i++)
+   for(int i=0; i<total; i++)
      {
       filter=m_filters.At(i);
       filter.SetPriceSeries(m_open,m_high,m_low,m_close);
@@ -291,8 +266,6 @@ bool CAggSignal::InitIndicators(CIndicators *indicators)
       if(!filter.InitIndicators(indicators))
          return(false);
      }
-
-   // TODO init m_atr
 //--- succeed
    return(true);
   }
@@ -306,7 +279,7 @@ bool CAggSignal::AddFilter(CCustomSignal *filter)
       return(false);
 
    bool already_added=false;
-   for(int i=0;i<m_filters.Total();i++)
+   for(int i=0; i<m_filters.Total(); i++)
      {
       if(filter==m_filters.At(i))
         {
@@ -316,7 +289,7 @@ bool CAggSignal::AddFilter(CCustomSignal *filter)
      }
    if(!already_added)
      {
-//--- add the filter to the array of filters
+      //--- add the filter to the array of filters
       if(!m_filters.Add(filter))
          return(false);
       //--- primary initialization of the filter - only on first add
@@ -329,48 +302,72 @@ bool CAggSignal::AddFilter(CCustomSignal *filter)
    return(true);
   }
 
-bool CAggSignal::AddAtr(uint atr_period) {
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::AddAtr(uint atr_period)
+  {
    if(!m_atr.Create(m_symbol.Name(),m_period,atr_period))
       return false;
-   
+
 //--- ok
    return true;
-}
+  }
 
-bool CAggSignal::AddConfirmSignal(CCustomSignal *filter){
-  if (!AddFilter(filter))
-    return false;
-  m_confirm = filter;
-  return true;
-}
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::AddConfirmSignal(CCustomSignal *filter)
+  {
+   if(!AddFilter(filter))
+      return false;
+   m_confirm = filter;
+   return true;
+  }
 
-bool CAggSignal::AddConfirm2Signal(CCustomSignal *filter){
-  if (!AddFilter(filter))
-    return false;
-  m_confirm2 = filter;
-  return true;
-}
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::AddConfirm2Signal(CCustomSignal *filter)
+  {
+   if(!AddFilter(filter))
+      return false;
+   m_confirm2 = filter;
+   return true;
+  }
 
-bool CAggSignal::AddBaselineSignal(CCustomSignal *filter){
-  if (!AddFilter(filter))
-    return false;
-  m_baseline = filter;
-  return true;
-}
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::AddBaselineSignal(CCustomSignal *filter)
+  {
+   if(!AddFilter(filter))
+      return false;
+   m_baseline = filter;
+   return true;
+  }
 
-bool CAggSignal::AddExitSignal(CCustomSignal *filter){
-  if (!AddFilter(filter))
-    return false;
-  m_exit = filter;
-  return true;
-}
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::AddExitSignal(CCustomSignal *filter)
+  {
+   if(!AddFilter(filter))
+      return false;
+   m_exit = filter;
+   return true;
+  }
 
-bool CAggSignal::AddVolumeSignal(CCustomSignal *filter){
-  if (!AddFilter(filter))
-    return false;
-  m_volume = filter;
-  return true;
-}
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::AddVolumeSignal(CCustomSignal *filter)
+  {
+   if(!AddFilter(filter))
+      return false;
+   m_volume = filter;
+   return true;
+  }
 
 //+------------------------------------------------------------------+
 //| Generating a buy signal                                          |
@@ -425,7 +422,7 @@ bool CAggSignal::CheckOpenShort(double &price,double &sl,double &tp,datetime &ex
 //+------------------------------------------------------------------+
 bool CAggSignal::OpenLongParams(double &price,double &sl,double &tp,datetime &expiration)
   {
-   CAggSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
+   CCustomSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
 //---
    if(general==NULL)
      {
@@ -446,7 +443,7 @@ bool CAggSignal::OpenLongParams(double &price,double &sl,double &tp,datetime &ex
 //+------------------------------------------------------------------+
 bool CAggSignal::OpenShortParams(double &price,double &sl,double &tp,datetime &expiration)
   {
-   CAggSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
+   CCustomSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
 //---
    if(general==NULL)
      {
@@ -475,9 +472,9 @@ bool CAggSignal::CheckCloseLong(double &price)
 //--- check the entry filters for a closing signal
    double direction=0;
    int number=0;
-   for(int i=0;i<m_entry_filters.Total();i++)
+   for(int i=0; i<m_entry_filters.Total(); i++)
      {
-      CAggSignal *filter=m_entry_filters.At(i);
+      CCustomSignal *filter=m_entry_filters.At(i);
       if(filter==NULL)
          continue;
 
@@ -491,9 +488,9 @@ bool CAggSignal::CheckCloseLong(double &price)
      }
 
 //--- check the exit filters for a closing signal
-   for(int i=0;i<m_exit_filters.Total();i++)
+   for(int i=0; i<m_exit_filters.Total(); i++)
      {
-      CAggSignal *filter=m_exit_filters.At(i);
+      CCustomSignal *filter=m_exit_filters.At(i);
       if(filter==NULL)
          continue;
 
@@ -536,9 +533,9 @@ bool CAggSignal::CheckCloseShort(double &price)
 //--- check the entry filters for a closing signal
    double direction=0;
    int number=0;
-   for(int i=0;i<m_entry_filters.Total();i++)
+   for(int i=0; i<m_entry_filters.Total(); i++)
      {
-      CAggSignal *filter=m_entry_filters.At(i);
+      CCustomSignal *filter=m_entry_filters.At(i);
       if(filter==NULL)
          continue;
 
@@ -552,12 +549,12 @@ bool CAggSignal::CheckCloseShort(double &price)
      }
 
 //--- check the exit filters for a closing signal
-   for(int i=0;i<m_exit_filters.Total();i++)
+   for(int i=0; i<m_exit_filters.Total(); i++)
      {
-      CAggSignal *filter=m_exit_filters.At(i);
+      CCustomSignal *filter=m_exit_filters.At(i);
       if(filter==NULL)
          continue;
-         
+
       int dir=filter.LongCondition()*10;
       if(dir!=0)
         {
@@ -589,7 +586,7 @@ bool CAggSignal::CheckCloseShort(double &price)
 //+------------------------------------------------------------------+
 bool CAggSignal::CloseLongParams(double &price)
   {
-   CAggSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
+   CCustomSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
 //---
    if(general==NULL)
      {
@@ -605,7 +602,7 @@ bool CAggSignal::CloseLongParams(double &price)
 //+------------------------------------------------------------------+
 bool CAggSignal::CloseShortParams(double &price)
   {
-   CAggSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
+   CCustomSignal *general=(m_general!=-1) ? m_filters.At(m_general) : NULL;
 //---
    if(general==NULL)
      {
@@ -654,21 +651,65 @@ bool CAggSignal::CheckReverseShort(double &price,double &sl,double &tp,datetime 
   }
 
 
-bool CAggSignal::LongSide(void) {
-  if (m_filters.Total() == 0)
-    assert(false, "no filters in AggSignal");
-  // if the Signal is not configured it counts as true to give a wildcard for other signals
-  return (!m_confirm  || m_confirm.LongSide())
-      && (!m_confirm2 || m_confirm2.LongSide()) 
-      && (!m_baseline || BaselineATRChannelLong());
-}
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::LongSide(void)
+  {
+   if(m_filters.Total() == 0)
+      assert(false, "no filters in AggSignal");
+// if the Signal is not configured it counts as true to give a wildcard for other signals
+   return (!m_confirm  || m_confirm.LongSide())
+          && (!m_confirm2 || m_confirm2.LongSide())
+          && (!m_baseline || BaselineATRChannelLong());
+  }
 
-bool CAggSignal::ShortSide(void){
-  if (m_filters.Total() == 0)
-    assert(false, "no filters in AggSignal");
-  // if the Signal is not configured it counts as true to give a wildcard for other signals
-  return (!m_confirm  || m_confirm.ShortSide())
-      && (!m_confirm2 || m_confirm2.ShortSide()) 
-      && (!m_baseline || BaselineATRChannelShort());
-}
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::ShortSide(void)
+  {
+   if(m_filters.Total() == 0)
+      assert(false, "no filters in AggSignal");
+// if the Signal is not configured it counts as true to give a wildcard for other signals
+   return (!m_confirm  || m_confirm.ShortSide())
+          && (!m_confirm2 || m_confirm2.ShortSide())
+          && (!m_baseline || BaselineATRChannelShort());
+  }
 
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::BaselineATRChannelLong()
+  {
+   if(!m_baseline)   // not baseline signal set, we are always true to allow backtesting without the baseline
+      return true;
+   if(!m_baseline.LongSide())
+      return false;
+
+   double atr_value = GetAtrValue();
+   double price=(m_base_price==0.0) ? m_symbol.Ask() : m_base_price;
+   double base = m_baseline.GetData(0);
+   assert(base != EMPTY_VALUE, "baseline empty value");
+//Print(__FUNCTION__," atr: ", atr_value, " diff: ", (price - base), " price: ", price);
+   return (price - base) <= atr_value;
+  }
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool CAggSignal::BaselineATRChannelShort()
+  {
+   if(!m_baseline)   // not baseline signal set, we are always true to allow backtesting without the baseline
+      return true;
+   if(!m_baseline.ShortSide())
+      return false;
+
+   double atr_value = GetAtrValue();
+   double price=(m_base_price==0.0) ? m_symbol.Ask() : m_base_price;
+   double base = m_baseline.GetData(0);
+//Print(__FUNCTION__," atr: ", atr_value, " diff: ", (base - price), " price: ", price);
+   return (base - price) <= atr_value;
+  }
+
+//+------------------------------------------------------------------+

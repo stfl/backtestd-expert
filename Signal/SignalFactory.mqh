@@ -5,21 +5,21 @@
 //+------------------------------------------------------------------+
 #include "CustomSignal.mqh"
 
-#include <..\MyIndicators\Signals\SignalTCT.mqh>
-#include <..\MyIndicators\Signals\SignalWAE.mqh>
+#include <MyIndicators\Signals\SignalTCT.mqh>
+#include <MyIndicators\Signals\SignalWAE.mqh>
 
-#include <..\MyIndicators\Signals\asctrendsignal.mqh>
-#include <..\MyIndicators\Signals\gosignal.mqh>
-#include <..\MyIndicators\Signals\jfatlsignal.mqh>
-#include <..\MyIndicators\Signals\karacaticasignal.mqh>
-#include <..\MyIndicators\Signals\nonlagdotsignal.mqh>
-#include <..\MyIndicators\Signals\pricechannel_stopsignal.mqh>
-#include <..\MyIndicators\Signals\sidussignal.mqh>
-#include <..\MyIndicators\Signals\silvertrendsignal.mqh>
-#include <..\MyIndicators\Signals\stalinsignal.mqh>
-#include <..\MyIndicators\Signals\supertrendsignal.mqh>
+#include <MyIndicators\Signals\asctrendsignal.mqh>
+#include <MyIndicators\Signals\gosignal.mqh>
+#include <MyIndicators\Signals\jfatlsignal.mqh>
+#include <MyIndicators\Signals\karacaticasignal.mqh>
+#include <MyIndicators\Signals\nonlagdotsignal.mqh>
+#include <MyIndicators\Signals\pricechannel_stopsignal.mqh>
+#include <MyIndicators\Signals\sidussignal.mqh>
+#include <MyIndicators\Signals\silvertrendsignal.mqh>
+#include <MyIndicators\Signals\stalinsignal.mqh>
+#include <MyIndicators\Signals\supertrendsignal.mqh>
 
-#include <..\MyIndicators\Signals\SignalMA.mqh>
+#include <MyIndicators\Signals\SignalMA.mqh>
 
 //+------------------------------------------------------------------+
 //|                                                                  |
