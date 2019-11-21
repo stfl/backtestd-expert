@@ -3,13 +3,11 @@
 //+------------------------------------------------------------------+
 #include "CustomSignal.mqh"
 //+------------------------------------------------------------------+
-class CTwoLinesCrossSignal : public CCustomSignal
+class COnChartSignal : public CCustomSignal
   {
 protected:
-   uint              m_up_idx;
-   uint              m_down_idx;
-   CIndicatorBuffer *m_buf_up;
-   CIndicatorBuffer *m_buf_down;
+   uint              m_buf_idx;
+   CIndicatorBuffer *m_buf;
 
 public:
    //--- methods of checking if the market models are formed
@@ -22,27 +20,26 @@ protected:
    virtual bool      InitIndicatorBuffers();
   };
 
-bool CTwoLinesCrossSignal::LongSide(void)
+bool COnChartSignal::LongSide(void)
   {
    int idx = StartIndex();
-   return (m_buf_up.At(idx) > m_buf_down.At(idx));
+   return (Close(idx) >= m_buf.At(idx));
   }
 
-bool CTwoLinesCrossSignal::LongSignal(void)
+bool COnChartSignal::LongSignal(void)
   {
    int idx = StartIndex();
-   return (m_buf_up.At(idx) > m_buf_down.At(idx) && m_buf_up.At(idx+1) <= m_buf_down.At(idx+1));
+   return (Close(idx) > m_buf.At(idx) && Close(idx+1) <= m_buf.At(idx+1));
   }
 
-bool CTwoLinesCrossSignal::ShortSignal(void)
+bool COnChartSignal::ShortSignal(void)
   {
    int idx = StartIndex();
-   return (m_buf_up.At(idx) <= m_buf_down.At(idx) && m_buf_up.At(idx+1) > m_buf_down.At(idx+1));
+   return (Close(idx) <= m_buf.At(idx) && Close(idx+1) > m_buf.At(idx+1));
   }
 
-bool CTwoLinesCrossSignal::InitIndicatorBuffers()
+bool COnChartSignal::InitIndicatorBuffers()
 {
-   m_buf_up = m_indicator.At(m_up_idx);
-   m_buf_down = m_indicator.At(m_down_idx);
+   m_buf = m_indicator.At(m_buf_idx);
    return true;
 }

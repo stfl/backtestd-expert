@@ -34,7 +34,8 @@ protected:
    //--- adjusted parameters
    MqlParam           m_params[];
    int                m_params_size;
-   CiCustom          m_indicator;             // object-indicator for subclassed signals
+   CiCustom           m_indicator;             // object-indicator for subclassed signals
+   ENUM_INDICATOR     m_indicator_type;
 
 
    //--- "weights" of market models (0-100)
@@ -73,9 +74,10 @@ public:
    void               BuyPosClose(bool value)                 { m_BuyPosClose=value;      }
    void               SellPosClose(bool value)                { m_SellPosClose=value;     }
    void               Ind_Timeframe(ENUM_TIMEFRAMES value)    { m_Ind_Timeframe=value;    }
-   void               IPC(ENUM_APPLIED_PRICE value)                         { m_IPC=value;              }
+   void               IPC(ENUM_APPLIED_PRICE value)           { m_IPC=value;              }
    void               FilterPoints(uint value)                { m_Filter_Points=value;    }
    void               Shift(uint value)                       { m_Shift=value;            }
+   void               IndicatorType(ENUM_INDICATOR value)               { m_indicator_type=value;   }
 
    //--- method of verification of settings
    virtual bool      ValidationSettings(void);
@@ -97,14 +99,12 @@ public:
 protected:
    //--- method of initialization of the indicator
    bool              InitCustomIndicator(CIndicators *indicators);
+   virtual bool      InitIndicatorBuffers()                                  { return true; }
   };
 //+------------------------------------------------------------------+
 //| Constructor                                                      |
 //+------------------------------------------------------------------+
-CCustomSignal::CCustomSignal(void) : m_pattern_0(50),
-   m_pattern_1(0),
-   m_pattern_2(0),
-   m_pattern_3(0)
+CCustomSignal::CCustomSignal(void) : m_indicator_type(IND_CUSTOM)
   {
 //--- initialization of protected data
    m_used_series=USE_SERIES_OPEN+USE_SERIES_HIGH+USE_SERIES_LOW+USE_SERIES_CLOSE;
@@ -160,6 +160,8 @@ bool CCustomSignal::InitIndicators(CIndicators *indicators)
 //--- create and initialize AMA indicator
    if(!InitCustomIndicator(indicators))
       return(false);
+   if(!InitIndicatorBuffers())
+      return(false);
 //--- ok
    return(true);
   }
@@ -178,7 +180,7 @@ bool CCustomSignal::InitCustomIndicator(CIndicators *indicators)
       return(false);
      }
 //--- initialize object
-   if(!m_indicator.Create(m_symbol.Name(), m_period, IND_CUSTOM, m_params_size, m_params))
+   if(!m_indicator.Create(m_symbol.Name(), m_period, m_indicator_type, m_params_size, m_params))
      {
       printf(__FUNCTION__+": error initializing object");
       return(false);

@@ -18,6 +18,7 @@
 #include <MyIndicators\Signals\silvertrendsignal.mqh>
 #include <MyIndicators\Signals\stalinsignal.mqh>
 #include <MyIndicators\Signals\supertrendsignal.mqh>
+#include <MyIndicators\Signals\SignalIchimoku.mqh>
 
 #include <MyIndicators\Signals\SignalMA.mqh>
 
@@ -183,6 +184,16 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
       signal.Ind_Timeframe(Signal_TimeFrame);
       return signal;
      }
+    else if(StringCompare(name,"ichimoku",false)==0)
+     {
+      CSignalIchimoku *signal=new CSignalIchimoku;
+      assert_signal;
+      signal.ParamsFromInput(Signal_double);
+      signal.Shift(Signal_Shift);
+      signal.Ind_Timeframe(Signal_TimeFrame);
+      return signal;
+     }
+     
      
      
      
