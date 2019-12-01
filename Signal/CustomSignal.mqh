@@ -1,33 +1,22 @@
 //+------------------------------------------------------------------+
-//|                                                    SignalTCT.mqh |
+//|                                                 CustomSignal.mqh |
 //|                                     Copyright 2019, Stefan Lendl |
 //|                                                                  |
 //+------------------------------------------------------------------+
 #include <Expert\ExpertSignal.mqh>
 #include "..\Expert\Assert.mqh"
 
-// wizard description start
-//+------------------------------------------------------------------+
-//| Description of the class                                         |
-//| Title=Signals of indicator 'Adaptive Moving Average'             |
-//| Type=SignalAdvanced                                              |
-//| Name=Adaptive Moving Average                                     |
-//| ShortName=AMA                                                    |
-//| Class=CCustomSignal                                                 |
-//| Page=signal_ama                                                  |
-//| Parameter=PeriodMA,int,10,Period of averaging                    |
-//| Parameter=PeriodFast,int,2,Period of fast EMA                    |
-//| Parameter=PeriodSlow,int,30,Period of slow EMA                   |
-//| Parameter=Shift,int,0,Time shift                                 |
-//| Parameter=Applied,ENUM_APPLIED_PRICE,PRICE_CLOSE,Prices series   |
-//+------------------------------------------------------------------+
-// wizard description end
-//+------------------------------------------------------------------+
-//| Class CCustomSignal.                                                |
-//| Purpose: Class of generator of trade signals based on            |
-//|          the 'Adaptive Moving Average' indicator.                |
-//| Is derived from the CExpertSignal class.                         |
-//+------------------------------------------------------------------+
+// macro used to produce the signals in SignalFactory
+#define PRODUCE(STR, CLASS)                    \
+    if(StringCompare(name, STR, false)==0) {  \
+      CLASS *signal=new CLASS;                 \
+      assert_signal;                           \
+      signal.ParamsFromInput(Signal_double);   \
+      signal.Shift(Signal_Shift);              \
+      signal.Ind_Timeframe(Signal_TimeFrame);  \
+      return signal;                           \
+     }
+
 class CCustomSignal : public CExpertSignal
   {
 protected:

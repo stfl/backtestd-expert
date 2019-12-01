@@ -7,7 +7,7 @@ class CZeroLineCrossSignal : public CCustomSignal
   {
 protected:
    uint m_buf_idx;
-   CIndicatorBuffer *m_buf_up;
+   CIndicatorBuffer *m_buf;
    
 public:
    //--- methods of checking if the market models are formed
@@ -23,8 +23,7 @@ protected:
 bool CZeroLineCrossSignal::LongSide(void)
   {
    int idx = StartIndex();
-   geturn (m_buf.At(idx) > 0);
-   return (up <= 0 && up_last > 0);
+   return (m_buf.At(idx) > 0);
   }
 
 bool CZeroLineCrossSignal::LongSignal(void)

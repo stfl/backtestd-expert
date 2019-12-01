@@ -6,7 +6,7 @@
 class CTwoLinesCrossSignal : public CCustomSignal
   {
 protected:
-   uint              m_up_idx;
+   uint              m_buf_idx;
    uint              m_down_idx;
    CIndicatorBuffer *m_buf_up;
    CIndicatorBuffer *m_buf_down;
@@ -42,7 +42,7 @@ bool CTwoLinesCrossSignal::ShortSignal(void)
 
 bool CTwoLinesCrossSignal::InitIndicatorBuffers()
 {
-   m_buf_up = m_indicator.At(m_up_idx);
+   m_buf_up = m_indicator.At(m_buf_idx);
    m_buf_down = m_indicator.At(m_down_idx);
    return true;
 }

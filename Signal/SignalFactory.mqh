@@ -4,27 +4,7 @@
 //|                                                                  |
 //+------------------------------------------------------------------+
 #include "CustomSignal.mqh"
-
-#include <MyIndicators\Signals\SignalTCT.mqh>
-#include <MyIndicators\Signals\SignalWAE.mqh>
-
-#include <MyIndicators\Signals\asctrendsignal.mqh>
-#include <MyIndicators\Signals\gosignal.mqh>
-#include <MyIndicators\Signals\jfatlsignal.mqh>
-#include <MyIndicators\Signals\karacaticasignal.mqh>
-#include <MyIndicators\Signals\nonlagdotsignal.mqh>
-#include <MyIndicators\Signals\pricechannel_stopsignal.mqh>
-#include <MyIndicators\Signals\sidussignal.mqh>
-#include <MyIndicators\Signals\silvertrendsignal.mqh>
-#include <MyIndicators\Signals\stalinsignal.mqh>
-#include <MyIndicators\Signals\supertrendsignal.mqh>
-#include <MyIndicators\Signals\SignalIchimoku.mqh>
-
-#include <MyIndicators\Signals\SignalMA.mqh>
-
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
+#include <IndiSignals\AllSignals.mqh>
 
 #define assert_signal \
       if(!signal) { \
@@ -175,27 +155,8 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
 
       return signal;
      }
-    else if(StringCompare(name,"wae",false)==0)
-     {
-      CSignalWAE *signal=new CSignalWAE;
-      assert_signal;
-      signal.ParamsFromInput(Signal_double);
-      signal.Shift(Signal_Shift);
-      signal.Ind_Timeframe(Signal_TimeFrame);
-      return signal;
-     }
-    else if(StringCompare(name,"ichimoku",false)==0)
-     {
-      CSignalIchimoku *signal=new CSignalIchimoku;
-      assert_signal;
-      signal.ParamsFromInput(Signal_double);
-      signal.Shift(Signal_Shift);
-      signal.Ind_Timeframe(Signal_TimeFrame);
-      return signal;
-     }
      
-     
-     
+     PRODUCE_SIGNALS();
      
 
 
