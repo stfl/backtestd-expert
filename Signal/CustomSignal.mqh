@@ -11,6 +11,8 @@
     if(StringCompare(name, STR, false)==0) {  \
       CLASS *signal=new CLASS;                 \
       assert_signal;                           \
+      if (!signal.ValidationInputs(Signal_double))  \
+         return NULL;                          \
       signal.ParamsFromInput(Signal_double);   \
       signal.Shift(Signal_Shift);              \
       signal.Ind_Timeframe(Signal_TimeFrame);  \
@@ -70,6 +72,7 @@ public:
 
    //--- method of verification of settings
    virtual bool      ValidationSettings(void);
+   virtual bool      ValidationInputs(double &Signal_double[]) { return true; }
    //--- method of creating the indicator and timeseries
    virtual bool      InitIndicators(CIndicators *indicators);
    //--- methods of checking if the market models are formed

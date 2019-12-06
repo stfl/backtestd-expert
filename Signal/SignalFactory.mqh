@@ -36,7 +36,7 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
 
       MqlParam param[2];
       param[0].type=TYPE_STRING;
-      param[0].string_value="Market\\Trend_Counter_Trend.ex5";
+      param[0].string_value="Indi\Trend Counter Trend.ex5";
       param[1].type=TYPE_INT;
       param[1].integer_value=Signal_double[0];  // Period
       signal.Params(param,2);
