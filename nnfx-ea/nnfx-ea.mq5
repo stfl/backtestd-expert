@@ -9,6 +9,10 @@
 //| Include                                                          |
 //+------------------------------------------------------------------+
 #include <Expert\Expert.mqh>
+#include <Generic\HashMap.mqh>
+#include <Generic\ArrayList.mqh>
+#include <Arrays\ArrayString.mqh>
+#include <Arrays\ArrayObj.mqh>
 //--- available signals
 #include "..\Signal\SignalFactory.mqh"
 //--- available trailing
@@ -24,7 +28,7 @@
 //+------------------------------------------------------------------+
 enum ENUM_BACKTEST_MODE
   {
-   //  bit flags: BL | VL | EX | CN2 | CN
+//  bit flags: BL | VL | EX | CN2 | CN
    BACKTEST_NONE       =0x00,
    BACKTEST_CONFIRM    =0x01,
    BACKTEST_CONFIRM2   =0x02,
@@ -44,10 +48,9 @@ enum ENUM_BACKTEST_MODE
 //+------------------------------------------------------------------+
 //--- inputs for expert
 input string             Expert_Title         ="backtest_ea";    // Document name
-ulong                    Expert_MagicNumber   =13876;       // 
-bool                     Expert_EveryTick     =false;       // 
+ulong                    Expert_MagicNumber   =13876;       //
+bool                     Expert_EveryTick     =false;       //
 input int                Expert_ProcessOnTimeLeft=10*60;    // Time in seconds to run before the candle closes
-                                                            //input bool               Expert_RunOnOpenPrice=false;       // The EA is running only on open prices in ST
 
 //--- inputs for main signal
 input int                Signal_ThresholdOpen=100;         // Signal threshold value to open
@@ -57,7 +60,7 @@ input double             Signal_StopLevel     =1.5;         // Stop Loss level A
 input double             Signal_TakeLevel     =1.0;         // Take Profit level ATR multiplier
 input int                Signal_Expiration    =1;           // Expiration of pending orders (in bars)
 
-input ENUM_BACKTEST_MODE Backtest_Mode=0x01;       // ENUM_BACKTEST_MODE  || Bit Flags
+/* input ENUM_BACKTEST_MODE Backtest_Mode=0x01;       // ENUM_BACKTEST_MODE  || Bit Flags */
 
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator="";  // Name of Confirmation Indicator to use
@@ -133,31 +136,108 @@ double Volume_double[10];
 //--- inputs for money
 input double             Money_FixLot_Percent =10.0;        // Percent
 input double             Money_FixLot_Lots    =0.1;         // Fixed volume
+
+input string Expert_symbol0 = "";
+input string Expert_symbol1 = "";
+input string Expert_symbol2 = "";
+input string Expert_symbol3 = "";
+input string Expert_symbol4 = "";
+input string Expert_symbol5 = "";
+input string Expert_symbol6 = "";
+input string Expert_symbol7 = "";
+input string Expert_symbol8 = "";
+input string Expert_symbol9 = "";
+input string Expert_symbol10 = "";
+input string Expert_symbol11 = "";
+input string Expert_symbol12 = "";
+input string Expert_symbol13 = "";
+input string Expert_symbol14 = "";
+input string Expert_symbol15 = "";
+input string Expert_symbol16 = "";
+input string Expert_symbol17 = "";
+input string Expert_symbol18 = "";
+input string Expert_symbol19 = "";
+input string Expert_symbol20 = "";
+input string Expert_symbol21 = "";
+input string Expert_symbol22 = "";
+input string Expert_symbol23 = "";
+input string Expert_symbol24 = "";
+input string Expert_symbol25 = "";
+input string Expert_symbol26 = "";
+input string Expert_symbol27 = "";
+input string Expert_symbol28 = "";
+input string Expert_symbol29 = "";
+input string Expert_symbol30 = "";
+input string Expert_symbol31 = "";
+input string Expert_symbol32 = "";
+input string Expert_symbol33 = "";
+input string Expert_symbol34 = "";
+input string Expert_symbol35 = "";
+input string Expert_symbol36 = "";
+input string Expert_symbol37 = "";
+input string Expert_symbol38 = "";
+input string Expert_symbol39 = "";
+input string Expert_symbol40 = "";
+input string Expert_symbol41 = "";
+input string Expert_symbol42 = "";
+input string Expert_symbol43 = "";
+input string Expert_symbol44 = "";
+input string Expert_symbol45 = "";
+input string Expert_symbol46 = "";
+input string Expert_symbol47 = "";
+input string Expert_symbol48 = "";
+input string Expert_symbol49 = "";
+string Expert_symbols[50];
+
 //+------------------------------------------------------------------+
 //| Global expert object                                             |
 //+------------------------------------------------------------------+
-CBacktestExpert ExtExpert;
+CHashMap<string, int> ExpertsMap;
+CArrayObj *Experts;
 CisNewBar isNewBarCurrentChart;            // instance of the CisNewBar class: current chart
-
+CArrayString symbols;
+CArrayString currencies;
 bool        CandleProcessed=false;
+
 //+------------------------------------------------------------------+
 //| Initialization function of the expert                            |
 //+------------------------------------------------------------------+
 int OnInit()
   {
+   if (!SetupInputArrays())
+      return(INIT_FAILED);
+
+   Experts = new CArrayObj;
+   for(int i=0; i<symbols.Total(); i++) {
+      CBacktestExpert * expert = new CBacktestExpert;
+      int ret;
+      ret = InitExpert(GetPointer(expert) ,symbols.At(i));
+      if (ret == INIT_SUCCEEDED)
+         Experts.Add(expert);
+      else
+         return ret;  // break fail
+   }
+ 
+   return INIT_SUCCEEDED;
+  }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+int InitExpert(CBacktestExpert *ExtExpert, string symbol)
+  {
 //--- Initializing expert
-   if(!ExtExpert.Init(Symbol(),Period(),Expert_EveryTick,Expert_MagicNumber))
+   if(!ExtExpert.Init(symbol,Period(),Expert_EveryTick,Expert_MagicNumber))
      {
       //--- failed
       printf(__FUNCTION__+": error initializing expert");
       ExtExpert.Deinit();
       return(INIT_FAILED);
      }
-     
-    ExtExpert.OnTradeProcess(true);
-    ExtExpert.StopAtrMultiplier(Signal_StopLevel);
-    ExtExpert.TakeAtrMultiplier(Signal_TakeLevel);
-     
+
+   ExtExpert.OnTradeProcess(true);
+   ExtExpert.StopAtrMultiplier(Signal_StopLevel);
+   ExtExpert.TakeAtrMultiplier(Signal_TakeLevel);
+
 //--- Creating signal
    CAggSignal *signal=new CAggSignal;
    if(signal==NULL)
@@ -173,15 +253,14 @@ int OnInit()
    signal.ThresholdClose(Signal_ThresholdClose);
    signal.PriceLevel(Signal_PriceLevel);
    signal.Expiration(Signal_Expiration);
-   if (!signal.AddAtr())
-        {
+   if(!signal.AddAtr())
+     {
       //--- failed
       printf(__FUNCTION__+": error creating ATR");
       ExtExpert.Deinit();
       return(INIT_FAILED);
      }
 
-   SetupInputArrays();
 
 // -------------- add confirmation indicator
    if(StringCompare(Confirm_Indicator,"")==0)
@@ -192,8 +271,8 @@ int OnInit()
       return(INIT_FAILED);
      }
    CCustomSignal *confirm_signal=CSignalFactory::MakeSignal(Confirm_Indicator,
-                                                            Confirm_double,
-                                                            PERIOD_CURRENT,Confirm_Shift);
+                                 Confirm_double,
+                                 PERIOD_CURRENT,Confirm_Shift);
 
    if(confirm_signal==NULL)
      {
@@ -209,8 +288,8 @@ int OnInit()
    if(StringCompare(Confirm2_Indicator,"")!=0)
      {
       CCustomSignal *confirm2_signal=CSignalFactory::MakeSignal(Confirm2_Indicator,
-                                                                Confirm2_double,
-                                                                PERIOD_CURRENT,Confirm2_Shift);
+                                     Confirm2_double,
+                                     PERIOD_CURRENT,Confirm2_Shift);
 
       if(confirm2_signal==NULL)
         {
@@ -227,8 +306,8 @@ int OnInit()
    if(StringCompare(Exit_Indicator,"")!=0)
      {
       CCustomSignal *exit_signal=CSignalFactory::MakeSignal(Exit_Indicator,
-                                                            Exit_double,
-                                                            PERIOD_CURRENT,Exit_Shift);
+                                 Exit_double,
+                                 PERIOD_CURRENT,Exit_Shift);
 
       if(exit_signal==NULL)
         {
@@ -241,13 +320,13 @@ int OnInit()
       printf("Added Exit Indicator "+Exit_Indicator);
      }
 
- 
-// -------------- add baseline indicator --------------------------------   
+
+// -------------- add baseline indicator --------------------------------
    if(StringCompare(Baseline_Indicator,"")!=0)
      {
       CCustomSignal *baseline_signal=CSignalFactory::MakeSignal(Baseline_Indicator,
-                                                                Baseline_double,
-                                                                PERIOD_CURRENT,Baseline_Shift);
+                                     Baseline_double,
+                                     PERIOD_CURRENT,Baseline_Shift);
 
       if(baseline_signal==NULL)
         {
@@ -259,13 +338,13 @@ int OnInit()
       signal.AddBaselineSignal(baseline_signal);
       printf("Added Baseline Indicator "+Baseline_Indicator);
      }
-     
-// -------------- add volume indicator --------------------------------   
+
+// -------------- add volume indicator --------------------------------
    if(StringCompare(Volume_Indicator,"")!=0)
      {
       CCustomSignal *volume_signal=CSignalFactory::MakeSignal(Volume_Indicator,
-                                                              Volume_double,
-                                                              PERIOD_CURRENT,Volume_Shift);
+                                   Volume_double,
+                                   PERIOD_CURRENT,Volume_Shift);
 
       if(volume_signal==NULL)
         {
@@ -331,9 +410,9 @@ int OnInit()
       ExtExpert.Deinit();
       return(INIT_FAILED);
      }
-    
-    return INIT_SUCCEEDED;
-}
+
+   return INIT_SUCCEEDED;
+  }
 
 //---------------------------------------------------------------------
 //  The handler of the event of completion of another test pass:
@@ -343,27 +422,38 @@ double OnTester()
 // custom MAX: % take profit hit of all trades
 // each trade opens 2 positions, one with tp and one without
 // => half of the trades are considered
-   if(!MQL5InfoInteger(MQL5_OPTIMIZATION)) {
+   int tp_cnt = 0;
+   int sl_cnt = 0;
+    for(int i=0; i<Experts.Total(); i++) {
+      CBacktestExpert *expert = Experts.At(i);
+      tp_cnt += expert.TakeProfitCnt();
+      sl_cnt += expert.StopLossCnt();
+    }
+   if(!MQL5InfoInteger(MQL5_OPTIMIZATION))
+     {
       Print("Trades: ",TesterStatistics(STAT_TRADES));
-      Print("SL hit: ",ExtExpert.StopLossCnt());
-      Print("TP hit: ",ExtExpert.TakeProfitCnt());
+      Print("SL hit: ",sl_cnt);
+      Print("TP hit: ",tp_cnt);
       Print("profitable: ",TesterStatistics(STAT_PROFIT_TRADES));
       Print("%profitable: ",TesterStatistics(STAT_TRADES) == 0. ? 0.
-          : TesterStatistics(STAT_PROFIT_TRADES)/TesterStatistics(STAT_TRADES));
+            : TesterStatistics(STAT_PROFIT_TRADES)/TesterStatistics(STAT_TRADES));
       Print("Profit: ",TesterStatistics(STAT_PROFIT));
-   }
-
+     }
+   
    return(TesterStatistics(STAT_TRADES) == 0. ? 0.
-          : ExtExpert.TakeProfitCnt()/(TesterStatistics(STAT_TRADES)/2));
-   //return(TesterStatistics(STAT_TRADES) == 0. ? 0.
-   //       : TesterStatistics(STAT_PROFIT_TRADES)/TesterStatistics(STAT_TRADES));
+          : tp_cnt/(TesterStatistics(STAT_TRADES)/2));
+//return(TesterStatistics(STAT_TRADES) == 0. ? 0.
+//       : TesterStatistics(STAT_PROFIT_TRADES)/TesterStatistics(STAT_TRADES));
   }
 //+------------------------------------------------------------------+
 //| Deinitialization function of the expert                          |
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
-   ExtExpert.Deinit();
+    for(int i=0; i<Experts.Total(); i++) {
+      CBacktestExpert *expert = Experts.At(i);
+      expert.Deinit();
+    }
   }
 //+------------------------------------------------------------------+
 //| "Tick" event handler function                                    |
@@ -375,10 +465,10 @@ void OnTick()
 
    /*
    CExpertSignal *signal=ExtExpert.Signal();
-   
+
    double atr_value=m_atr.GetData(0,Expert_EveryTick ? 0 : 1);
-//printf("ATR value: %f", atr_value);
-// SYMBOL_DIGITS
+   //printf("ATR value: %f", atr_value);
+   // SYMBOL_DIGITS
    signal.StopLevel(atr_value*Signal_StopLevel/ExtExpert.PriceLevelUnit());
 
    if(StringCompare(Exit_Indicator,"")==0) // we don't have an exit inidicator. so we set a TP
@@ -387,7 +477,10 @@ void OnTick()
       signal.TakeLevel(atr_value*Signal_TakeLevel/ExtExpert.PriceLevelUnit());
      }
      */
-   ExtExpert.OnTick();
+    for(int i=0; i<Experts.Total(); i++) {
+      CBacktestExpert *expert = Experts.At(i);
+      expert.OnTick();
+    }
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -398,15 +491,15 @@ bool IsCandleAlmostClosed()
 //static MqlDateTime  last_tick_struct,last_tick_server_struct;
    if(isNewBarCurrentChart.isNewBar())
      {
-/*MqlDateTime new_tick_struct;
-      datetime new_tick=TimeCurrent(new_tick_struct);
-      Print("new candle: ",new_tick
-            ,"(",new_tick_struct.day_of_week,")"
-            ," previous closed: ",last_tick
-            ,"(",last_tick_struct.day_of_week,")"
-            ," server: ",last_tick_server
-            ,"(",last_tick_server_struct.day_of_week,")");
-            */
+      /*MqlDateTime new_tick_struct;
+            datetime new_tick=TimeCurrent(new_tick_struct);
+            Print("new candle: ",new_tick
+                  ,"(",new_tick_struct.day_of_week,")"
+                  ," previous closed: ",last_tick
+                  ,"(",last_tick_struct.day_of_week,")"
+                  ," server: ",last_tick_server
+                  ,"(",last_tick_server_struct.day_of_week,")");
+                  */
       CandleProcessed=false;
      }
 //last_tick=TimeCurrent(last_tick_struct);
@@ -428,18 +521,27 @@ bool IsCandleAlmostClosed()
 //+------------------------------------------------------------------+
 void OnTrade()
   {
-   ExtExpert.OnTrade();
+    for(int i=0; i<Experts.Total(); i++) {
+      CBacktestExpert *expert = Experts.At(i);
+      expert.OnTrade();
+    }
   }
 //+------------------------------------------------------------------+
 //| "Timer" event handler function                                   |
 //+------------------------------------------------------------------+
 void OnTimer()
   {
-   ExtExpert.OnTimer();
+    for(int i=0; i<Experts.Total(); i++) {
+      CBacktestExpert *expert = Experts.At(i);
+      expert.OnTimer();
+    }
   }
 //+------------------------------------------------------------------+
 
-void SetupInputArrays()
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool SetupInputArrays()
   {
    Confirm_double[0] = Confirm_double0;
    Confirm_double[1] = Confirm_double1;
@@ -473,7 +575,7 @@ void SetupInputArrays()
    Exit_double[7] = Exit_double7;
    Exit_double[8] = Exit_double8;
    Exit_double[9] = Exit_double9;
-   
+
    Baseline_double[0] = Baseline_double0;
    Baseline_double[1] = Baseline_double1;
    Baseline_double[2] = Baseline_double2;
@@ -484,7 +586,7 @@ void SetupInputArrays()
    Baseline_double[7] = Baseline_double7;
    Baseline_double[8] = Baseline_double8;
    Baseline_double[9] = Baseline_double9;
-   
+
    Volume_double[0] = Volume_double0;
    Volume_double[1] = Volume_double1;
    Volume_double[2] = Volume_double2;
@@ -495,5 +597,100 @@ void SetupInputArrays()
    Volume_double[7] = Volume_double7;
    Volume_double[8] = Volume_double8;
    Volume_double[9] = Volume_double9;
+
+   Expert_symbols[0]  = Expert_symbol0;
+   Expert_symbols[1]  = Expert_symbol1;
+   Expert_symbols[2]  = Expert_symbol2;
+   Expert_symbols[3]  = Expert_symbol3;
+   Expert_symbols[4]  = Expert_symbol4;
+   Expert_symbols[5]  = Expert_symbol5;
+   Expert_symbols[6]  = Expert_symbol6;
+   Expert_symbols[7]  = Expert_symbol7;
+   Expert_symbols[8]  = Expert_symbol8;
+   Expert_symbols[9]  = Expert_symbol9;
+   Expert_symbols[10] = Expert_symbol10;
+   Expert_symbols[11] = Expert_symbol11;
+   Expert_symbols[12] = Expert_symbol12;
+   Expert_symbols[13] = Expert_symbol13;
+   Expert_symbols[14] = Expert_symbol14;
+   Expert_symbols[15] = Expert_symbol15;
+   Expert_symbols[16] = Expert_symbol16;
+   Expert_symbols[17] = Expert_symbol17;
+   Expert_symbols[18] = Expert_symbol18;
+   Expert_symbols[19] = Expert_symbol19;
+   Expert_symbols[20] = Expert_symbol20;
+   Expert_symbols[21] = Expert_symbol21;
+   Expert_symbols[22] = Expert_symbol22;
+   Expert_symbols[23] = Expert_symbol23;
+   Expert_symbols[24] = Expert_symbol24;
+   Expert_symbols[25] = Expert_symbol25;
+   Expert_symbols[26] = Expert_symbol26;
+   Expert_symbols[27] = Expert_symbol27;
+   Expert_symbols[28] = Expert_symbol28;
+   Expert_symbols[29] = Expert_symbol29;
+   Expert_symbols[30] = Expert_symbol30;
+   Expert_symbols[31] = Expert_symbol31;
+   Expert_symbols[32] = Expert_symbol32;
+   Expert_symbols[33] = Expert_symbol33;
+   Expert_symbols[34] = Expert_symbol34;
+   Expert_symbols[35] = Expert_symbol35;
+   Expert_symbols[36] = Expert_symbol36;
+   Expert_symbols[37] = Expert_symbol37;
+   Expert_symbols[38] = Expert_symbol38;
+   Expert_symbols[39] = Expert_symbol39;
+   Expert_symbols[40] = Expert_symbol40;
+   Expert_symbols[41] = Expert_symbol41;
+   Expert_symbols[42] = Expert_symbol42;
+   Expert_symbols[43] = Expert_symbol43;
+   Expert_symbols[44] = Expert_symbol44;
+   Expert_symbols[45] = Expert_symbol45;
+   Expert_symbols[46] = Expert_symbol46;
+   Expert_symbols[47] = Expert_symbol47;
+   Expert_symbols[48] = Expert_symbol48;
+   Expert_symbols[49] = Expert_symbol49;
+
+   // pre-sort to allow InsertSort
+   symbols.Sort();
+   currencies.Sort();
+   if (StringLen(Expert_symbols[0]) == 0)
+     // no symbols configured .. only set currenty Symbol()
+     Expert_symbols[0] = Symbol();
+
+   for (int i=0; i<ArraySize(Expert_symbols); i++) {
+      if (StringLen(Expert_symbols[i]) == 0)
+         break;
+
+      if(!symbols.InsertSort(Expert_symbols[i])) {
+         Print("insert Symbol failed");
+         return(false);
+      }
+
+      // this asserts that currencies have 3 letters!!
+      string cur[2];
+      cur[0] = StringSubstr(Expert_symbols[i], 0, 3);
+      cur[1] = StringSubstr(Expert_symbols[i], 3, -1);
+
+      for(int j=0; j<2; j++) {
+         if(currencies.Search(cur[j])==-1) {
+            if (!currencies.InsertSort(cur[j])) {
+              Print("insert currency failed");
+              return(false);
+            }
+         }
+      }
+   }
+
+#ifdef _DEBUG      
+   if( !MQL5InfoInteger(MQL5_OPTIMIZATION)) {
+      for(int n=0; n<symbols.Total(); n++) {
+         PrintFormat("symbols[%d]=\"%s\"",n,symbols.At(n));
+      }
+      for(int n=0; n<currencies.Total(); n++) {
+         PrintFormat("currencies[%d]=\"%s\"",n,currencies.At(n));
+      }
+   }
+#endif
+
+  return true;
   }
 //+------------------------------------------------------------------+

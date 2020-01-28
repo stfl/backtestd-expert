@@ -158,7 +158,7 @@ bool CCustomSignal::InitIndicators(CIndicators *indicators)
    return(true);
   }
 //+------------------------------------------------------------------+
-//| Create MA indicators.                                            |
+//| Create indicator.                                            |
 //+------------------------------------------------------------------+
 bool CCustomSignal::InitCustomIndicator(CIndicators *indicators)
   {
