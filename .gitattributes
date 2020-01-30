@@ -1,1 +1,4 @@
-* text eol=crlf
+*.mqh diff text eol=crlf
+*.mq5 diff text eol=crlf
+*.mqproj diff text eol=crlf
+*.ex5 binary
