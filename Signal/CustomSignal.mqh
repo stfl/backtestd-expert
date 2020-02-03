@@ -84,6 +84,8 @@ public:
    virtual bool      ShortSide(void)  { return Side() < 0 ? true : false; }
    virtual bool      LongSignal(void) { return Direction() > 0 ? true : false; }
    virtual bool      ShortSignal(void) { return Direction() < 0 ? true : false; }
+   virtual bool      LongExit(void) { return ShortSignal(); }
+   virtual bool      ShortExit(void) { return LongSignal(); }
 
    // if Side() is not defined, use the direction and scale it up to 100
    virtual int       Side(void) { return(Direction()>0) ? 100 : -100; }

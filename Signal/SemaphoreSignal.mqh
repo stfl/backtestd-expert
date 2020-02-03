@@ -52,7 +52,7 @@ bool CSemaphoreSignal::InitIndicatorBuffers()
   {
    m_buf_up = m_indicator.At(m_buf_idx);
    m_buf_down = m_indicator.At(m_down_idx);
-
    m_last_signal = 0;
+
    return true;
   }

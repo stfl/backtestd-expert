@@ -217,7 +217,7 @@ int OnInit()
       else
          return ret;  // break fail
    }
- 
+
    return INIT_SUCCEEDED;
   }
 //+------------------------------------------------------------------+
@@ -439,7 +439,7 @@ double OnTester()
             : TesterStatistics(STAT_PROFIT_TRADES)/TesterStatistics(STAT_TRADES));
       Print("Profit: ",TesterStatistics(STAT_PROFIT));
      }
-   
+
    return(TesterStatistics(STAT_TRADES) == 0. ? 0.
           : tp_cnt/(TesterStatistics(STAT_TRADES)/2));
 //return(TesterStatistics(STAT_TRADES) == 0. ? 0.
@@ -680,7 +680,7 @@ bool SetupInputArrays()
       }
    }
 
-#ifdef _DEBUG      
+#ifdef _DEBUG
    if( !MQL5InfoInteger(MQL5_OPTIMIZATION)) {
       for(int n=0; n<symbols.Total(); n++) {
          PrintFormat("symbols[%d]=\"%s\"",n,symbols.At(n));
