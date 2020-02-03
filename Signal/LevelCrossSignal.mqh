@@ -32,9 +32,9 @@ protected:
    // if down enter is higher than up enter
    // his case always represents non strict side
    //                                                x  LongSide
-   // Level Down enter == Up exit  ▼----
+   // Level Down enter == Down exit  ▼----
    //                                                ▼ LongSide  ▲ ShortSide
-   // Level Up enter == Down exit  ▲----
+   // Level Up enter == Up exit      ▲----
    //                                                x <- ShortSide
 
 public:
@@ -53,14 +53,16 @@ protected:
 bool CLevelCrossSignal::LongSide(void)
   {
    int idx = StartIndex();
+   // Side needs to evaluate after Signal, otherwise this is not set
    if (m_last_signal <= 0)     // if the last Signal was not long
      return false;
-   if (m_stric_side)          // only on the Side if we're in the extreme zone
+   if (m_strict_side)          // only on the Side if we're in the extreme zone
      return (m_buf_up.At(idx) > m_level_up_enter);
-   else
+   if (m_level_up_exit > m_level_up_enter)
      return (m_buf_up.At(idx) > m_level_up_exit);   // we have not hit exit yet
                                                     // if up_exit and down_enter are the same this is pretty much the same as considering last_signal only
             //  && m_buf_up.At(idx) > m_level_down_enter);  // we have not hit the short entry yet. ... this already represented by m_last_signal
+   return m_last_signal;
   }
 
 bool CLevelCrossSignal::ShortSide(void)
@@ -68,10 +70,11 @@ bool CLevelCrossSignal::ShortSide(void)
    int idx = StartIndex();
    if (m_last_signal >= 0) // if the last Signal was not short
      return false;
-   if (m_stric_side)       // only on the Side if we're in the extreme zone
+   if (m_strict_side)       // only on the Side if we're in the extreme zone
      return (m_buf_up.At(idx) >= m_level_down_enter);
-   else
+   if (m_level_down_exit < m_level_down_enter)
      return (m_buf_up.At(idx) >= m_level_down_exit);
+   return m_last_signal;
   }
 
 bool CLevelCrossSignal::LongSignal(void)
@@ -115,7 +118,7 @@ bool CLevelCrossSignal::InitIndicatorBuffers()
    m_buf_up = m_indicator.At(m_buf_idx);
    m_buf_down = m_indicator.At(m_down_idx);
    m_last_signal = 0;
-   if (m_down_enter >= m_up_enter)
+   if (m_level_down_enter >= m_level_up_enter)
      m_strict_side = false;
 
    return true;
