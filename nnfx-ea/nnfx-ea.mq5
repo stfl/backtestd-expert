@@ -75,7 +75,12 @@ input double Confirm_double6 = 0.;   // Confirm double input 6
 input double Confirm_double7 = 0.;   // Confirm double input 7
 input double Confirm_double8 = 0.;   // Confirm double input 8
 input double Confirm_double9 = 0.;   // Confirm double input 9
-double Confirm_double[10];
+input double Confirm_double10 = 0.;   // Confirm double input 10
+input double Confirm_double11 = 0.;   // Confirm double input 11
+input double Confirm_double12 = 0.;   // Confirm double input 12
+input double Confirm_double13 = 0.;   // Confirm double input 13
+input double Confirm_double14 = 0.;   // Confirm double input 14
+double Confirm_double[15];
 
 input string Confirm2_Indicator="";  // Name of 2nd Confirmation Indicator to use
 input uint   Confirm2_Shift=0;    // Confirm2 Shift in Bars
@@ -89,7 +94,12 @@ input double Confirm2_double6 = 0.;   // Confirm2 double input 6
 input double Confirm2_double7 = 0.;   // Confirm2 double input 7
 input double Confirm2_double8 = 0.;   // Confirm2 double input 8
 input double Confirm2_double9 = 0.;   // Confirm2 double input 9
-double Confirm2_double[10];
+input double Confirm2_double10 = 0.;   // Confirm2 double input 10
+input double Confirm2_double11 = 0.;   // Confirm2 double input 11
+input double Confirm2_double12 = 0.;   // Confirm2 double input 12
+input double Confirm2_double13 = 0.;   // Confirm2 double input 13
+input double Confirm2_double14 = 0.;   // Confirm2 double input 14
+double Confirm2_double[15];
 
 input string Exit_Indicator="";  // Name of Exit Indicator to use
 input uint   Exit_Shift=0;    // Exit Shift in Bars
@@ -103,7 +113,12 @@ input double Exit_double6 = 0.;   // Exit double input 6
 input double Exit_double7 = 0.;   // Exit double input 7
 input double Exit_double8 = 0.;   // Exit double input 8
 input double Exit_double9 = 0.;   // Exit double input 9
-double Exit_double[10];
+input double Exit_double10 = 0.;   // Exit double input 10
+input double Exit_double11 = 0.;   // Exit double input 11
+input double Exit_double12 = 0.;   // Exit double input 12
+input double Exit_double13 = 0.;   // Exit double input 13
+input double Exit_double14 = 0.;   // Exit double input 14
+double Exit_double[15];
 
 input string Baseline_Indicator="";  // Name of Baseline Indicator to use
 input uint   Baseline_Shift=0;    // Baseline Shift in Bars
@@ -117,7 +132,12 @@ input double Baseline_double6 = 0.;   // Baseline double input 6
 input double Baseline_double7 = 0.;   // Baseline double input 7
 input double Baseline_double8 = 0.;   // Baseline double input 8
 input double Baseline_double9 = 0.;   // Baseline double input 9
-double Baseline_double[10];
+input double Baseline_double10 = 0.;   // Baseline double input 10
+input double Baseline_double11 = 0.;   // Baseline double input 11
+input double Baseline_double12 = 0.;   // Baseline double input 12
+input double Baseline_double13 = 0.;   // Baseline double input 13
+input double Baseline_double14 = 0.;   // Baseline double input 14
+double Baseline_double[15];
 
 input string Volume_Indicator="";  // Name of Volume Indicator to use
 input uint   Volume_Shift=0;    // Volume Shift in Bars
@@ -131,7 +151,12 @@ input double Volume_double6 = 0.;   // Volume double input 6
 input double Volume_double7 = 0.;   // Volume double input 7
 input double Volume_double8 = 0.;   // Volume double input 8
 input double Volume_double9 = 0.;   // Volume double input 9
-double Volume_double[10];
+input double Volume_double10 = 0.;   // Volume double input 10
+input double Volume_double11 = 0.;   // Volume double input 11
+input double Volume_double12 = 0.;   // Volume double input 12
+input double Volume_double13 = 0.;   // Volume double input 13
+input double Volume_double14 = 0.;   // Volume double input 14
+double Volume_double[15];
 
 //--- inputs for money
 input double             Money_FixLot_Percent =10.0;        // Percent
@@ -553,6 +578,11 @@ bool SetupInputArrays()
    Confirm_double[7] = Confirm_double7;
    Confirm_double[8] = Confirm_double8;
    Confirm_double[9] = Confirm_double9;
+   Confirm_double[10] = Confirm_double10;
+   Confirm_double[11] = Confirm_double11;
+   Confirm_double[12] = Confirm_double12;
+   Confirm_double[13] = Confirm_double13;
+   Confirm_double[14] = Confirm_double14;
 
    Confirm2_double[0] = Confirm2_double0;
    Confirm2_double[1] = Confirm2_double1;
@@ -564,6 +594,11 @@ bool SetupInputArrays()
    Confirm2_double[7] = Confirm2_double7;
    Confirm2_double[8] = Confirm2_double8;
    Confirm2_double[9] = Confirm2_double9;
+   Confirm2_double[10] = Confirm2_double10;
+   Confirm2_double[11] = Confirm2_double11;
+   Confirm2_double[12] = Confirm2_double12;
+   Confirm2_double[13] = Confirm2_double13;
+   Confirm2_double[14] = Confirm2_double14;
 
    Exit_double[0] = Exit_double0;
    Exit_double[1] = Exit_double1;
@@ -575,6 +610,11 @@ bool SetupInputArrays()
    Exit_double[7] = Exit_double7;
    Exit_double[8] = Exit_double8;
    Exit_double[9] = Exit_double9;
+   Exit_double[10] = Exit_double10;
+   Exit_double[11] = Exit_double11;
+   Exit_double[12] = Exit_double12;
+   Exit_double[13] = Exit_double13;
+   Exit_double[14] = Exit_double14;
 
    Baseline_double[0] = Baseline_double0;
    Baseline_double[1] = Baseline_double1;
@@ -586,6 +626,11 @@ bool SetupInputArrays()
    Baseline_double[7] = Baseline_double7;
    Baseline_double[8] = Baseline_double8;
    Baseline_double[9] = Baseline_double9;
+   Baseline_double[10] = Baseline_double10;
+   Baseline_double[11] = Baseline_double11;
+   Baseline_double[12] = Baseline_double12;
+   Baseline_double[13] = Baseline_double13;
+   Baseline_double[14] = Baseline_double14;
 
    Volume_double[0] = Volume_double0;
    Volume_double[1] = Volume_double1;
@@ -597,6 +642,11 @@ bool SetupInputArrays()
    Volume_double[7] = Volume_double7;
    Volume_double[8] = Volume_double8;
    Volume_double[9] = Volume_double9;
+   Volume_double[10] = Volume_double10;
+   Volume_double[11] = Volume_double11;
+   Volume_double[12] = Volume_double12;
+   Volume_double[13] = Volume_double13;
+   Volume_double[14] = Volume_double14;
 
    Expert_symbols[0]  = Expert_symbol0;
    Expert_symbols[1]  = Expert_symbol1;

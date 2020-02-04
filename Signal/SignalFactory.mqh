@@ -157,8 +157,6 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
      }
      
      PRODUCE_SIGNALS();
-     
-
 
    printf(__FUNCTION__+"Factory cannot produce Signal "+name);
    return NULL;
