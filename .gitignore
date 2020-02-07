@@ -1,5 +1,5 @@
 *.ex5
-!nnfx-ea\nnfx-ea.ex5
+# !nnfx-ea\nnfx-ea.ex5
 .vscode/
 *~
 *.swp

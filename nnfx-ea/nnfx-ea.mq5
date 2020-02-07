@@ -18,7 +18,7 @@
 //--- available trailing
 #include <Expert\Trailing\TrailingNone.mqh>
 //--- available money management
-#include <Expert\Money\MoneyFixedLot.mqh>
+#include "..\Money\MoneyFixedRiskFixedBalance.mqh"
 #include "..\NewBar\CisNewBar.mqh"
 #include "..\Signal\AggSignal.mqh"
 #include "..\Expert\BacktestExpert.mqh"
@@ -159,7 +159,7 @@ input double Volume_double14 = 0.;   // Volume double input 14
 double Volume_double[15];
 
 //--- inputs for money
-input double             Money_FixLot_Percent =10.0;        // Percent
+input double             Money_Risk =2.0;                   // Percent
 input double             Money_FixLot_Lots    =0.1;         // Fixed volume
 
 input string Expert_symbol0 = "";
@@ -401,7 +401,7 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      }
 //--- Set trailing parameters
 //--- Creation of money object
-   CMoneyFixedLot *money=new CMoneyFixedLot;
+   CMoneyFixedRiskFixedBalance *money=new CMoneyFixedRiskFixedBalance;
    if(money==NULL)
      {
       //--- failed
@@ -418,8 +418,9 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
       return(INIT_FAILED);
      }
 //--- Set money parameters
-   money.Percent(Money_FixLot_Percent);
-   money.Lots(Money_FixLot_Lots);
+   money.Percent(Money_Risk);
+   money.InitialBalance(100000.0);  // TODO get from Backtest run or sth
+   // money.Lots(Money_FixLot_Lots);
 //--- Check all trading objects parameters
    if(!ExtExpert.ValidationSettings())
      {
