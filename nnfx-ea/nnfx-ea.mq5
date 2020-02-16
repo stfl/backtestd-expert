@@ -59,6 +59,9 @@ input double             Signal_PriceLevel    =0.0;         // Price level to ex
 input double             Signal_StopLevel     =1.5;         // Stop Loss level ATR multiplier
 input double             Signal_TakeLevel     =1.0;         // Take Profit level ATR multiplier
 input int                Signal_Expiration    =1;           // Expiration of pending orders (in bars)
+input int                Signal_Baseline_Wait = 7;          // candles for the baseline to wait for other indicators to catch up
+
+datetime start_time = TimeCurrent();
 
 /* input ENUM_BACKTEST_MODE Backtest_Mode=0x01;       // ENUM_BACKTEST_MODE  || Bit Flags */
 
@@ -159,8 +162,8 @@ input double Volume_double14 = 0.;   // Volume double input 14
 double Volume_double[15];
 
 //--- inputs for money
-input double             Money_Risk =2.0;                   // Percent
-input double             Money_FixLot_Lots    =0.1;         // Fixed volume
+input double             Money_Risk        = 1.0;         // Risk per trade (a regular entry has 2 trades.. x2 is the actual risk)
+input double             Money_FixLot_Lots = 0.1;         // Fixed volume
 
 input string Expert_symbol0 = "";
 input string Expert_symbol1 = "";
@@ -419,7 +422,7 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      }
 //--- Set money parameters
    money.Percent(Money_Risk);
-   money.InitialBalance(100000.0);  // TODO get from Backtest run or sth
+   money.InitialBalance(TesterStatistics(STAT_INITIAL_DEPOSIT));
    // money.Lots(Money_FixLot_Lots);
 //--- Check all trading objects parameters
    if(!ExtExpert.ValidationSettings())
@@ -448,6 +451,14 @@ double OnTester()
 // custom MAX: % take profit hit of all trades
 // each trade opens 2 positions, one with tp and one without
 // => half of the trades are considered
+
+   datetime stop_time = TimeCurrent();
+   uint passed_bars = (stop_time - start_time) / PeriodSeconds();
+   if ((TesterStatistics(STAT_TRADES) / Experts.Total()) < (passed_bars / 40)) {
+      // we want a signal at least every 40 candles -> 6.5/year (5 days a week)
+     return 0.0;
+   }
+
    int tp_cnt = 0;
    int sl_cnt = 0;
     for(int i=0; i<Experts.Total(); i++) {

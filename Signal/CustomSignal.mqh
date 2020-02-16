@@ -44,7 +44,8 @@ protected:
 
    ENUM_APPLIED_PRICE m_IPC;             // applied price
    uint               m_Filter_Points;   // Filter in Points
-   uint               m_Shift;           // bar index for entry signal
+   uint               m_Idx;             // bar index to consider
+   uint               m_Shift;           // shifting bar index
 
 public:
                      CCustomSignal(void);
@@ -67,7 +68,7 @@ public:
    void               Ind_Timeframe(ENUM_TIMEFRAMES value)    { m_Ind_Timeframe=value;    }
    void               IPC(ENUM_APPLIED_PRICE value)           { m_IPC=value;              }
    void               FilterPoints(uint value)                { m_Filter_Points=value;    }
-   void               Shift(uint value)                       { m_Shift=value;            }
+   void               Shift(uint value)                       { m_Shift=value; m_Idx+=m_Shift; }
    void               IndicatorType(ENUM_INDICATOR value)               { m_indicator_type=value;   }
 
    //--- method of verification of settings
@@ -102,6 +103,7 @@ CCustomSignal::CCustomSignal(void) : m_indicator_type(IND_CUSTOM)
   {
 //--- initialization of protected data
    m_used_series=USE_SERIES_OPEN+USE_SERIES_HIGH+USE_SERIES_LOW+USE_SERIES_CLOSE;
+   m_Idx = StartIndex();
   }
 //+------------------------------------------------------------------+
 //| Destructor                                                       |
@@ -189,7 +191,6 @@ bool CCustomSignal::InitCustomIndicator(CIndicators *indicators)
 double CCustomSignal::GetData(const int buffer_num)
   {
    assert(GetPointer(m_indicator) != NULL, "m_indicator not declared");
-// TODO consider m_Shift...
-   return m_indicator.GetData(buffer_num, m_every_tick ? 0 : 1);
+   return m_indicator.GetData(buffer_num, m_Idx);
   }
 //+------------------------------------------------------------------+

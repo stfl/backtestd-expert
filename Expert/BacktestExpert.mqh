@@ -35,7 +35,6 @@ enum ENUM_EXPERT_STATE
 //+------------------------------------------------------------------+
 //--- check the expectation of event
 
-#define BASELINE_WAIT                     4
 //+------------------------------------------------------------------+
 //| Class CBacktestExpert.                                                   |
 //| Purpose: Base class expert advisor.                              |
@@ -130,6 +129,7 @@ public:
    virtual void      OnBookEvent(const string &symbol);
    void              StopAtrMultiplier(double value) { m_stop_atr = value; }
    void              TakeAtrMultiplier(double value) { m_take_atr = value; }
+   void              BaselineWait(uint value) { m_baseline_wait = value; }
    uint              StopLossCnt(void) { return m_stop_loss_cnt; }
    uint              TakeProfitCnt(void) { return m_take_profit_cnt; }
 
@@ -142,7 +142,7 @@ protected:
    virtual void      DeinitTrailing(void);
    virtual void      DeinitMoney(void);
    virtual void      DeinitIndicators(void);
-   //--- refreshing 
+   //--- refreshing
    virtual bool      Refresh(void);
    //--- position select depending on netting or hedging
    virtual bool      SelectPosition(void);
@@ -261,7 +261,7 @@ CBacktestExpert::CBacktestExpert(void) : m_period_flags(0),
                          m_max_orders(1),
                          m_stop_atr(1.5),
                          m_take_atr(1.0),
-                         m_baseline_wait(0),
+                         m_baseline_wait(7),
                          m_pos_take(0),
                          m_pos_take_tp(0),
                          m_pos_open_end(0),
@@ -269,7 +269,6 @@ CBacktestExpert::CBacktestExpert(void) : m_period_flags(0),
                          m_take_profit_cnt(0),
                          m_stop_loss_cnt(0),
                          m_state(NoTrade)
-
   {
    m_other_symbol      =true;
    m_other_period      =true;
@@ -345,7 +344,7 @@ bool CBacktestExpert::Init(string symbol,ENUM_TIMEFRAMES period,bool every_tick,
    HistoryPoint();
 //--- primary initialization is successful, pass to the phase of tuning
    m_init_phase=INIT_PHASE_TUNING;
-   
+
    m_last_bar.SetSymbol(m_symbol.Name());
    m_last_bar.SetPeriod(m_period);
 //--- ok
@@ -634,20 +633,6 @@ bool CBacktestExpert::SelectPosition(void)
 //+------------------------------------------------------------------+
 bool CBacktestExpert::Processing(void)
   {
-   /* SeriesInfoInteger(m_symbol,m_period,SERIES_LASTBAR_DATE,newbar_time) */
-
-   if((MQL5InfoInteger(MQL5_TESTER) || MQL5InfoInteger(MQL5_OPTIMIZATION)) && !m_every_tick) {
-     // if we are running on open prices only: assert that we're are looking at the correct bar
-     m_last_bar.isNewBar();
-     datetime newbar_time = m_last_bar.GetLastBarTime();
-     if (TimeCurrent() - newbar_time > 600) {
-       Print(m_symbol.Name(), " last bar: ", TimeToString(newbar_time, TIME_DATE), " - ", TimeToString(newbar_time, TIME_SECONDS));
-       assert(true, "Bar updates for all symbols are not in sync - we are looking at an old bar");
-       // the bar is more than 10 minutes old
-       // we are probably lookin at yesterdays bar !!!
-     }
-   }
-   
    bool res=false;
 //--- calculate signal direction once
    // TODO needed?
@@ -733,7 +718,7 @@ bool CBacktestExpert::Processing(void)
                m_next_state=Long;
             // else if (!m_signal.BaselineATRChannelLong())
             //   m_next_state = NoTrade;
-            else if(++m_baseline_wait>=BASELINE_WAIT)
+            else if(++m_baseline_wait>=m_baseline_wait)
               {
                m_next_state=NoTrade;
               }
@@ -799,7 +784,7 @@ bool CBacktestExpert::Processing(void)
                m_next_state=Short;
             //else if (!m_signal.BaselineATRChannelShort())
             //  m_next_state = NoTrade;
-            else if(++m_baseline_wait>=BASELINE_WAIT)
+            else if(++m_baseline_wait>=m_baseline_wait)
               {
                m_next_state=NoTrade;
               }
@@ -860,7 +845,7 @@ bool CBacktestExpert::Processing(void)
       // and simplify the entier transition matrix
      }
    while(m_next_state!=m_state && m_next_state==NoTrade);
-      
+
    if(m_next_state!=m_state)
      {
       // there has been a transition
@@ -997,6 +982,20 @@ void CBacktestExpert::OnTick(void)
 //--- updated quotes and indicators
    if(!Refresh())
       return;
+
+    /* SeriesInfoInteger(m_symbol,m_period,SERIES_LASTBAR_DATE,newbar_time) */
+   if((MQL5InfoInteger(MQL5_TESTER) || MQL5InfoInteger(MQL5_OPTIMIZATION)) && !m_every_tick) {
+     // if we are running on open prices only: assert that we're are looking at the correct bar
+     m_last_bar.isNewBar();
+     datetime newbar_time = m_last_bar.GetLastBarTime();
+     if (TimeCurrent() - newbar_time > 600) {
+       Print(m_symbol.Name(), " last bar: ", TimeToString(newbar_time, TIME_DATE), " - ", TimeToString(newbar_time, TIME_SECONDS));
+       assert(true, "Bar updates for all symbols are not in sync - we are looking at an old bar");
+       // the bar is more than 10 minutes old
+       // we are probably lookin at yesterdays bar !!!
+     }
+   }
+
 //--- expert processing
    Processing();
   }
@@ -1936,8 +1935,8 @@ int CBacktestExpert::TimeframesFlags(MqlDateTime &time)
    if(m_last_tick_time.min==-1)
       return(result);
 //--- check change time
-   if(time.min==m_last_tick_time.min && 
-      time.hour==m_last_tick_time.hour && 
+   if(time.min==m_last_tick_time.min &&
+      time.hour==m_last_tick_time.hour &&
       time.day==m_last_tick_time.day &&
       time.mon==m_last_tick_time.mon)
       return(OBJ_NO_PERIODS);
@@ -2058,7 +2057,7 @@ string CBacktestExpert::StateName(ENUM_EXPERT_STATE state)
 //+------------------------------------------------------------------+
 void CBacktestExpert::PrintOrders()
   {
-#ifdef _DEBUG      
+#ifdef _DEBUG
    int total=OrdersTotal();
    if(total==0)
       return;
@@ -2089,7 +2088,7 @@ void CBacktestExpert::PrintHistoryByPosition(long position_id)
 //+------------------------------------------------------------------+
 void CBacktestExpert::PrintHistoryOrders()
   {
-#ifdef _DEBUG      
+#ifdef _DEBUG
    int total=HistoryOrdersTotal();
    if(total==0)
       return;
@@ -2109,7 +2108,7 @@ void CBacktestExpert::PrintHistoryOrders()
 //+------------------------------------------------------------------+
 void CBacktestExpert::PrintDeals()
   {
-#ifdef _DEBUG      
+#ifdef _DEBUG
    int total=HistoryDealsTotal();
    if(total==0)
       return;
@@ -2130,7 +2129,7 @@ void CBacktestExpert::PrintDeals()
 //+------------------------------------------------------------------+
 void CBacktestExpert::PrintPositions()
   {
-#ifdef _DEBUG      
+#ifdef _DEBUG
    int total=PositionsTotal();
    if(total==0)
       return;
@@ -2218,7 +2217,7 @@ bool CBacktestExpert::OrderTPHit()
   {
    string comment=m_hist_order.Comment();
    StringToLower(comment);
-   if(StringFind(comment,"tp")>=0) 
+   if(StringFind(comment,"tp")>=0)
      {
       Print("=> take profit hit (",++m_take_profit_cnt,")");
       return true;
@@ -2233,7 +2232,7 @@ bool CBacktestExpert::OrderSLHit()
   {
    string comment=m_hist_order.Comment();
    StringToLower(comment);
-   if(StringFind(comment,"sl")>=0) 
+   if(StringFind(comment,"sl")>=0)
      {
       Print("=> stop loss hit (",++m_stop_loss_cnt,")");
       return true;
