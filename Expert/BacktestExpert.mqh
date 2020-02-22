@@ -2020,13 +2020,13 @@ void CBacktestExpert::PrintTransition(void)
           m_signal.BaselineSignal() == NULL ? "" : "B:",
           m_signal.BaselineSignal() == NULL ? "" : m_signal.BaselineSignalLong()     ? "▲" : m_signal.BaselineSignalShort()     ? "▼" : "",
           m_signal.BaselineSignal() == NULL ? "" : m_signal.BaselineSideLong()       ? "↑" : m_signal.BaselineSideShort()       ? "↓" : "?",
-          m_signal.BaselineSignal() == NULL ? "" : m_signal.BaselineATRChannelLong() ? "✓" : m_signal.BaselineATRChannelShort() ? "✓" : "✗",
+          m_signal.BaselineSignal() == NULL ? "" : m_signal.BaselineATRChannelLong() ? "√" : m_signal.BaselineATRChannelShort() ? "√" : "X",
 
           m_signal.ExitSignal()     == NULL ? "" : "E:",
           m_signal.ExitSignal()     == NULL ? "" : m_signal.ExitSignalLong()         ? "▲" : m_signal.ExitSignalShort()         ? "▼" : "",
 
           m_signal.VolumeSignal()   == NULL ? "" : "V:",
-          m_signal.VolumeSignal()   == NULL ? "" : m_signal.Volume()                 ? "✓" : "✗",
+          m_signal.VolumeSignal()   == NULL ? "" : m_signal.Volume()                 ? "√" : "X",
           StateName(m_state),
           StateName(m_next_state)
           );

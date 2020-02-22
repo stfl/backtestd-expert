@@ -14,7 +14,7 @@ protected:
    double m_level_up_exit;
    double m_level_down_enter;
    double m_level_down_exit;
-   bool  m_strict_side;  // Side considers the enter or the exit values
+   bool  m_stateful_side;      // Side considers the enter or the exit values
    int   m_last_signal;
 
    //                                  strict = true            strict == false
@@ -45,36 +45,38 @@ public:
    virtual bool      ShortSignal(void);
    virtual bool      LongExit(void);
    virtual bool      ShortExit(void);
+   
+                     CLevelCrossSignal(void);
 
 protected:
    virtual bool      InitIndicatorBuffers();
   };
+  
+CLevelCrossSignal::CLevelCrossSignal(void) {
+   m_stateful_side = false;
+   m_last_signal = 0;
+}
 
 bool CLevelCrossSignal::LongSide(void)
   {
    int idx = StartIndex();
-   // Side needs to evaluate after Signal, otherwise this is not set
-   if (m_last_signal <= 0)     // if the last Signal was not long
-     return false;
-   if (m_strict_side)          // only on the Side if we're in the extreme zone
-     return (m_buf_up.At(idx) > m_level_up_enter);
-   if (m_level_up_exit > m_level_up_enter)
-     return (m_buf_up.At(idx) > m_level_up_exit);   // we have not hit exit yet
-                                                    // if up_exit and down_enter are the same this is pretty much the same as considering last_signal only
-            //  && m_buf_up.At(idx) > m_level_down_enter);  // we have not hit the short entry yet. ... this already represented by m_last_signal
-   return m_last_signal;
+   if (m_stateful_side) {
+      LongSignal();                 // calculate Signal in case we don't have m_last_signal set yet.
+      return m_last_signal > 0;     // consider the last signal
+   } else {
+      return m_buf_up.At(idx) > m_level_up_enter;
+   }
   }
 
 bool CLevelCrossSignal::ShortSide(void)
   {
    int idx = StartIndex();
-   if (m_last_signal >= 0) // if the last Signal was not short
-     return false;
-   if (m_strict_side)       // only on the Side if we're in the extreme zone
-     return (m_buf_up.At(idx) >= m_level_down_enter);
-   if (m_level_down_exit < m_level_down_enter)
-     return (m_buf_up.At(idx) >= m_level_down_exit);
-   return m_last_signal;
+   if (m_stateful_side) {
+      ShortSignal();                 // calculate Signal in case we don't have m_last_signal set yet.
+      return m_last_signal < 0;     // consider the last signal
+   } else {
+      return m_buf_down.At(idx) < m_level_down_enter;
+   }
   }
 
 bool CLevelCrossSignal::LongSignal(void)
@@ -117,9 +119,5 @@ bool CLevelCrossSignal::InitIndicatorBuffers()
 {
    m_buf_up = m_indicator.At(m_buf_idx);
    m_buf_down = m_indicator.At(m_down_idx);
-   m_last_signal = 0;
-   if (m_level_down_enter >= m_level_up_enter)
-     m_strict_side = false;
-
    return true;
 }
