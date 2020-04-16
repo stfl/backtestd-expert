@@ -16,9 +16,16 @@ public:
    virtual bool      LongSignal(void);
    virtual bool      ShortSignal(void);
 
+   void Buffer(uint buf);
+
 protected:
    virtual bool      InitIndicatorBuffers();
   };
+
+void CZeroLineCrossSignal::Buffer(uint buf) {
+   m_buf_idx = buf;
+   m_buf = m_indicator.At(m_buf_idx);
+}
   
 bool CZeroLineCrossSignal::LongSide(void)
   {

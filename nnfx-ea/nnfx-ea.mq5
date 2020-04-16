@@ -3,8 +3,8 @@
 //|                                    Copyright 2019, Stefan Lendl. |
 //|                                             https://www.mql5.com |
 //+------------------------------------------------------------------+
-#property copyright "Copyright 2019, Stefan Lendl."
-#property version   "1.0"
+#property copyright "Copyright 2020, Stefan Lendl."
+#property version   "2.0"
 //+------------------------------------------------------------------+
 //| Include                                                          |
 //+------------------------------------------------------------------+
@@ -67,6 +67,7 @@ datetime start_time = TimeCurrent();
 
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator="";  // Name of Confirmation Indicator to use
+input ENUM_SIGNAL_CLASS Confirm_SignalClass=Other; // Type|Class of Indicator
 input uint   Confirm_Shift=0;                       // Shift in Bars
 input double Confirm_double0 = 0.;   // Confirm double input 0
 input double Confirm_double1 = 0.;   // Confirm double input 1
@@ -84,8 +85,21 @@ input double Confirm_double12 = 0.;   // Confirm double input 12
 input double Confirm_double13 = 0.;   // Confirm double input 13
 input double Confirm_double14 = 0.;   // Confirm double input 14
 double Confirm_double[15];
+input uint Confirm_buffer0=0;
+input uint Confirm_buffer1=0;
+input uint Confirm_buffer2=0;
+input uint Confirm_buffer3=0;
+input uint Confirm_buffer4=0;
+double Confirm_buffer[5];
+input double Confirm_param0=0.;
+input double Confirm_param1=0.;
+input double Confirm_param2=0.;
+input double Confirm_param3=0.;
+input double Confirm_param4=0.;
+double Confirm_param[5];
 
 input string Confirm2_Indicator="";  // Name of 2nd Confirmation Indicator to use
+input ENUM_SIGNAL_CLASS Confirm2_SignalClass=Other; // Type|Class of Indicator
 input uint   Confirm2_Shift=0;    // Confirm2 Shift in Bars
 input double Confirm2_double0 = 0.;   // Confirm2 double input 0
 input double Confirm2_double1 = 0.;   // Confirm2 double input 1
@@ -105,6 +119,7 @@ input double Confirm2_double14 = 0.;   // Confirm2 double input 14
 double Confirm2_double[15];
 
 input string Exit_Indicator="";  // Name of Exit Indicator to use
+input ENUM_SIGNAL_CLASS Exit_SignalClass=Other; // Type|Class of Indicator
 input uint   Exit_Shift=0;    // Exit Shift in Bars
 input double Exit_double0 = 0.;   // Exit double input 0
 input double Exit_double1 = 0.;   // Exit double input 1
@@ -124,6 +139,7 @@ input double Exit_double14 = 0.;   // Exit double input 14
 double Exit_double[15];
 
 input string Baseline_Indicator="";  // Name of Baseline Indicator to use
+input ENUM_SIGNAL_CLASS Baseline_SignalClass=Other; // Type|Class of Indicator
 input uint   Baseline_Shift=0;    // Baseline Shift in Bars
 input double Baseline_double0 = 0.;   // Baseline double input 0
 input double Baseline_double1 = 0.;   // Baseline double input 1
@@ -143,6 +159,7 @@ input double Baseline_double14 = 0.;   // Baseline double input 14
 double Baseline_double[15];
 
 input string Volume_Indicator="";  // Name of Volume Indicator to use
+input ENUM_SIGNAL_CLASS Volume_SignalClass=Other; // Type|Class of Indicator
 input uint   Volume_Shift=0;    // Volume Shift in Bars
 input double Volume_double0 = 0.;   // Volume double input 0
 input double Volume_double1 = 0.;   // Volume double input 1
@@ -300,6 +317,9 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      }
    CCustomSignal *confirm_signal=CSignalFactory::MakeSignal(Confirm_Indicator,
                                  Confirm_double,
+                                     Confirm_buffer,
+                                     Confirm_param,
+                                                            Confirm_SignalClass,
                                  PERIOD_CURRENT,Confirm_Shift);
 
    if(confirm_signal==NULL)
@@ -317,6 +337,9 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      {
       CCustomSignal *confirm2_signal=CSignalFactory::MakeSignal(Confirm2_Indicator,
                                      Confirm2_double,
+                                     Confirm_buffer,
+                                     Confirm_param,
+                                                                Confirm2_SignalClass,
                                      PERIOD_CURRENT,Confirm2_Shift);
 
       if(confirm2_signal==NULL)
@@ -335,6 +358,9 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      {
       CCustomSignal *exit_signal=CSignalFactory::MakeSignal(Exit_Indicator,
                                  Exit_double,
+                                     Confirm_buffer,
+                                     Confirm_param,
+                                                            Exit_SignalClass,
                                  PERIOD_CURRENT,Exit_Shift);
 
       if(exit_signal==NULL)
@@ -354,6 +380,9 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      {
       CCustomSignal *baseline_signal=CSignalFactory::MakeSignal(Baseline_Indicator,
                                      Baseline_double,
+                                     Confirm_buffer,
+                                     Confirm_param,
+                                                                Baseline_SignalClass,
                                      PERIOD_CURRENT,Baseline_Shift);
 
       if(baseline_signal==NULL)
@@ -372,6 +401,9 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      {
       CCustomSignal *volume_signal=CSignalFactory::MakeSignal(Volume_Indicator,
                                    Volume_double,
+                                     Confirm_buffer,
+                                     Confirm_param,
+                                                              Volume_SignalClass,
                                    PERIOD_CURRENT,Volume_Shift);
 
       if(volume_signal==NULL)
@@ -580,6 +612,7 @@ void OnTimer()
 //+------------------------------------------------------------------+
 bool SetupInputArrays()
   {
+   // init Confirm2 indicator inputs and params
    Confirm_double[0] = Confirm_double0;
    Confirm_double[1] = Confirm_double1;
    Confirm_double[2] = Confirm_double2;
@@ -596,6 +629,19 @@ bool SetupInputArrays()
    Confirm_double[13] = Confirm_double13;
    Confirm_double[14] = Confirm_double14;
 
+   Confirm_buffer[0] = Confirm_buffer0;
+   Confirm_buffer[1] = Confirm_buffer1;
+   Confirm_buffer[2] = Confirm_buffer2;
+   Confirm_buffer[3] = Confirm_buffer3;
+   Confirm_buffer[4] = Confirm_buffer4;
+
+   Confirm_param[0] = Confirm_param0;
+   Confirm_param[1] = Confirm_param1;
+   Confirm_param[2] = Confirm_param2;
+   Confirm_param[3] = Confirm_param3;
+   Confirm_param[4] = Confirm_param4;
+
+   // init Confirm2 indicator params
    Confirm2_double[0] = Confirm2_double0;
    Confirm2_double[1] = Confirm2_double1;
    Confirm2_double[2] = Confirm2_double2;
