@@ -25,22 +25,9 @@ class CCustomSignal : public CExpertSignal
 protected:
    //--- adjusted parameters
    MqlParam           m_params[];
-   int                m_params_size;
+   uint               m_params_size;
    CiCustom           m_indicator;             // object-indicator for subclassed signals
    ENUM_INDICATOR     m_indicator_type;
-
-
-   //--- "weights" of market models (0-100)
-   int               m_pattern_0;      // model 0 "price is on the necessary side from the indicator"
-   int               m_pattern_1;      // model 1 "price crossed the indicator with opposite direction"
-   int               m_pattern_2;      // model 2 "price crossed the indicator with the same direction"
-   int               m_pattern_3;      // model 3 "piercing"
-
-   //--- adjusted parameters
-   bool              m_BuyPosOpen;       // permission to buy
-   bool              m_SellPosOpen;      // permission to sell
-   bool              m_BuyPosClose;      // permission to exit a long position
-   bool              m_SellPosClose;     // permission to exit a short position
    ENUM_TIMEFRAMES   m_Ind_Timeframe;    // Indicator timeframe
 
    ENUM_APPLIED_PRICE m_IPC;             // applied price
@@ -50,27 +37,21 @@ protected:
    string             m_indicator_file;
    // string             m_indicator_name;
 
+   uint m_buffers[];
+   double m_config[];
+
 public:
                      CCustomSignal(void);
                     ~CCustomSignal(void);
    //--- methods of setting adjustable parameters
-   void              Params(MqlParam &param[], int size);
+        void         Params(MqlParam &param[], int size); // { ArrayCopy(m_params, param); m_params_size = ArraySize(m_params); }
    virtual void      ParamsFromInput(double &inputs[]);
+   virtual void      Buffers(uint &buffers[]) { ArrayCopy(m_buffers, buffers); }
+   virtual void      Config(double &config[]) { ArrayCopy(m_config, config); }  // assigning Levels and Colors to the Indicator according to the indi class
 
-   //--- methods of adjusting "weights" of market models
-   void              Pattern_0(int value)                { m_pattern_0=value;          }
-   void              Pattern_1(int value)                { m_pattern_1=value;          }
-   void              Pattern_2(int value)                { m_pattern_2=value;          }
-   void              Pattern_3(int value)                { m_pattern_3=value;          }
-
-   //--- methods of setting adjustable parameters
-   void               BuyPosOpen(bool value)                  { m_BuyPosOpen=value;       }
-   void               SellPosOpen(bool value)                 { m_SellPosOpen=value;      }
-   void               BuyPosClose(bool value)                 { m_BuyPosClose=value;      }
-   void               SellPosClose(bool value)                { m_SellPosClose=value;     }
-   void               Ind_Timeframe(ENUM_TIMEFRAMES value)    { m_Ind_Timeframe=value;    }
-   void               IPC(ENUM_APPLIED_PRICE value)           { m_IPC=value;              }
-   void               FilterPoints(uint value)                { m_Filter_Points=value;    }
+   void               Ind_Timeframe(ENUM_TIMEFRAMES value)    { m_Ind_Timeframe=value;    }  // TODO rename TimeFrame
+   void               IPC(ENUM_APPLIED_PRICE value)           { m_IPC=value;              }  // TODO remove
+   void               FilterPoints(uint value)                { m_Filter_Points=value;    }  // TODO needed?
    void               Shift(uint value)                       { m_Shift=value; m_Idx+=m_Shift; }
    void               IndicatorType(ENUM_INDICATOR value)      { m_indicator_type=value;   }
    void               IndicatorFile(string filename);
@@ -82,23 +63,24 @@ public:
    //--- method of creating the indicator and timeseries
    virtual bool      InitIndicators(CIndicators *indicators);
    //--- methods of checking if the market models are formed
-   virtual int       LongCondition(void)                                      { return(0);     }
-   virtual int       ShortCondition(void)                                     { return(0);     }
-   virtual double    GetData(const int buffer_num);
+
+   virtual int       LongCondition(void)                                      { return(0);     } // TODO delete
+   virtual int       ShortCondition(void)                                     { return(0);     } // TODO delete
+   virtual double    GetData(const int buffer_num, uint shift=0);
 
    virtual bool      LongSide(void)   { return Side() > 0 ? true : false; }
    virtual bool      ShortSide(void)  { return Side() < 0 ? true : false; }
-   virtual bool      LongSignal(void) { return Direction() > 0 ? true : false; }
-   virtual bool      ShortSignal(void) { return Direction() < 0 ? true : false; }
-   virtual bool      LongExit(void) { return ShortSignal(); }
-   virtual bool      ShortExit(void) { return LongSignal(); }
+   virtual bool      LongSignal(void) { return Direction() > 0 ? true : false; }  // TODO replace with CheckOpenLong
+   virtual bool      ShortSignal(void) { return Direction() < 0 ? true : false; } // TODO replace with CheckOpenShort
+   virtual bool      LongExit(void) { return ShortSignal(); } // TODO CheckCloseLong
+   virtual bool      ShortExit(void) { return LongSignal(); } // TODO CheckCloseShort
 
    // if Side() is not defined, use the direction and scale it up to 100
-   virtual int       Side(void) { return(Direction()>0) ? 100 : -100; }
+   virtual int       Side(void) { return(Direction()>0) ? 100 : -100; }     // TODO implement Direction instead of Side in the subclasses
 
 protected:
    //--- method of initialization of the indicator
-   bool              InitCustomIndicator(CIndicators *indicators);
+   bool              InitCustomIndicator(CIndicators *indicators);         // TODO replace with CreateIndicator
    virtual bool      InitIndicatorBuffers()                                  { return true; }
   };
 //+------------------------------------------------------------------+
@@ -185,7 +167,7 @@ bool CCustomSignal::InitIndicators(CIndicators *indicators)
 //--- create and initialize AMA indicator
    if(!InitCustomIndicator(indicators))
       return(false);
-   if(!InitIndicatorBuffers())
+   if(!InitIndicatorBuffers()) // TODO this call can be moves to an overloading of InitIndicators in the subclass
       return(false);
 //--- ok
    return(true);
@@ -205,13 +187,6 @@ bool CCustomSignal::InitCustomIndicator(CIndicators *indicators)
       printf(__FUNCTION__+": error adding object");
       return(false);
      }
-//--- initialize object
-      // if (!m_indicator.Create(m_symbol.Name(), m_period, m_indicator_type, m_params_size, m_params))
-      // {
-      //    printf(__FUNCTION__+": error initializing object");
-      //    return(false);
-      // }
-
       if(!m_indicator.Create(m_symbol.Name(), m_period, m_indicator_type, m_params_size, m_params))
       {
          printf(__FUNCTION__+": error initializing object");
@@ -224,9 +199,9 @@ bool CCustomSignal::InitCustomIndicator(CIndicators *indicators)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-double CCustomSignal::GetData(const int buffer_num)
+double CCustomSignal::GetData(const int buffer_num, uint shift)
   {
    assert(GetPointer(m_indicator) != NULL, "m_indicator not declared");
-   return m_indicator.GetData(buffer_num, m_Idx);
+   return m_indicator.GetData(buffer_num, m_Idx + shift);
   }
 //+------------------------------------------------------------------+

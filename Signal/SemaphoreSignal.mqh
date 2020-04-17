@@ -7,8 +7,6 @@
 class CSemaphoreSignal : public CCustomSignal
   {
 protected:
-   uint              m_buf_idx;
-   uint              m_down_idx;
    CIndicatorBuffer *m_buf_up;
    CIndicatorBuffer *m_buf_down;
    int               m_last_signal;
@@ -32,7 +30,6 @@ bool CSemaphoreSignal::LongSignal(void)
       m_last_signal = 100;
       return true;
    }
-   else
    return false;
   }
 
@@ -44,14 +41,13 @@ bool CSemaphoreSignal::ShortSignal(void)
       m_last_signal = -100;
       return true;
    }
-   else
    return false;
   }
 
 bool CSemaphoreSignal::InitIndicatorBuffers()
   {
-   m_buf_up = m_indicator.At(m_buf_idx);
-   m_buf_down = m_indicator.At(m_down_idx);
+   m_buf_up = m_indicator.At(m_buffers[0]);
+   m_buf_down = m_indicator.At(m_buffers[1]);
    m_last_signal = 0;
 
    return true;

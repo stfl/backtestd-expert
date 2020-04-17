@@ -3,10 +3,9 @@
 //+------------------------------------------------------------------+
 #include "CustomSignal.mqh"
 //+------------------------------------------------------------------+
-class COnChartSignal : public CCustomSignal
+class CPriceCrossInvertedSignal : public CCustomSignal
   {
 protected:
-   uint              m_buf_idx;
    CIndicatorBuffer *m_buf;
 
 public:
@@ -20,26 +19,28 @@ protected:
    virtual bool      InitIndicatorBuffers();
   };
 
-bool COnChartSignal::LongSide(void)
+bool CPriceCrossInvertedSignal::LongSide(void)
   {
    int idx = StartIndex();
-   return (Close(idx) >= m_buf.At(idx));
+   return (Close(idx) < m_buf.At(idx));
   }
 
-bool COnChartSignal::LongSignal(void)
+bool CPriceCrossInvertedSignal::LongSignal(void)
   {
    int idx = StartIndex();
-   return (Close(idx) > m_buf.At(idx) && Close(idx+1) <= m_buf.At(idx+1));
+   return (Close(idx)     <= m_buf.At(idx) &&
+           Close(idx + 1) >  m_buf.At(idx + 1));
   }
 
-bool COnChartSignal::ShortSignal(void)
+bool CPriceCrossInvertedSignal::ShortSignal(void)
   {
    int idx = StartIndex();
-   return (Close(idx) <= m_buf.At(idx) && Close(idx+1) > m_buf.At(idx+1));
+   return (Close(idx)     >  m_buf.At(idx) &&
+           Close(idx + 1) <= m_buf.At(idx + 1));
   }
 
-bool COnChartSignal::InitIndicatorBuffers()
+bool CPriceCrossInvertedSignal::InitIndicatorBuffers()
 {
-   m_buf = m_indicator.At(m_buf_idx);
+   m_buf = m_indicator.At(m_buffers[0]);
    return true;
 }

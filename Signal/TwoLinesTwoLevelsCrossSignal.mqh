@@ -1,13 +1,11 @@
-﻿//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                     Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
 #include "CustomSignal.mqh"
 //+------------------------------------------------------------------+
-class CLevelCrossSignal : public CCustomSignal
+class CTwoLinesTwoLevelsCrossSignal : public CCustomSignal
   {
 protected:
-   uint m_buf_idx;
-   uint m_down_idx;
    CIndicatorBuffer *m_buf_up;
    CIndicatorBuffer *m_buf_down;
    double m_level_up_enter;
@@ -46,18 +44,18 @@ public:
    virtual bool      LongExit(void);
    virtual bool      ShortExit(void);
    
-                     CLevelCrossSignal(void);
+                     CTwoLinesTwoLevelsCrossSignal(void);
 
 protected:
    virtual bool      InitIndicatorBuffers();
   };
   
-CLevelCrossSignal::CLevelCrossSignal(void) {
+CTwoLinesTwoLevelsCrossSignal::CTwoLinesTwoLevelsCrossSignal(void) {
    m_stateful_side = false;
    m_last_signal = 0;
 }
 
-bool CLevelCrossSignal::LongSide(void)
+bool CTwoLinesTwoLevelsCrossSignal::LongSide(void)
   {
    int idx = StartIndex();
    if (m_stateful_side) {
@@ -68,7 +66,7 @@ bool CLevelCrossSignal::LongSide(void)
    }
   }
 
-bool CLevelCrossSignal::ShortSide(void)
+bool CTwoLinesTwoLevelsCrossSignal::ShortSide(void)
   {
    int idx = StartIndex();
    if (m_stateful_side) {
@@ -79,7 +77,7 @@ bool CLevelCrossSignal::ShortSide(void)
    }
   }
 
-bool CLevelCrossSignal::LongSignal(void)
+bool CTwoLinesTwoLevelsCrossSignal::LongSignal(void)
   {
    int idx = StartIndex();
    bool signal = (m_buf_up.At(idx) > m_level_up_enter &&
@@ -89,7 +87,7 @@ bool CLevelCrossSignal::LongSignal(void)
    return signal;
   }
 
-bool CLevelCrossSignal::LongExit(void)
+bool CTwoLinesTwoLevelsCrossSignal::LongExit(void)
   {
    int idx = StartIndex();
    return (ShortSignal() || (
@@ -97,7 +95,7 @@ bool CLevelCrossSignal::LongExit(void)
            m_buf_up.At(idx + 1) > m_level_up_exit));
   }
 
-bool CLevelCrossSignal::ShortSignal(void)
+bool CTwoLinesTwoLevelsCrossSignal::ShortSignal(void)
   {
    int idx = StartIndex();
    bool signal = (m_buf_down.At(idx) <= m_level_down_enter &&
@@ -107,7 +105,7 @@ bool CLevelCrossSignal::ShortSignal(void)
    return signal;
   }
 
-bool CLevelCrossSignal::ShortExit(void)
+bool CTwoLinesTwoLevelsCrossSignal::ShortExit(void)
   {
    int idx = StartIndex();
    return (LongSignal() ||
@@ -115,9 +113,13 @@ bool CLevelCrossSignal::ShortExit(void)
            m_buf_down.At(idx + 1) <= m_level_down_exit));
   }
 
-bool CLevelCrossSignal::InitIndicatorBuffers()
+bool CTwoLinesTwoLevelsCrossSignal::InitIndicatorBuffers()
 {
-   m_buf_up = m_indicator.At(m_buf_idx);
-   m_buf_down = m_indicator.At(m_down_idx);
+   m_buf_up = m_indicator.At(m_buffers[0]);
+   m_buf_down = m_indicator.At(m_buffers[1]);
+   m_level_up_enter = m_config[0];
+   m_level_up_exit = m_config[1];
+   m_level_down_enter = m_config[2];
+   m_level_down_exit = m_config[3];
    return true;
 }

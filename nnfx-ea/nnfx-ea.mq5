@@ -67,7 +67,7 @@ datetime start_time = TimeCurrent();
 
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator="";  // Name of Confirmation Indicator to use
-input ENUM_SIGNAL_CLASS Confirm_SignalClass=Other; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Confirm_SignalClass=Unknown; // Type|Class of Indicator
 input uint   Confirm_Shift=0;                       // Shift in Bars
 input double Confirm_double0 = 0.;   // Confirm double input 0
 input double Confirm_double1 = 0.;   // Confirm double input 1
@@ -90,7 +90,7 @@ input uint Confirm_buffer1=0;
 input uint Confirm_buffer2=0;
 input uint Confirm_buffer3=0;
 input uint Confirm_buffer4=0;
-double Confirm_buffer[5];
+uint Confirm_buffer[5];
 input double Confirm_param0=0.;
 input double Confirm_param1=0.;
 input double Confirm_param2=0.;
@@ -99,7 +99,7 @@ input double Confirm_param4=0.;
 double Confirm_param[5];
 
 input string Confirm2_Indicator="";  // Name of 2nd Confirmation Indicator to use
-input ENUM_SIGNAL_CLASS Confirm2_SignalClass=Other; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Confirm2_SignalClass=Unknown; // Type|Class of Indicator
 input uint   Confirm2_Shift=0;    // Confirm2 Shift in Bars
 input double Confirm2_double0 = 0.;   // Confirm2 double input 0
 input double Confirm2_double1 = 0.;   // Confirm2 double input 1
@@ -119,7 +119,7 @@ input double Confirm2_double14 = 0.;   // Confirm2 double input 14
 double Confirm2_double[15];
 
 input string Exit_Indicator="";  // Name of Exit Indicator to use
-input ENUM_SIGNAL_CLASS Exit_SignalClass=Other; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Exit_SignalClass=Unknown; // Type|Class of Indicator
 input uint   Exit_Shift=0;    // Exit Shift in Bars
 input double Exit_double0 = 0.;   // Exit double input 0
 input double Exit_double1 = 0.;   // Exit double input 1
@@ -139,7 +139,7 @@ input double Exit_double14 = 0.;   // Exit double input 14
 double Exit_double[15];
 
 input string Baseline_Indicator="";  // Name of Baseline Indicator to use
-input ENUM_SIGNAL_CLASS Baseline_SignalClass=Other; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Baseline_SignalClass=Unknown; // Type|Class of Indicator
 input uint   Baseline_Shift=0;    // Baseline Shift in Bars
 input double Baseline_double0 = 0.;   // Baseline double input 0
 input double Baseline_double1 = 0.;   // Baseline double input 1
@@ -159,7 +159,7 @@ input double Baseline_double14 = 0.;   // Baseline double input 14
 double Baseline_double[15];
 
 input string Volume_Indicator="";  // Name of Volume Indicator to use
-input ENUM_SIGNAL_CLASS Volume_SignalClass=Other; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Volume_SignalClass=Unknown; // Type|Class of Indicator
 input uint   Volume_Shift=0;    // Volume Shift in Bars
 input double Volume_double0 = 0.;   // Volume double input 0
 input double Volume_double1 = 0.;   // Volume double input 1

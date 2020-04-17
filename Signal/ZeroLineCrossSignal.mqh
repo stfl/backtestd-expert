@@ -6,7 +6,6 @@
 class CZeroLineCrossSignal : public CCustomSignal
   {
 protected:
-   uint m_buf_idx;
    CIndicatorBuffer *m_buf;
    
 public:
@@ -23,8 +22,8 @@ protected:
   };
 
 void CZeroLineCrossSignal::Buffer(uint buf) {
-   m_buf_idx = buf;
-   m_buf = m_indicator.At(m_buf_idx);
+   m_buffers[0] = buf;
+   m_buf = m_indicator.At(m_buffers[0]);
 }
   
 bool CZeroLineCrossSignal::LongSide(void)
@@ -47,6 +46,6 @@ bool CZeroLineCrossSignal::ShortSignal(void)
 
 bool CZeroLineCrossSignal::InitIndicatorBuffers()
 {
-   m_buf = m_indicator.At(m_buf_idx);
+   m_buf = m_indicator.At(m_buffers[0]);
    return true;
 }

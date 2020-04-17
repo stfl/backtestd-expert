@@ -75,7 +75,7 @@ protected:
    bool              m_on_tick_process;          // OnTick will be processed       (default true)
    bool              m_on_trade_process;         // OnTrade will be processed      (default false)
    bool              m_on_timer_process;         // OnTimer will be processed      (default false)
-   bool              m_on_chart_event_process;   // OnChartEvent will be processed (default false)
+   bool              m_on_chart_event_process;   // PriceCrossEvent will be processed (default false)
    bool              m_on_book_event_process;    // OnBookEvent will be processed  (default false)
 
    double            m_stop_atr;
@@ -111,7 +111,7 @@ public:
    void              OnTickProcess(bool value)              { m_on_tick_process=value;        }
    void              OnTradeProcess(bool value)             { m_on_trade_process=value;       }
    void              OnTimerProcess(bool value)             { m_on_timer_process=value;       }
-   void              OnChartEventProcess(bool value)        { m_on_chart_event_process=value; }
+   void              PriceCrossEventProcess(bool value)        { m_on_chart_event_process=value; }
    void              OnBookEventProcess(bool value)         { m_on_book_event_process=value;  }
    int               MaxOrders(void)                  const { return(m_max_orders);           }
    void              MaxOrders(int value)                   { m_max_orders=value;             }
@@ -125,7 +125,7 @@ public:
    virtual void      OnTick(void);
    virtual void      OnTrade(void);
    virtual void      OnTimer(void);
-   virtual void      OnChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
+   virtual void      PriceCrossEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
    virtual void      OnBookEvent(const string &symbol);
    void              StopAtrMultiplier(double value) { m_stop_atr = value; }
    void              TakeAtrMultiplier(double value) { m_take_atr = value; }
@@ -1068,9 +1068,9 @@ void CBacktestExpert::OnTimer(void)
       return;
   }
 //+------------------------------------------------------------------+
-//| OnChartEvent handler                                             |
+//| PriceCrossEvent handler                                             |
 //+------------------------------------------------------------------+
-void CBacktestExpert::OnChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam)
+void CBacktestExpert::PriceCrossEvent(const int id,const long &lparam,const double &dparam,const string &sparam)
   {
 //--- check process flag
    if(!m_on_chart_event_process)
