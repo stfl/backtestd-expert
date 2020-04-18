@@ -18,7 +18,7 @@
 //--- available trailing
 #include <Expert\Trailing\TrailingNone.mqh>
 //--- available money management
-#include "..\Money\MoneyFixedRiskFixedBalance.mqh"
+#include <backtestd\Money\MoneyFixedRiskFixedBalance.mqh>
 #include "..\NewBar\CisNewBar.mqh"
 #include "..\Signal\AggSignal.mqh"
 #include "..\Expert\BacktestExpert.mqh"
