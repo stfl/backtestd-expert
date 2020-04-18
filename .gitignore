@@ -23,6 +23,7 @@ Indicators/Examples
 config
 
 Experts/*/
+Experts/*.ex5
 !Expert/backtestd
 Images
 Logs
