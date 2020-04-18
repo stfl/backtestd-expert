@@ -24,7 +24,7 @@ config
 
 Experts/*/
 Experts/*.ex5
-!Expert/backtestd
+!Experts/backtestd/
 Images
 Logs
 Presets
