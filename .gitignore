@@ -1,8 +1,31 @@
 # *.ex5
 # !nnfx-ea\nnfx-ea.ex5
+*.zip
 .vscode/
 *~
 *.swp
 *.bak
-*.log
+*.dat
+.ccls-cache/
 
+backtestd
+
+Include/*/
+!Include/backtestd/
+# includes shipped with MQL5
+Include/MovingAverages.mqh
+Include/StdLibErr.mqh
+Include/VirtualKeys.mqh
+Include/Object.mqh
+
+Indicators/Examples
+
+config
+
+Experts/*/
+!Expert/backtestd
+Images
+Logs
+Presets
+Profiles
+Scripts
