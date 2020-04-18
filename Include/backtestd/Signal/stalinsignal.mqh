@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\Stalin.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "Stalin.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_stalinsignal                                                   \
   if (StringCompare(name, "stalin", false) == 0) {                             \
     CStalinSignal *signal = new CStalinSignal;                                 \
@@ -220,7 +220,7 @@ bool CStalinSignal::InitStalin(CIndicators *indicators)
    MqlParam parameters[10];
 
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\\Stalin.ex5";
+   parameters[0].string_value="Stalin.ex5";
    
    parameters[1].type=TYPE_UINT;
    parameters[1].integer_value=MODE_EMA;

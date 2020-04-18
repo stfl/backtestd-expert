@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\PriceCrossSignal.mqh>
+#include <backtestd\SignalClass\PriceCrossSignal.mqh>
 #define PRODUCE_SignalCorr_avg_baseline PRODUCE("Corr_avg_baseline", CSignalCorr_avg_baseline)
 
 class CSignalCorr_avg_baseline : public CPriceCrossSignal {
@@ -19,7 +19,7 @@ void CSignalCorr_avg_baseline::ParamsFromInput(double &Input[]) {
   m_params_size = 10;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\Corr_average.ex5";
+  m_params[0].string_value="Corr_average.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_INT;

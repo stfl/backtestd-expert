@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\SemaphoreSignal.mqh>
+#include <backtestd\SignalClass\SemaphoreSignal.mqh>
 #define PRODUCE_SignalSsl PRODUCE("Ssl", CSignalSsl)
 
 class CSignalSsl : public CSemaphoreSignal {
@@ -20,7 +20,7 @@ void CSignalSsl::ParamsFromInput(double &Input[]) {
   m_params_size = 2;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\ssl.ex5";
+  m_params[0].string_value="ssl.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   }

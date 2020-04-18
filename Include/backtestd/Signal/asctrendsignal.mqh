@@ -9,7 +9,7 @@
 //| Included files                                                   |
 //+------------------------------------------------------------------+
 #property tester_indicator "ASCtrend.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_asctrendsignal
 
 //--- wizard description start
@@ -167,7 +167,7 @@ bool CASCtrendSignal::InitASCtrend(CIndicators *indicators)
    MqlParam parameters[2];
    
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\ASCtrend.ex5";
+   parameters[0].string_value="ASCtrend.ex5";
    
    parameters[1].type=TYPE_INT;
    parameters[1].integer_value=m_RISK;

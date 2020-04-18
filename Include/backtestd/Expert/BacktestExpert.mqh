@@ -1,4 +1,4 @@
-﻿//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                       Expert.mqh |
 //|                   Copyright 2009-2017, MetaQuotes Software Corp. |
 //|                                              http://www.mql5.com |
@@ -9,7 +9,7 @@
 #include <Expert\ExpertMoney.mqh>
 #include <Expert\ExpertTrailing.mqh>
 #include "Assert.mqh"
-#include "..\Signal\AggSignal.mqh"
+#include <backtestd\SignalClass\AggSignal.mqh>
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -84,6 +84,7 @@ protected:
    ENUM_EXPERT_STATE m_state;
    ENUM_EXPERT_STATE m_next_state;
    uint              m_baseline_wait;
+   uint              m_baseline_wait_cnt;
    long              m_pos_take;
    long              m_pos_open_end;
    double            m_pos_take_tp;
@@ -654,7 +655,7 @@ bool CBacktestExpert::Processing(void)
                   m_next_state=PullbackLong;
                else
                  {
-                  m_baseline_wait=0;
+                  m_baseline_wait_cnt=0;
                   m_next_state=WaitBaselineLong;
                  }
 
@@ -674,7 +675,7 @@ bool CBacktestExpert::Processing(void)
                   m_next_state=PullbackShort;
                else
                  {
-                  m_baseline_wait=0;
+                  m_baseline_wait_cnt=0;
                   m_next_state=WaitBaselineShort;
                  }
                  } else if(m_signal.ConfirmSignalShort()) {
@@ -702,7 +703,7 @@ bool CBacktestExpert::Processing(void)
                   m_next_state=Long;
                else
                  {
-                  m_baseline_wait=0;
+                  m_baseline_wait_cnt=0;
                   m_next_state=WaitBaselineLong;
                  }
               }
@@ -718,7 +719,7 @@ bool CBacktestExpert::Processing(void)
                m_next_state=Long;
             // else if (!m_signal.BaselineATRChannelLong())
             //   m_next_state = NoTrade;
-            else if(++m_baseline_wait>=m_baseline_wait)
+            else if(++m_baseline_wait_cnt>=m_baseline_wait)
               {
                m_next_state=NoTrade;
               }
@@ -768,7 +769,7 @@ bool CBacktestExpert::Processing(void)
                   m_next_state=Short;
                else
                  {
-                  m_baseline_wait=0;
+                  m_baseline_wait_cnt=0;
                   m_next_state=WaitBaselineShort;
                  }
               }
@@ -784,7 +785,7 @@ bool CBacktestExpert::Processing(void)
                m_next_state=Short;
             //else if (!m_signal.BaselineATRChannelShort())
             //  m_next_state = NoTrade;
-            else if(++m_baseline_wait>=m_baseline_wait)
+            else if(++m_baseline_wait_cnt>=m_baseline_wait)
               {
                m_next_state=NoTrade;
               }
@@ -2041,13 +2042,13 @@ string CBacktestExpert::StateName(ENUM_EXPERT_STATE state)
       : state == Long                   ? "Long"
       : state == OneCandleLong          ? "OneCanLong"
       : state == PullbackLong           ? "PullbackLong"
-      : state == WaitBaselineLong       ? "BaseLong("+m_baseline_wait+")"
+      : state == WaitBaselineLong       ? "BaseLong("+m_baseline_wait_cnt+")"
       : state == WaitContinueLong       ? "ContLong"
       : state == ContinueOneCandleLong  ? "ContOneCanLong"
       : state == Short                  ? "Short"
       : state == OneCandleShort         ? "OneCanShort"
       : state == PullbackShort          ? "PullbackShort"
-      : state == WaitBaselineShort      ? "BaseShort("+m_baseline_wait+")"
+      : state == WaitBaselineShort      ? "BaseShort("+m_baseline_wait_cnt+")"
       : state == WaitContinueShort      ? "ContShort"
       : state == ContinueOneCandleShort ? "ContOneCanShort"
       : "Unknown";

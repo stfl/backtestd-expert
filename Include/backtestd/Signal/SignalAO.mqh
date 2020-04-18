@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\ZeroLineCrossSignal.mqh>
+#include <backtestd\SignalClass\ZeroLineCrossSignal.mqh>
 #define PRODUCE_SignalAO PRODUCE("AO", CSignalAO)
 
 class CSignalAO : public CZeroLineCrossSignal {
@@ -19,7 +19,7 @@ void CSignalAO::ParamsFromInput(double &Input[]) {
   m_params_size = 8;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\Awesome_oscillator_-_extended.ex5";
+  m_params[0].string_value="Awesome_oscillator_-_extended.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_INT;

@@ -4,7 +4,7 @@
 //|                                                                  |
 //+------------------------------------------------------------------+
 #include "CustomSignal.mqh"
-#include <IndiSignals\AllSignals.mqh>
+#include <backtestd\Signal\PresetSignals.mqh>
 
 #define assert_signal \
 if(!signal) { \
@@ -13,7 +13,7 @@ return NULL; \
 }
 
 enum ENUM_SIGNAL_CLASS {
-   Unknown,
+   Preset,
    ZeroLineCross,         // A single line that crosses 0
    TwoLinesCross,         // Two lines that cross each other
    TwoLinesTwoLevelsCross,  // Two lines may cross two levels
@@ -21,11 +21,11 @@ enum ENUM_SIGNAL_CLASS {
    PriceCross,            // A line on the chart that is crossed by the price
    PriceCrossInverted,    //    ... the signal is inverted
    Semaphore,             // A signal like arrow or dot is displayed on the chart
-   SlopeChange,           // Single line that changes its direction
    TwoLinesColorChange,           //   ... only a single line is considred for color changes
-   TwoLinesTwoLinesColorChange,    // A color change indicates a signal.
-   TwoLinesLevelLineCross, // Two lines may cross a single level line
-   TwoLinesTwoLevelLinesCross,  // Two lines may cross multiple level lines
+   ColorChange,                // A color change indicates a signal.
+   // SlopeChange,           // Single line that changes its direction
+   // TwoLinesLevelLineCross, // Two lines may cross a single level line
+   // TwoLinesTwoLevelLinesCross,  // Two lines may cross multiple level lines
 };
 
 //+------------------------------------------------------------------+
@@ -38,7 +38,7 @@ public:
                                     double &inputs[],
                                     uint &buffers[],
                                     double &params[],
-                                    ENUM_SIGNAL_CLASS signal_class=Unknown,
+                                    ENUM_SIGNAL_CLASS signal_class=Preset,
                                     ENUM_TIMEFRAMES time_frame=PERIOD_CURRENT,
                                     uint shift=0);
 };
@@ -59,7 +59,7 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
 
       MqlParam param[2];
       param[0].type=TYPE_STRING;
-      param[0].string_value="Indi\Trend Counter Trend.ex5";
+      param[0].string_value="Trend Counter Trend.ex5";
       param[1].type=TYPE_INT;
       param[1].integer_value=inputs[0];  // Period
       signal.Params(param,2);
@@ -190,11 +190,11 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
       case PriceCross: signal=new CPriceCrossSignal(); break;
       case PriceCrossInverted: signal=new CPriceCrossInvertedSignal(); break;
       case Semaphore: signal=new CSemaphoreSignal(); break;
-      // case TwoLinesTwoLinesColorChange: signal=new CTwoLinesTwoLinesColorChangeSignal(); break;
       case TwoLinesColorChange: signal=new CTwoLinesColorChangeSignal(); break;
+      case ColorChange: signal=new CColorChangeSignal(); break;
       //case TwoLinesLevelLineCross: signal=new CTwoLinesLevelLineCrossSignal(); break;
       //case TwoLinesTwoLevelLinesCross: signal=new CTwoLinesTwoLevelLinesCrossSignal(); break;
-      case Unknown:
+      case Preset:
       default:
          printf(__FUNCTION__+"Wrong signal class. Cannot produce Signal "+name);
          return NULL;

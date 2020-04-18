@@ -9,7 +9,7 @@
 //| Included files                                                   |
 //+------------------------------------------------------------------+
 #property tester_indicator "PriceChannel_Stop.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_pricechannel_stopsignal                                        \
   if (StringCompare(name, "pricechannel_stop", false) == 0) {                  \
     CPriceChannel_StopSignal *signal = new CPriceChannel_StopSignal;             \
@@ -184,7 +184,7 @@ bool CPriceChannel_StopSignal::InitPriceChannel_Stop(CIndicators *indicators)
    MqlParam parameters[3];
 
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\\PriceChannel_Stop.ex5";
+   parameters[0].string_value="PriceChannel_Stop.ex5";
 
    parameters[1].type=TYPE_UINT;
    parameters[1].integer_value=m_ChannelPeriod;

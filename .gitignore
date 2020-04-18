@@ -9,26 +9,25 @@
 *.log
 .ccls-cache/
 
-backtestd
+/Indicators/Examples
+
+/config
+
+/Experts/*.ex5
+/Experts/Examples/
+/Experts/Advisors/
+
+/Images
+/Logs
+/Presets
+/Profiles
+/Scripts
 
 # includes shipped with MQL5
-Include/MovingAverages.mqh
-Include/StdLibErr.mqh
-Include/VirtualKeys.mqh
-Include/Object.mqh
-
-Indicators/Examples
-
-config
-
-Experts/*/
-Experts/*.ex5
-!Experts/backtestd/
-Images
-Logs
-Presets
-Profiles
-Scripts
+/Include/MovingAverages.mqh
+/Include/StdLibErr.mqh
+/Include/VirtualKeys.mqh
+/Include/Object.mqh
 /Include/Arrays/
 /Include/Canvas/
 /Include/ChartObjects/

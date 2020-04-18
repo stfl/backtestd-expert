@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\ColorChangeSignal.mqh>
+#include <backtestd\SignalClass\ColorChangeSignal.mqh>
 #define PRODUCE_SignalCOG PRODUCE("COG", CSignalCOG)
 
 class CSignalCOG : public CColorChangeSignal {
@@ -22,7 +22,7 @@ void CSignalCOG::ParamsFromInput(double &Input[]) {
   m_params_size = 4;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\center-of-gravity-extended-indicator.ex5";
+  m_params[0].string_value="center-of-gravity-extended-indicator.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_INT;

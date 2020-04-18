@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\SuperTrend.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "SuperTrend.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_supertrendsignal
 
 //--- wizard description start
@@ -182,7 +182,7 @@ bool CSuperTrendSignal::InitSuperTrend(CIndicators *indicators)
    MqlParam parameters[5];
 
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\SuperTrend.ex5";
+   parameters[0].string_value="SuperTrend.ex5";
 
    parameters[1].type=TYPE_UINT;
    parameters[1].integer_value=m_CCIPeriod;

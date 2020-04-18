@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\ColorChangeSignal.mqh>
+#include <backtestd\SignalClass\ColorChangeSignal.mqh>
 #define PRODUCE_SignalALF2 PRODUCE("ALF2", CSignalALF2)
 
 class CSignalALF2 : public CColorChangeSignal {
@@ -22,7 +22,7 @@ void CSignalALF2::ParamsFromInput(double &Input[]) {
   m_params_size = 5;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\Adaptive_Laguerre_filter_2.ex5";
+  m_params[0].string_value="Adaptive_Laguerre_filter_2.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_DOUBLE;

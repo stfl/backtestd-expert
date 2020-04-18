@@ -4,7 +4,7 @@
 //|                                                                  |
 //+------------------------------------------------------------------+
 #include <Expert\ExpertSignal.mqh>
-#include "..\Expert\Assert.mqh"
+#include <backtestd\Expert\Assert.mqh>
 
 // macro used to produce the signals in SignalFactory
 // if the indicator_name is found here we call it's custom implementation

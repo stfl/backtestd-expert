@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                     Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\TwoLinesCrossSignal.mqh>
+#include <backtestd\SignalClass\TwoLinesCrossSignal.mqh>
 
 #define PRODUCE_SignalWAE PRODUCE("wae", CSignalWAE)
 
@@ -31,7 +31,7 @@ void CSignalWAE::ParamsFromInput(double &Signal_double[])
    m_params_size = 10;
    ArrayResize(m_params, m_params_size);
    m_params[0].type=TYPE_STRING;
-   m_params[0].string_value="Indi\waddah_attar_explosion.ex5";
+   m_params[0].string_value="waddah_attar_explosion.ex5";
 
 //input int Fast_MA = 20;       // Period of the fast MACD moving average
    m_params[1].type=TYPE_INT;

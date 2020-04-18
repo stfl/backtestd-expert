@@ -3,7 +3,7 @@
 //|                   Copyright 2009-2013, MetaQuotes Software Corp. |
 //|                                              http://www.mql5.com |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#include <backtestd\SignalClass\CustomSignal.mqh>
 
 #define PRODUCE_SignalMA
 

@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\TwoLevelsCrossSignal.mqh>
+#include <backtestd\SignalClass\TwoLevelsCrossSignal.mqh>
 #define PRODUCE_Signalvolatility_ratio PRODUCE("volatility_ratio", CSignalvolatility_ratio)
 
 class CSignalvolatility_ratio : public CTwoLevelsCrossSignal {
@@ -24,7 +24,7 @@ void CSignalvolatility_ratio::ParamsFromInput(double &Input[]) {
   m_params_size = 3;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\Volatility_ratio.ex5";
+  m_params[0].string_value="Volatility_ratio.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_INT;

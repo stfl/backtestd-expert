@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\\BykovTrend.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "BykovTrend.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_bykovtrendsignal                                               \
   if (StringCompare(name, "bykovtrend", false) == 0) {                         \
     CBykovTrendSignal *signal = new CBykovTrendSignal;                         \
@@ -179,7 +179,7 @@ bool CBykovTrendSignal::InitBykovTrend(CIndicators *indicators)
 //--- setting the indicator parameters
    MqlParam parameters[3];
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\\BykovTrend.ex5";
+   parameters[0].string_value="BykovTrend.ex5";
    parameters[1].type=TYPE_INT;
    parameters[1].integer_value=m_RISK;
    parameters[2].type=TYPE_INT;

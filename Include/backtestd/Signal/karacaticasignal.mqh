@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\Karacatica.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "Karacatica.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_karacaticasignal
 
 //--- wizard description start
@@ -161,7 +161,7 @@ bool CKaracaticaSignal::InitKaracatica(CIndicators *indicators)
    MqlParam parameters[2];
 
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\Karacatica.ex5";
+   parameters[0].string_value="Karacatica.ex5";
 
    parameters[1].type=TYPE_INT;
    parameters[1].integer_value=m_iPeriod;

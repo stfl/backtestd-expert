@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\PriceCrossSignal.mqh>
+#include <backtestd\SignalClass\PriceCrossSignal.mqh>
 #define PRODUCE_SignalAmka_baseline PRODUCE("Amka_baseline", CSignalAmka_baseline)
 
 class CSignalAmka_baseline : public CPriceCrossSignal {
@@ -19,7 +19,7 @@ void CSignalAmka_baseline::ParamsFromInput(double &Input[]) {
   m_params_size = 5;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\amka-indicator.ex5";
+  m_params[0].string_value="amka-indicator.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_INT;

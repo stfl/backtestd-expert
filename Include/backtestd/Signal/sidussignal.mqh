@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\\Sidus.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "Sidus.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_sidussignal
 
 //--- wizard description start
@@ -219,7 +219,7 @@ bool CSidusSignal::InitSidus(CIndicators *indicators)
    MqlParam parameters[7];
 
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\\Sidus.ex5";
+   parameters[0].string_value="Sidus.ex5";
 
    parameters[1].type=TYPE_INT;
    parameters[1].integer_value=m_FastEMA;

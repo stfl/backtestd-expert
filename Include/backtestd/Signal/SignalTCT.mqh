@@ -3,7 +3,7 @@
 //|                                     Copyright 2019, Stefan Lendl |
 //|                                                                  |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#include <backtestd\SignalClass\CustomSignal.mqh>
 
 #define PRODUCE_SignalTCT
 

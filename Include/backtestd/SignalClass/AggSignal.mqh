@@ -4,7 +4,7 @@
 //|                                              http://www.mql5.com |
 //+------------------------------------------------------------------+
 #include <Expert\ExpertBase.mqh>
-#include "..\Expert\Assert.mqh"
+#include <backtestd\Expert\Assert.mqh>
 #include "CustomSignal.mqh"
 
 

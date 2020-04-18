@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\NonLagDot.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "NonLagDot.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_nonlagdotsignal
 
 //--- wizard description start
@@ -177,7 +177,7 @@ bool CNonLagDotSignal::InitNonLagDot(CIndicators *indicators)
    MqlParam parameters[6];
    
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\NonLagDot.ex5";
+   parameters[0].string_value="NonLagDot.ex5";
    
    parameters[1].type=TYPE_UINT;
    parameters[1].integer_value=m_Price;

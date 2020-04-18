@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                     Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\PriceCrossSignal.mqh>
+#include <backtestd\SignalClass\PriceCrossSignal.mqh>
 
 #define PRODUCE_SignalKijunSen  PRODUCE("kijunsen", CSignalKijunSen)
 

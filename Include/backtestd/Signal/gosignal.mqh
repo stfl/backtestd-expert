@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\Go.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "Go.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_gosignal
 
 // wizard description start
@@ -161,7 +161,7 @@ bool CGoSignal::InitGo(CIndicators *indicators)
    MqlParam parameters[2];
 
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\Go.ex5";
+   parameters[0].string_value="Go.ex5";
 
    parameters[1].type=TYPE_UINT;
    parameters[1].integer_value=m_smooth_period;

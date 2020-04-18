@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\TwoLinesCrossSignal.mqh>
+#include <backtestd\SignalClass\TwoLinesCrossSignal.mqh>
 #define PRODUCE_SignaliTrend_2lx PRODUCE("iTrend_2lx", CSignaliTrend_2lx)
 
 class CSignaliTrend_2lx : public CTwoLinesCrossSignal {
@@ -20,7 +20,7 @@ void CSignaliTrend_2lx::ParamsFromInput(double &Input[]) {
   m_params_size = 7;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\iTrend.ex5";
+  m_params[0].string_value="iTrend.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_DOUBLE;

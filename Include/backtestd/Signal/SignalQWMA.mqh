@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\ColorChangeSignal.mqh>
+#include <backtestd\SignalClass\ColorChangeSignal.mqh>
 #define PRODUCE_SignalQWMA PRODUCE("QWMA", CSignalQWMA)
 
 class CSignalQWMA : public CColorChangeSignal {
@@ -22,7 +22,7 @@ void CSignalQWMA::ParamsFromInput(double &Input[]) {
   m_params_size = 10;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_STRING;
-  m_params[0].string_value="Indi\QWMA_ca.ex5";
+  m_params[0].string_value="QWMA_ca.ex5";
   m_params[1].type=TYPE_INT;
   m_params[1].integer_value=Input[0];
   m_params[2].type=TYPE_INT;

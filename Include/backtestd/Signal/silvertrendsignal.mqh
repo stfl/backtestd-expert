@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\\SilverTrend_Signal.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "SilverTrend_Signal.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_silvertrendsignal \
   if (StringCompare(name, "silvertrend", false) == 0) {                  \
     CSilverTrendSignal *signal = new CSilverTrendSignal;             \
@@ -183,7 +183,7 @@ bool CSilverTrendSignal::InitSilverTrend_Signal(CIndicators *indicators)
 //--- setting the indicator parameters
    MqlParam parameters[3];
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\\SilverTrend_Signal.ex5";
+   parameters[0].string_value="SilverTrend_Signal.ex5";
 
    parameters[1].type=TYPE_INT;
    parameters[1].integer_value=m_SSP;

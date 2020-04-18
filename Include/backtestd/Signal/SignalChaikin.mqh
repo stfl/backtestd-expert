@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                 Copyright 2019, Stefan Lendl |
 //+------------------------------------------------------------------+
-#include <..\Experts\BacktestExpert\Signal\ZeroLineCrossSignal.mqh>
+#include <backtestd\SignalClass\ZeroLineCrossSignal.mqh>
 #define PRODUCE_SignalChaikin PRODUCE("Chaikin", CSignalChaikin)
 
 class CSignalChaikin : public CZeroLineCrossSignal {

@@ -4,7 +4,7 @@
 //|                                             https://www.mql5.com |
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2020, Stefan Lendl."
-#property version   "2.0"
+#property version   "1.0"
 //+------------------------------------------------------------------+
 //| Include                                                          |
 //+------------------------------------------------------------------+
@@ -14,60 +14,43 @@
 #include <Arrays\ArrayString.mqh>
 #include <Arrays\ArrayObj.mqh>
 //--- available signals
-#include "..\Signal\SignalFactory.mqh"
+#include <backtestd\SignalClass\SignalFactory.mqh>
 //--- available trailing
 #include <Expert\Trailing\TrailingNone.mqh>
 //--- available money management
 #include <backtestd\Money\MoneyFixedRiskFixedBalance.mqh>
-#include "..\NewBar\CisNewBar.mqh"
-#include "..\Signal\AggSignal.mqh"
-#include "..\Expert\BacktestExpert.mqh"
-
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
-enum ENUM_BACKTEST_MODE
-  {
-//  bit flags: BL | VL | EX | CN2 | CN
-   BACKTEST_NONE       =0x00,
-   BACKTEST_CONFIRM    =0x01,
-   BACKTEST_CONFIRM2   =0x02,
-   BACKTEST_EXIT       =0x04,
-   BACKTEST_VOLUME     =0x08,
-   BACKTEST_BASELINE   =0x10,
-  };
-
-#define CONFIRM_FLAG  = 0x01
-#define CONFIRM2_FLAG = 0x02
-#define EXIT_FLAG     = 0x04
-#define VOLUME_FLAG   = 0x08
-#define BASELINE_FLAG = 0x10
+#include <NewBar\CisNewBar.mqh>
+#include <backtestd\SignalClass\AggSignal.mqh>
+#include <backtestd\Expert\BacktestExpert.mqh>
 
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
 //+------------------------------------------------------------------+
 //--- inputs for expert
-input string             Expert_Title         ="backtest_ea";    // Document name
+input string             Expert_Title         ="backtestd-expert";    // Document name
 ulong                    Expert_MagicNumber   =13876;       //
 bool                     Expert_EveryTick     =false;       //
 input int                Expert_ProcessOnTimeLeft=10*60;    // Time in seconds to run before the candle closes
 
 //--- inputs for main signal
-input int                Signal_ThresholdOpen=100;         // Signal threshold value to open
-input int                Signal_ThresholdClose=10;          // Signal threshold value to close
-input double             Signal_PriceLevel    =0.0;         // Price level to execute a deal
+// input int                Signal_ThresholdOpen=100;         // Signal threshold value to open
+// input int                Signal_ThresholdClose=10;          // Signal threshold value to close
+// input double             Signal_PriceLevel    =0.0;         // Price level to execute a deal
 input double             Signal_StopLevel     =1.5;         // Stop Loss level ATR multiplier
 input double             Signal_TakeLevel     =1.0;         // Take Profit level ATR multiplier
 input int                Signal_Expiration    =1;           // Expiration of pending orders (in bars)
-input int                Signal_Baseline_Wait = 7;          // candles for the baseline to wait for other indicators to catch up
+
+input int                Algo_Baseline_Wait = 7;          // candles for the baseline to wait for other indicators to catch up
+
+//--- inputs for money
+input double             Money_Risk        = 1.0;         // Risk per trade (a regular entry has 2 trades.. x2 is the actual risk)
+input double             Money_FixLot_Lots = 0.1;         // Fixed volume
 
 datetime start_time = TimeCurrent();
 
-/* input ENUM_BACKTEST_MODE Backtest_Mode=0x01;       // ENUM_BACKTEST_MODE  || Bit Flags */
-
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator="";  // Name of Confirmation Indicator to use
-input ENUM_SIGNAL_CLASS Confirm_SignalClass=Unknown; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Confirm_SignalClass=Preset; // Type|Class of Indicator
 input uint   Confirm_Shift=0;                       // Shift in Bars
 input double Confirm_double0 = 0.;   // Confirm double input 0
 input double Confirm_double1 = 0.;   // Confirm double input 1
@@ -99,7 +82,7 @@ input double Confirm_param4=0.;
 double Confirm_param[5];
 
 input string Confirm2_Indicator="";  // Name of 2nd Confirmation Indicator to use
-input ENUM_SIGNAL_CLASS Confirm2_SignalClass=Unknown; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Confirm2_SignalClass=Preset; // Type|Class of Indicator
 input uint   Confirm2_Shift=0;    // Confirm2 Shift in Bars
 input double Confirm2_double0 = 0.;   // Confirm2 double input 0
 input double Confirm2_double1 = 0.;   // Confirm2 double input 1
@@ -119,7 +102,7 @@ input double Confirm2_double14 = 0.;   // Confirm2 double input 14
 double Confirm2_double[15];
 
 input string Exit_Indicator="";  // Name of Exit Indicator to use
-input ENUM_SIGNAL_CLASS Exit_SignalClass=Unknown; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Exit_SignalClass=Preset; // Type|Class of Indicator
 input uint   Exit_Shift=0;    // Exit Shift in Bars
 input double Exit_double0 = 0.;   // Exit double input 0
 input double Exit_double1 = 0.;   // Exit double input 1
@@ -139,7 +122,7 @@ input double Exit_double14 = 0.;   // Exit double input 14
 double Exit_double[15];
 
 input string Baseline_Indicator="";  // Name of Baseline Indicator to use
-input ENUM_SIGNAL_CLASS Baseline_SignalClass=Unknown; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Baseline_SignalClass=Preset; // Type|Class of Indicator
 input uint   Baseline_Shift=0;    // Baseline Shift in Bars
 input double Baseline_double0 = 0.;   // Baseline double input 0
 input double Baseline_double1 = 0.;   // Baseline double input 1
@@ -159,7 +142,7 @@ input double Baseline_double14 = 0.;   // Baseline double input 14
 double Baseline_double[15];
 
 input string Volume_Indicator="";  // Name of Volume Indicator to use
-input ENUM_SIGNAL_CLASS Volume_SignalClass=Unknown; // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Volume_SignalClass=Preset; // Type|Class of Indicator
 input uint   Volume_Shift=0;    // Volume Shift in Bars
 input double Volume_double0 = 0.;   // Volume double input 0
 input double Volume_double1 = 0.;   // Volume double input 1
@@ -177,10 +160,6 @@ input double Volume_double12 = 0.;   // Volume double input 12
 input double Volume_double13 = 0.;   // Volume double input 13
 input double Volume_double14 = 0.;   // Volume double input 14
 double Volume_double[15];
-
-//--- inputs for money
-input double             Money_Risk        = 1.0;         // Risk per trade (a regular entry has 2 trades.. x2 is the actual risk)
-input double             Money_FixLot_Lots = 0.1;         // Fixed volume
 
 input string Expert_symbol0 = "";
 input string Expert_symbol1 = "";
@@ -294,9 +273,9 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol)
      }
 //---
    ExtExpert.InitSignal(signal);
-   signal.ThresholdOpen(Signal_ThresholdOpen);
-   signal.ThresholdClose(Signal_ThresholdClose);
-   signal.PriceLevel(Signal_PriceLevel);
+   //signal.ThresholdOpen(Signal_ThresholdOpen);
+   //signal.ThresholdClose(Signal_ThresholdClose);
+   //signal.PriceLevel(Signal_PriceLevel);
    signal.Expiration(Signal_Expiration);
    if(!signal.AddAtr())
      {

@@ -8,8 +8,8 @@
 //+------------------------------------------------------------------+
 //| Included files                                                   |
 //+------------------------------------------------------------------+
-#property tester_indicator "Indi\ColorJFatl.ex5"
-#include <..\Experts\BacktestExpert\Signal\CustomSignal.mqh>
+#property tester_indicator "ColorJFatl.ex5"
+#include <backtestd\SignalClass\CustomSignal.mqh>
 #define PRODUCE_jfatlsignal
 
 //--- wizard description start
@@ -171,7 +171,7 @@ bool CJFatlSignal::InitJFatl(CIndicators *indicators)
 //--- setting the indicator parameters
    MqlParam parameters[4];
    parameters[0].type=TYPE_STRING;
-   parameters[0].string_value="Indi\ColorJFatl.ex5";
+   parameters[0].string_value="ColorJFatl.ex5";
    parameters[1].type=TYPE_UINT;
    parameters[1].integer_value=m_Length_;
    parameters[2].type=TYPE_INT;
