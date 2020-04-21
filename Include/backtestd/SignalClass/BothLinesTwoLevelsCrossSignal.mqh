@@ -11,8 +11,6 @@ protected:
   double m_level_up_exit;
   double m_level_down_enter;
   double m_level_down_exit;
-  bool m_stateful_side; // Side considers the enter or the exit values
-  int m_last_signal;
 
   //                                  strict = true            strict == false
   //                                  x <- LongSide            x <- LongSide
@@ -35,142 +33,142 @@ protected:
 
 public:
   //--- methods of checking if the market models are formed
-  virtual bool LongSide(void);
-  virtual bool ShortSide(void);
-  virtual bool LongSignal(void);
-  virtual bool ShortSignal(void);
-  virtual bool LongExit(void);
-  virtual bool ShortExit(void);
+  // bool LongSide(void);
+  // bool ShortSide(void);
+  virtual bool Update(void);
 
-  CBothLinesTwoLevelsCrossSignal(void);
+  //CBothLinesTwoLevelsCrossSignal(void);
 
 protected:
+  virtual bool UpdateLongSignal(void);
+  virtual bool UpdateShortSignal(void);
+  virtual bool UpdateLongExit(void);
+  virtual bool UpdateShortExit(void);
+
+  virtual bool UpdateShortReturn(void);
+  virtual bool UpdateLongReturn(void);
+
+  virtual bool UpdateStrictSide(void);
+
+  virtual int UpdateSide(void);
+
   virtual bool InitIndicatorBuffers();
 };
 
-CBothLinesTwoLevelsCrossSignal::CBothLinesTwoLevelsCrossSignal(void) {
-  m_stateful_side = false;
-  m_last_signal = 0;
-}
+//CBothLinesTwoLevelsCrossSignal::CBothLinesTwoLevelsCrossSignal(void) {}
 
-bool CBothLinesTwoLevelsCrossSignal::LongSide(void) {
-  int idx = StartIndex();
-  if (m_stateful_side) {
-    LongSignal(); // calculate Signal in case we don't have m_last_signal set
-    // yet.
-    return m_last_signal > 0; // consider the last signal
-  } else {
-    if (m_buf_up.At(idx) > m_level_up_enter &&
-        m_buf_down.At(idx) > m_level_up_enter) {
-      // if both lines are on the up side, there has been a signal at some point
-      // we need to set this here in order to ensure a first initialization of
-      // m_last_signal
-      // m_last_signal = 100;
-      return true;
-    } else
-      return false;
+int CBothLinesTwoLevelsCrossSignal::UpdateSide(void) {
+  switch (m_state) {
+  // case Init:
+  //    m_side = EMPTY_VALUE;
+  case SignalNoTrade:
+    m_side = 0;
+    break;
+  case SignalLongReturn:
+  case SignalLong:
+    m_side = 100;
+    break;
+  case SignalShortReturn:
+  case SignalShort:
+    m_side = -100;
+    break;
   }
+  return m_side;
 }
 
-bool CBothLinesTwoLevelsCrossSignal::ShortSide(void) {
+// bool CBothLinesTwoLevelsCrossSignal::LongSide(void) {
+//   int idx = StartIndex();
+//   if (m_stateful_side) {
+//     UpdateLongSignal(); // calculate Signal in case we don't have
+//     m_last_signal set
+//     // yet.
+//     return m_last_signal > 0; // consider the last signal
+//   } else {
+//     if (m_buf_up.At(idx) > m_level_up_enter &&
+//         m_buf_down.At(idx) > m_level_up_enter) {
+//       // if both lines are on the up side, there has been a signal at some
+//       point
+//       // we need to set this here in order to ensure a first initialization
+//       of
+//       // m_last_signal
+//       // m_last_signal = 100;
+//       return true;
+//     } else
+//       return false;
+//   }
+// }
+
+// bool CBothLinesTwoLevelsCrossSignal::ShortSide(void) {
+//   int idx = StartIndex();
+//   if (m_stateful_side) {
+//     UpdateShortSignal(); // calculate Signal in case we don't have
+//     m_last_signal set
+//     // yet.
+//     return m_last_signal < 0; // consider the last signal
+//   } else {
+//     if (m_buf_down.At(idx) < m_level_down_enter &&
+//         m_buf_up.At(idx) < m_level_down_enter) {
+//       // m_last_signal = -100;
+//       return true;
+//     } else
+//       return false;
+//   }
+// }
+
+bool CBothLinesTwoLevelsCrossSignal::UpdateLongSignal(void) {
   int idx = StartIndex();
-  if (m_stateful_side) {
-    ShortSignal(); // calculate Signal in case we don't have m_last_signal set
-    // yet.
-    return m_last_signal < 0; // consider the last signal
-  } else {
-    if (m_buf_down.At(idx) < m_level_down_enter &&
-        m_buf_up.At(idx) < m_level_down_enter) {
-      // m_last_signal = -100;
-      return true;
-    } else
-      return false;
+  if ((m_buf_up.At(idx) > m_level_up_enter &&
+       m_buf_down.At(idx) > m_level_up_enter) &&
+      (m_buf_up.At(idx + 1) <= m_level_up_enter ||
+       m_buf_down.At(idx + 1) <= m_level_up_enter)) {
+
+    m_sig_direction = 1;
+    m_state = SignalLong;
+    return true;
   }
+  return false;
 }
 
-bool CBothLinesTwoLevelsCrossSignal::LongSignal(void) {
+bool CBothLinesTwoLevelsCrossSignal::UpdateShortSignal(void) {
   int idx = StartIndex();
-  bool signal = false;
-  bool crossed = ((m_buf_up.At(idx) > m_level_up_enter &&
-                   m_buf_down.At(idx) > m_level_up_enter) &&
-                  (m_buf_up.At(idx + 1) <= m_level_up_enter ||
-                   m_buf_down.At(idx + 1) <= m_level_up_enter));
+  if ((m_buf_up.At(idx) <= m_level_down_enter &&
+       m_buf_down.At(idx) <= m_level_down_enter) &&
+      (m_buf_up.At(idx + 1) > m_level_down_enter ||
+       m_buf_down.At(idx + 1) > m_level_down_enter)) {
 
-  if (crossed) {
-     for (int i=1; 128; t++) {    // we got back on the signal lines
-        // we are checking if both lines crossed down before crossing back up now
-
-        // if we find them to be both up before they where both down
-        // they didn't actually full cross down before
-        // this means only a single line has crossed down and back up and we can ignore this cross
-        if ((m_buf_up.At(idx + i) > m_level_up_enter &&
-             m_buf_down.At(idx + i) > m_level_up_enter)) {
-           signal = false;
-           break;
-        }
-
-        if ((m_buf_up.At(idx + i) <= m_level_up_enter &&
-             m_buf_down.At(idx + i) <= m_level_up_enter)) {
-           signal = true;
-           break;
-        }
-     }
+    m_sig_direction = -1;
+    m_state = SignalShort;
+    return true;
   }
-
-  if (signal)
-    m_last_signal = 100;
-  return signal;
+  return false;
 }
 
-bool CBothLinesTwoLevelsCrossSignal::ShortSignal(void) {
+bool CBothLinesTwoLevelsCrossSignal::UpdateLongExit(void) {
   int idx = StartIndex();
-  bool signal =
-      m_last_signal > 0 && ((m_buf_up.At(idx) <= m_level_down_enter &&
-                             m_buf_down.At(idx) <= m_level_down_enter) &&
-                            (m_buf_up.At(idx + 1) > m_level_down_enter ||
-                             m_buf_down.At(idx + 1) > m_level_down_enter));
+  if ((m_buf_up.At(idx) <= m_level_up_exit &&
+       m_buf_down.At(idx) <= m_level_up_exit) &&
+      (m_buf_up.At(idx + 1) > m_level_up_exit ||
+       m_buf_down.At(idx + 1) > m_level_up_exit)) {
 
-  if (crossed) {
-     for (int i=1; 128; t++) {    // we got back on the signal lines
-        // we are checking if both lines crossed down before crossing back up now          // if we find them to be both up before they where both down
-        // they didn't actually full cross down before
-        // this means only a single line has crossed down and back up and we can ignore this cross
-    }
-
-        if ((m_buf_up.At(idx + i) > _up_l_down_enter &&
-             m_buf_down.At(idx + i) > _up_l_down_enter)) {
-           sifalse = true;
-           break;
-            if ((m_buf_up.At(idx + i) <= m_level_up_enter &&
-             m_buf_down.At(idx + i) <= m_level_up_enter)) {
-           signal = true;
-           break;
-        }
-    }
+    m_exit_direction = -1;
+    m_state = SignalNoTrade;
+    return true;
   }
-
-
-  if (signal)
-    m_last_signal = -100;
-  return signal;
+  return false;
 }
 
-bool CBothLinesTwoLevelsCrossSignal::LongExit(void) {
+bool CBothLinesTwoLevelsCrossSignal::UpdateShortExit(void) {
   int idx = StartIndex();
-  return (ShortSignal() || (m_last_signal > 0 &&
-                            (m_buf_up.At(idx) <= m_level_up_exit &&
-                             m_buf_down.At(idx) <= m_level_up_exit) &&
-                            (m_buf_up.At(idx + 1) > m_level_up_exit ||
-                             m_buf_down.At(idx + 1) > m_level_up_exit)));
-}
+  if ((m_buf_up.At(idx) > m_level_down_exit &&
+       m_buf_down.At(idx) > m_level_down_exit) &&
+      (m_buf_up.At(idx + 1) <= m_level_down_exit ||
+       m_buf_down.At(idx + 1) <= m_level_down_exit)) {
 
-bool CBothLinesTwoLevelsCrossSignal::ShortExit(void) {
-  int idx = StartIndex();
-  return (LongSignal() || (m_last_signal < 0 &&
-                           (m_buf_up.At(idx) > m_level_down_exit &&
-                            m_buf_down.At(idx) > m_level_down_exit) &&
-                           (m_buf_up.At(idx + 1) <= m_level_down_exit ||
-                            m_buf_down.At(idx + 1) <= m_level_down_exit)));
+    m_exit_direction = 1;
+    m_state = SignalNoTrade;
+    return true;
+  }
+  return false;
 }
 
 bool CBothLinesTwoLevelsCrossSignal::InitIndicatorBuffers() {
@@ -180,6 +178,100 @@ bool CBothLinesTwoLevelsCrossSignal::InitIndicatorBuffers() {
   m_level_up_exit = m_config[1];
   m_level_down_enter = m_config[2];
   m_level_down_exit = m_config[3];
-  m_stateful_side = m_config[4];
+  return true;
+}
+
+bool CBothLinesTwoLevelsCrossSignal::UpdateStrictSide() {
+  int idx = StartIndex();
+  if (m_buf_up.At(idx) > m_level_up_enter &&
+      m_buf_down.At(idx) > m_level_up_enter &&
+      m_buf_up.At(idx) <= m_level_up_exit &&
+      m_buf_down.At(idx) <= m_level_up_exit) {
+
+    // only set the state not the m_sig_direction
+    m_state = SignalLong;
+    return true;
+
+  } else if (m_buf_up.At(idx) <= m_level_down_enter &&
+             m_buf_down.At(idx) <= m_level_down_enter &&
+             m_buf_up.At(idx) > m_level_down_exit &&
+             m_buf_down.At(idx) > m_level_down_exit) {
+
+    m_state = SignalShort;
+    return true;
+
+  } else if (m_level_up_enter >= m_level_up_exit &&
+             m_level_down_enter <= m_level_down_exit) {
+    // The up/down Enter levels are clear and we can assign SignalNoTrade state
+    // if the current value is between up_enter and down_enter
+    if (m_buf_up.At(idx) <= m_level_up_enter &&
+        m_buf_down.At(idx) <= m_level_up_enter &&
+        m_buf_up.At(idx) > m_level_down_enter &&
+        m_buf_down.At(idx) > m_level_down_enter) {
+
+      m_state = SignalNoTrade;
+      return true;
+    }
+    // else -> up_enter is lower than up_exit -> reversal indicator that is
+    // leaving the overbought/oversold area I can't guarantee proper Both Line
+    // crosses if I would set SignalNoTrade here
+  }
+  // no strict side could be found -> we're staying at Init state until the
+  // situation is clear
+  return false;
+}
+
+// if we are in long state and the line has returned fully below up_enter
+// we may get another long signal which can be a continueation signal
+bool CBothLinesTwoLevelsCrossSignal::UpdateLongReturn() {
+  int idx = StartIndex();
+  if (m_buf_up.At(idx) <= m_level_up_enter &&
+      m_buf_down.At(idx) <= m_level_up_enter) {
+    m_state = SignalLongReturn;
+    return true;
+  }
+  return false;
+}
+
+bool CBothLinesTwoLevelsCrossSignal::UpdateShortReturn() {
+  int idx = StartIndex();
+  if (m_buf_up.At(idx) > m_level_down_enter &&
+      m_buf_down.At(idx) > m_level_down_enter) {
+    m_state = SignalShortReturn;
+    return true;
+  }
+  return false;
+}
+
+bool CBothLinesTwoLevelsCrossSignal::Update() {
+  m_sig_direction = 0;
+  m_exit_direction = 0;
+  switch (m_state) {
+  case SignalInit:
+    UpdateStrictSide();
+    break;
+  case SignalNoTrade:
+    if (!UpdateLongSignal())
+      UpdateShortSignal();
+    break;
+  case SignalLongReturn:
+    UpdateLongSignal();  // possible continuation
+  case SignalLong:
+    UpdateLongReturn();  // needs to be evaluated first.
+    UpdateLongExit();    // exit and short signal state changes have higher priority
+    UpdateShortSignal();
+    break;
+  case SignalShortReturn:
+    UpdateShortSignal();
+  case SignalShort:
+    UpdateShortReturn();
+    UpdateShortExit();
+    UpdateLongSignal();
+    break;
+  default:
+    Alert("ERROR: unknown state found in SIGNAL_STATE");
+    return false;
+  }
+  UpdateSide();
   return true;
 }

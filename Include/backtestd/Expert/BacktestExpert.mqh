@@ -636,11 +636,11 @@ bool CBacktestExpert::Processing(void)
   {
    bool res=false;
 //--- calculate signal direction once
-   // TODO needed?
-   m_signal.SetDirection();
+   m_signal.Update();
 
    m_next_state=m_state;
 
+   // TODO move this statemachine to AggSignal
    do
      {
       m_state=m_next_state;

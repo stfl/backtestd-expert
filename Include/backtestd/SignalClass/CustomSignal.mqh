@@ -20,6 +20,15 @@
       return signal;                           \
      }
 
+enum SIGNAL_STATE {
+   SignalInit,
+   SignalNoTrade,
+   SignalLong,
+   SignalLongReturn,
+   SignalShort,
+   SignalShortReturn,
+};
+
 class CCustomSignal : public CExpertSignal
   {
 protected:
@@ -39,6 +48,12 @@ protected:
 
    uint m_buffers[];
    double m_config[];
+
+   int m_sig_direction; // <0 short | 0 no signal | >0 long
+   int m_exit_direction; // <0 exit long | 0 no exit signal | >0 exit short
+   int m_side;
+
+   SIGNAL_STATE m_state;
 
 public:
                      CCustomSignal(void);
@@ -64,29 +79,48 @@ public:
    virtual bool      InitIndicators(CIndicators *indicators);
    //--- methods of checking if the market models are formed
 
-   virtual int       LongCondition(void)                                      { return(0);     } // TODO delete
-   virtual int       ShortCondition(void)                                     { return(0);     } // TODO delete
    virtual double    GetData(const int buffer_num, uint shift=0);
 
+   // the default implementations return the stored signal and direction states which are calculated once per round with Update()
+   // Signals may also choose to implement these Methods directly if calculations are easily perfomed stateless
+   // where Update() is not required
+   virtual int       Side(void) { return m_side; }
    virtual bool      LongSide(void)   { return Side() > 0 ? true : false; }
    virtual bool      ShortSide(void)  { return Side() < 0 ? true : false; }
-   virtual bool      LongSignal(void) { return Direction() > 0 ? true : false; }  // TODO replace with CheckOpenLong
-   virtual bool      ShortSignal(void) { return Direction() < 0 ? true : false; } // TODO replace with CheckOpenShort
-   virtual bool      LongExit(void) { return ShortSignal(); } // TODO CheckCloseLong
-   virtual bool      ShortExit(void) { return LongSignal(); } // TODO CheckCloseShort
 
-   // if Side() is not defined, use the direction and scale it up to 100
-   virtual int       Side(void) { return(Direction()>0) ? 100 : -100; }     // TODO implement Direction instead of Side in the subclasses
+   virtual int       SignalDirection(void) {return m_sig_direction; }
+   virtual bool      LongSignal(void) { return SignalDirection() > 0 ? true : false; }
+   virtual bool      ShortSignal(void) { return SignalDirection() < 0 ? true : false; }
+
+   virtual int       ExitDirection(void) {return m_exit_direction; }
+   virtual bool      LongExit(void) { return ExitDirection() <0 ? true : false; }
+   virtual bool      ShortExit(void) { return ExitDirection() >0 ? true : false; }
+
+   //--- methods for generating signals of modification of pending orders
+   virtual bool      CheckTrailingOrderLong(COrderInfo *order,double &price)  { return(false); }
+   virtual bool      CheckTrailingOrderShort(COrderInfo *order,double &price) { return(false); }
+   //--- methods of checking if the market models are formed
+   virtual double    Direction(void) { return m_direction; }
+
+   // the stored direction states need to be updated every round (candle) only once!
+   // getting the stored states later will be faster than calculating each time
+   virtual bool Update() { return true; }
+   SIGNAL_STATE GetState() { return m_state; }
 
 protected:
    //--- method of initialization of the indicator
    bool              InitCustomIndicator(CIndicators *indicators);         // TODO replace with CreateIndicator
    virtual bool      InitIndicatorBuffers()                                  { return true; }
+  virtual int UpdateSide(void);
   };
 //+------------------------------------------------------------------+
 //| Constructor                                                      |
 //+------------------------------------------------------------------+
-CCustomSignal::CCustomSignal(void) : m_indicator_type(IND_CUSTOM)
+CCustomSignal::CCustomSignal(void) : m_indicator_type(IND_CUSTOM),
+                                     m_sig_direction(0),
+                                     m_exit_direction(0),
+                                     m_side(0),
+                                     m_state(SignalInit)
   {
 //--- initialization of protected data
    m_used_series=USE_SERIES_OPEN+USE_SERIES_HIGH+USE_SERIES_LOW+USE_SERIES_CLOSE;
@@ -123,7 +157,7 @@ void CCustomSignal::ParamsFromInput(double &inputs[])
    m_params[0].type=TYPE_STRING;
    m_params[0].string_value=m_indicator_file;
 
-   for(int i=0; i<size; i++) {
+   for(uint i=0; i<size; i++) {
       m_params[i+1].type=TYPE_DOUBLE;
       m_params[i+1].double_value=inputs[i];
    }
@@ -131,7 +165,7 @@ void CCustomSignal::ParamsFromInput(double &inputs[])
 
 void CCustomSignal::IndicatorFile(string filename)               {
    m_indicator_file=filename;
-   if (m_params_size > 0) { // the Params where already generated. so we overwrite it in the params as well
+   if (ArraySize(m_params) > 0) { // the Params where already generated. so we overwrite it in the params as well
       m_params[0].string_value=m_indicator_file;
    }
 }
@@ -205,3 +239,22 @@ double CCustomSignal::GetData(const int buffer_num, uint shift)
    return m_indicator.GetData(buffer_num, m_Idx + shift);
   }
 //+------------------------------------------------------------------+
+
+int CCustomSignal::UpdateSide(void) {
+  switch (m_state) {
+  // case Init:
+  //    m_side = EMPTY_VALUE;
+  case SignalNoTrade:
+    m_side = 0;
+    break;
+  case SignalLongReturn:
+  case SignalLong:
+    m_side = 100;
+    break;
+  case SignalShortReturn:
+  case SignalShort:
+    m_side = -100;
+    break;
+  }
+  return m_side;
+}

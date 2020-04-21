@@ -34,9 +34,9 @@ protected:
    CCustomSignal     *m_baseline;  // TODO write a CExpertBaselineSignal class
    CiATR             m_atr;
 
-   CArrayObj         m_entry_filters;  // array of filters that are checked for an open/close signal
-   CArrayObj         m_side_filters;   // array of filters that are checked for a state
-   CArrayObj         m_exit_filters;   // array of filters that are checked for exit
+   // CArrayObj         m_entry_filters;  // array of filters that are checked for an open/close signal
+   // CArrayObj         m_side_filters;   // array of filters that are checked for a state
+   // CArrayObj         m_exit_filters;   // array of filters that are checked for exit
    //--- Adjusted parameters
    double            m_weight;         // "weight" of a signal in a combined filter
    int               m_patterns_usage; // bit mask of  using of the market models of signals
@@ -149,6 +149,7 @@ public:
    // if Side() is not defined, use the direction and scale it up to 100
    //virtual int  Side(void) { return(Direction()>0) ? 100 : -100; }
 
+   bool Update();
   };
 
 
@@ -461,126 +462,127 @@ bool CAggSignal::OpenShortParams(double &price,double &sl,double &tp,datetime &e
 //+------------------------------------------------------------------+
 //| Generating a signal for closing of a long position               |
 //+------------------------------------------------------------------+
-bool CAggSignal::CheckCloseLong(double &price)
-  {
-   bool   result=false;
-//--- the "prohibition" signal
-   if(m_direction==EMPTY_VALUE)
-      return(false);
+// FIXME this is wrong and not used
+// bool CAggSignal::CheckCloseLong(double &price)
+//   {
+//    bool   result=false;
+// //--- the "prohibition" signal
+//    if(m_direction==EMPTY_VALUE)
+//       return(false);
 
 
-//--- check the entry filters for a closing signal
-   double direction=0;
-   int number=0;
-   for(int i=0; i<m_entry_filters.Total(); i++)
-     {
-      CCustomSignal *filter=m_entry_filters.At(i);
-      if(filter==NULL)
-         continue;
+// //--- check the entry filters for a closing signal
+//    double direction=0;
+//    int number=0;
+//    for(int i=0; i<m_entry_filters.Total(); i++)
+//      {
+//       CCustomSignal *filter=m_entry_filters.At(i);
+//       if(filter==NULL)
+//          continue;
 
-      double dir=filter.ShortCondition()*10;
-      if(dir!=0)
-        {
-         printf(__FUNCTION__+": Entry Signal "+i+" returned "+dir);
-        }
-      direction+=dir;
-      number++;
-     }
+//       double dir=filter.ShortCondition()*10;
+//       if(dir!=0)
+//         {
+//          printf(__FUNCTION__+": Entry Signal "+i+" returned "+dir);
+//         }
+//       direction+=dir;
+//       number++;
+//      }
 
-//--- check the exit filters for a closing signal
-   for(int i=0; i<m_exit_filters.Total(); i++)
-     {
-      CCustomSignal *filter=m_exit_filters.At(i);
-      if(filter==NULL)
-         continue;
+// //--- check the exit filters for a closing signal
+//    for(int i=0; i<m_exit_filters.Total(); i++)
+//      {
+//       CCustomSignal *filter=m_exit_filters.At(i);
+//       if(filter==NULL)
+//          continue;
 
-      int dir= - filter.ShortCondition()*10;
-      if(dir!=0)
-        {
-         printf(__FUNCTION__+": Exit Signal "+i+" returned "+dir);
-        }
-      direction+=dir; // < 0 ? dir * 10 : 0;
-      number++;
-     }
+//       int dir= - filter.ShortCondition()*10;
+//       if(dir!=0)
+//         {
+//          printf(__FUNCTION__+": Exit Signal "+i+" returned "+dir);
+//         }
+//       direction+=dir; // < 0 ? dir * 10 : 0;
+//       number++;
+//      }
 
-   direction+=m_direction;
-   printf(__FUNCTION__+": Direction: "+-direction+" th: "+m_threshold_close);
+//    direction+=m_direction;
+//    printf(__FUNCTION__+": Direction: "+-direction+" th: "+m_threshold_close);
 
-//--- check of exceeding the threshold value
-   if(-direction>=m_threshold_close)
-     {
-      //--- there's a signal
-      result=true;
-      //--- try to get the level of closing
-      if(!CloseLongParams(price))
-         result=false;
-     }
-//--- zeroize the base price
-   m_base_price=0.0;
-//--- return the result
-   return(result);
-  }
+// //--- check of exceeding the threshold value
+//    if(-direction>=m_threshold_close)
+//      {
+//       //--- there's a signal
+//       result=true;
+//       //--- try to get the level of closing
+//       if(!CloseLongParams(price))
+//          result=false;
+//      }
+// //--- zeroize the base price
+//    m_base_price=0.0;
+// //--- return the result
+//    return(result);
+//   }
 //+------------------------------------------------------------------+
 //| Generating a signal for closing a short position                 |
 //+------------------------------------------------------------------+
-bool CAggSignal::CheckCloseShort(double &price)
-  {
-   bool   result=false;
-//--- the "prohibition" signal
-   if(m_direction==EMPTY_VALUE)
-      return(false);
+// bool CAggSignal::CheckCloseShort(double &price)
+//   {
+//    bool   result=false;
+// //--- the "prohibition" signal
+//    if(m_direction==EMPTY_VALUE)
+//       return(false);
 
-//--- check the entry filters for a closing signal
-   double direction=0;
-   int number=0;
-   for(int i=0; i<m_entry_filters.Total(); i++)
-     {
-      CCustomSignal *filter=m_entry_filters.At(i);
-      if(filter==NULL)
-         continue;
+// //--- check the entry filters for a closing signal
+//    double direction=0;
+//    int number=0;
+//    for(int i=0; i<m_entry_filters.Total(); i++)
+//      {
+//       CCustomSignal *filter=m_entry_filters.At(i);
+//       if(filter==NULL)
+//          continue;
 
-      double dir=filter.LongCondition()*10;
-      if(dir!=0)
-        {
-         printf(__FUNCTION__+": Entry Signal "+i+" returned "+dir);
-        }
-      direction+=dir;
-      number++;
-     }
+//       double dir=filter.LongCondition()*10;
+//       if(dir!=0)
+//         {
+//          printf(__FUNCTION__+": Entry Signal "+i+" returned "+dir);
+//         }
+//       direction+=dir;
+//       number++;
+//      }
 
-//--- check the exit filters for a closing signal
-   for(int i=0; i<m_exit_filters.Total(); i++)
-     {
-      CCustomSignal *filter=m_exit_filters.At(i);
-      if(filter==NULL)
-         continue;
+// //--- check the exit filters for a closing signal
+//    for(int i=0; i<m_exit_filters.Total(); i++)
+//      {
+//       CCustomSignal *filter=m_exit_filters.At(i);
+//       if(filter==NULL)
+//          continue;
 
-      int dir=filter.LongCondition()*10;
-      if(dir!=0)
-        {
-         printf(__FUNCTION__+": Exit Signal "+i+" returned "+dir);
-        }
-      direction+=dir; // > 0 ? dir * 10 : 0;
-      number++;
-     }
+//       int dir=filter.LongCondition()*10;
+//       if(dir!=0)
+//         {
+//          printf(__FUNCTION__+": Exit Signal "+i+" returned "+dir);
+//         }
+//       direction+=dir; // > 0 ? dir * 10 : 0;
+//       number++;
+//      }
 
-   direction+=m_direction;
-   printf(__FUNCTION__+": Direction: "+direction+" th: "+m_threshold_close);
+//    direction+=m_direction;
+//    printf(__FUNCTION__+": Direction: "+direction+" th: "+m_threshold_close);
 
-//--- check of exceeding the threshold value
-   if(direction>=m_threshold_close)
-     {
-      //--- there's a signal
-      result=true;
-      //--- try to get the level of closing
-      if(!CloseShortParams(price))
-         result=false;
-     }
-//--- zeroize the base price
-   m_base_price=0.0;
-//--- return the result
-   return(result);
-  }
+// //--- check of exceeding the threshold value
+//    if(direction>=m_threshold_close)
+//      {
+//       //--- there's a signal
+//       result=true;
+//       //--- try to get the level of closing
+//       if(!CloseShortParams(price))
+//          result=false;
+//      }
+// //--- zeroize the base price
+//    m_base_price=0.0;
+// //--- return the result
+//    return(result);
+//   }
 //+------------------------------------------------------------------+
 //| Detecting the levels for closing a long position                 |
 //+------------------------------------------------------------------+
@@ -713,3 +715,19 @@ bool CAggSignal::BaselineATRChannelShort()
   }
 
 //+------------------------------------------------------------------+
+
+bool CAggSignal::Update() {
+  bool ret = false;
+  for (int i = 0; i < m_filters.Total(); i++) {
+    CCustomSignal *filter = m_filters.At(i);
+    if (filter == NULL)
+      continue;
+
+    ret &= filter.Update();
+
+    if (!ret) {
+       break;
+    }
+  }
+  return ret;
+}

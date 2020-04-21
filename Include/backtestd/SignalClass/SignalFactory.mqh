@@ -6,6 +6,23 @@
 #include "CustomSignal.mqh"
 #include <backtestd\Signal\PresetSignals.mqh>
 
+#include <backtestd\SignalClass\AggSignal.mqh>
+#include <backtestd\SignalClass\BothLinesLevelCrossSignal.mqh>
+#include <backtestd\SignalClass\BothLinesTwoLevelsCrossSignal.mqh>
+#include <backtestd\SignalClass\ColorChangeSignal.mqh>
+#include <backtestd\SignalClass\CustomSignal.mqh>
+#include <backtestd\SignalClass\PriceCrossInvertedSignal.mqh>
+#include <backtestd\SignalClass\PriceCrossSignal.mqh>
+#include <backtestd\SignalClass\SemaphoreSignal.mqh>
+#include <backtestd\SignalClass\SignalFactory.mqh>
+#include <backtestd\SignalClass\TwoLevelsCrossSignal.mqh>
+#include <backtestd\SignalClass\TwoLinesColorChangeSignal.mqh>
+#include <backtestd\SignalClass\TwoLinesCrossSignal.mqh>
+#include <backtestd\SignalClass\TwoLinesTwoLevelsCrossSignal.mqh>
+#include <backtestd\SignalClass\ZeroLineCrossSignal.mqh>
+#include <backtestd\SignalClass\SaturationLevelsSignal.mqh>
+#include <backtestd\SignalClass\BothLinesSaturationLevelsSignal.mqh>
+
 #define assert_signal \
 if(!signal) { \
     Alert("Signal creation failed! "+name); \
@@ -14,18 +31,49 @@ return NULL; \
 
 enum ENUM_SIGNAL_CLASS {
    Preset,
-   ZeroLineCross,         // A single line that crosses 0
-   TwoLinesCross,         // Two lines that cross each other
-   TwoLinesTwoLevelsCross,  // Two lines may cross two levels
-   TwoLevelsCross,         // a single line may cross two levels
-   PriceCross,            // A line on the chart that is crossed by the price
-   PriceCrossInverted,    //    ... the signal is inverted
-   Semaphore,             // A signal like arrow or dot is displayed on the chart
-   TwoLinesColorChange,           //   ... only a single line is considred for color changes
-   ColorChange,                // A color change indicates a signal.
-   // SlopeChange,           // Single line that changes its direction
-   // TwoLinesLevelLineCross, // Two lines may cross a single level line
-   // TwoLinesTwoLevelLinesCross,  // Two lines may cross multiple level lines
+
+   ZeroLineCross,
+   // A single line that crosses 0
+
+   TwoLinesCross,
+   // Two lines that cross each other
+
+   TwoLinesTwoLevelsCross,
+   // Two lines may cross two levels
+
+   TwoLevelsCross,
+   // a single line may cross two levels
+
+   PriceCross,
+   // A line on the chart that is crossed by the price
+
+   PriceCrossInverted,
+   //    ... the signal is inverted
+
+   Semaphore,
+   // A signal like arrow or dot is displayed on the chart
+
+   TwoLinesColorChange,
+   //   ... only a single line is considred for color changes
+
+   ColorChange,
+   // A color change indicates a signal.
+
+   BothLinesTwoLevelsCross,
+   // both lines need to cross to give a signal
+   BothLinesLevelCross,
+
+   SaturationLevels,
+   // SaturationLines,
+   BothLinesSaturationLevels,
+
+   // SlopeChange,
+   // // Single line that changes its direction
+  
+   //  TwoLinesLevelLineCross,
+   // // Two lines may cross a single level line
+   // TwoLinesTwoLevelLinesCross,
+   // // Two lines may cross multiple level lines
 };
 
 //+------------------------------------------------------------------+
@@ -192,6 +240,11 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
       case Semaphore: signal=new CSemaphoreSignal(); break;
       case TwoLinesColorChange: signal=new CTwoLinesColorChangeSignal(); break;
       case ColorChange: signal=new CColorChangeSignal(); break;
+      case BothLinesTwoLevelsCross: signal=new CBothLinesTwoLevelsCrossSignal(); break;
+      case BothLinesLevelCross: signal=new CBothLinesLevelCrossSignal(); break;
+      case SaturationLevels: signal=new CSaturationLevelsSignal(); break;
+      case BothLinesSaturationLevels: signal=new CBothLinesSaturationLevelsSignal(); break;
+
       //case TwoLinesLevelLineCross: signal=new CTwoLinesLevelLineCrossSignal(); break;
       //case TwoLinesTwoLevelLinesCross: signal=new CTwoLinesTwoLevelLinesCrossSignal(); break;
       case Preset:

@@ -121,5 +121,6 @@ bool CTwoLinesTwoLevelsCrossSignal::InitIndicatorBuffers()
    m_level_up_exit = m_config[1];
    m_level_down_enter = m_config[2];
    m_level_down_exit = m_config[3];
+   m_stateful_side = m_config[4];
    return true;
 }
