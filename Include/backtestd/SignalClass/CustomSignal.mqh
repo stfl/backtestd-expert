@@ -104,7 +104,7 @@ public:
 
    // the stored direction states need to be updated every round (candle) only once!
    // getting the stored states later will be faster than calculating each time
-   virtual bool Update() { return true; }
+   virtual bool Update();
    SIGNAL_STATE GetState() { return m_state; }
 
 protected:
@@ -242,6 +242,14 @@ double CCustomSignal::GetData(const int buffer_num, uint shift)
   }
 //+------------------------------------------------------------------+
 
+bool CCustomSignal::Update(void) {
+   m_sig_direction = LongSignal() ? 1 :
+      ShortSignal() ? -1 : 0;
+   m_side = LongSide() ? 1 :
+      ShortSide() ? -1 : 0;
+   return true;
+}
+
 int CCustomSignal::UpdateSide(void) {
   switch (m_state) {
   // case Init:
@@ -251,11 +259,11 @@ int CCustomSignal::UpdateSide(void) {
     break;
   case SignalLongReturn:
   case SignalLong:
-    m_side = 100;
+    m_side = 1;
     break;
   case SignalShortReturn:
   case SignalShort:
-    m_side = -100;
+    m_side = -1;
     break;
   }
   return m_side;
