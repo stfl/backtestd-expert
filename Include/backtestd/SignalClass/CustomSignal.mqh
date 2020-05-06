@@ -125,12 +125,14 @@ CCustomSignal::CCustomSignal(void) : m_indicator_type(IND_CUSTOM),
 //--- initialization of protected data
    m_used_series=USE_SERIES_OPEN+USE_SERIES_HIGH+USE_SERIES_LOW+USE_SERIES_CLOSE;
    m_Idx = StartIndex();
+   ArrayResize(m_buffers, 5);
   }
 //+------------------------------------------------------------------+
 //| Destructor                                                       |
 //+------------------------------------------------------------------+
 CCustomSignal::~CCustomSignal(void)
   {
+  ArrayFree(m_buffers);
   }
 
 //+------------------------------------------------------------------+
