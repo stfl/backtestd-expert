@@ -30,7 +30,28 @@ return NULL; \
 }
 
 enum ENUM_SIGNAL_CLASS {
-   Preset,
+    Preset = 0,
+    ZeroLineCross = 1,
+    TwoLinesCross = 2,
+    TwoLinesTwoLevelsCross = 3,
+    TwoLevelsCross = 4,
+    PriceCross = 5,
+    PriceCrossInverted = 6,
+    Semaphore = 7,
+    TwoLinesColorChange = 8,
+    ColorChange = 9,
+    BothLinesTwoLevelsCross = 10,
+    BothLinesLevelCross = 11,
+    SaturationLevels = 12,
+    SaturationLines = 13,
+    BothLinesSaturationLevels = 14,
+    SlopeChange = 15,
+    TwoLinesSlopeChange = 16,
+}
+
+/*
+enum ENUM_SIGNAL_CLASS {
+   Preset = 0,
 
    ZeroLineCross,
    // A single line that crosses 0
@@ -75,6 +96,7 @@ enum ENUM_SIGNAL_CLASS {
    // TwoLinesTwoLevelLinesCross,
    // // Two lines may cross multiple level lines
 };
+*/
 
 //+------------------------------------------------------------------+
 //|                                                                  |
