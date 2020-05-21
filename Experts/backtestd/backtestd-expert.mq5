@@ -297,10 +297,6 @@ int OnInit() {
       return ret; // break fail
   }
   
-  datetime start_date = D'2016.01.01 00:00';
-  CBacktestExpert *expert = Experts.At(0);
-  expert.m_signal.m_confirm.WriteBuffersToFile(start_date, "test.csv");
-
   return INIT_SUCCEEDED;
 }
 //+------------------------------------------------------------------+
@@ -490,6 +486,10 @@ double OnTester() {
     // we want a signal at least every 40 candles -> 6.5/year (5 days a week)
     return 0.0;
   }
+
+  datetime start_date = D'2016.01.01 00:00';
+  CBacktestExpert *expert = Experts.At(0);
+  expert.m_signal.m_confirm.WriteBuffersToFile(start_date, "test.csv");
 
   int tp_cnt = 0;
   int sl_cnt = 0;

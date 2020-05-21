@@ -47,7 +47,7 @@ enum ENUM_SIGNAL_CLASS {
     BothLinesSaturationLevels = 14,
     SlopeChange = 15,
     TwoLinesSlopeChange = 16,
-}
+};
 
 /*
 enum ENUM_SIGNAL_CLASS {
