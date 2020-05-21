@@ -46,7 +46,7 @@ protected:
    string             m_indicator_file;
    // string             m_indicator_name;
 
-   uint m_buffers[];
+   int m_buffers[];
    double m_config[];
 
    int m_sig_direction; // <0 short | 0 no signal | >0 long
@@ -107,7 +107,9 @@ public:
    virtual bool Update();
    SIGNAL_STATE GetState() { return m_state; }
 
-   bool WriteBuffersToFile(datetime start_date, string filename);
+   bool WriteBuffersToFile(datetime date_start, string filename);
+   bool GetIndiBuffers(datetime date_start, uint idx, double &indi_buf[]);
+   bool WriteBuffersToFrame(datetime date_start);
 
 protected:
    //--- method of initialization of the indicator
@@ -269,6 +271,53 @@ int CCustomSignal::UpdateSide(void) {
     break;
   }
   return m_side;
+}
+
+bool CCustomSignal::GetIndiBuffers(datetime date_start, uint idx, double &indi_buf[]) {
+   datetime date_finish; // data copying end date
+   // bool     sign_buf[]; // signal array (true - buy, false - sell)
+   // datetime time_buf[]; // array of signals' arrival time
+   // int      sign_size=0; // signal array size
+   // double   indi_buf[][]; // array of indicator values
+   //datetime date_buf[]; // array of indicator dates
+   int      indi_size=0; // size of indicator arrays
+   date_finish=TimeCurrent();
+//--- being in the loop until the indicator calculates all its values
+   while(BarsCalculated(m_indicator.Handle())==-1)
+      Sleep(10); // pause to allow the indicator to calculate all its values
+//--- copy the indicator values for a certain period of time
+   ResetLastError();
+   if(CopyBuffer(m_indicator.Handle(),m_buffers[idx],date_start,date_finish,indi_buf)==-1) {
+      PrintFormat("Failed to copy indicator values. Error code = %d",GetLastError());
+      return false;
+   }
+
+   return true;
+}
+
+bool CCustomSignal::WriteBuffersToFrame(datetime date_start) {
+   datetime date_finish=TimeCurrent();
+
+   for (int i=0; i<5; i++) {
+      if (m_buffers[i] >= 0) {
+         double   indi_buf[];
+
+         ResetLastError();
+         if(CopyBuffer(m_indicator.Handle(),m_buffers[i],date_start,date_finish,indi_buf)==-1) {
+            PrintFormat("Failed to copy indicator values. Error code = %d",GetLastError());
+            return false;
+         }
+         // if (!GetIndiBuffers(date_start, i, indi_buf))
+         //       return false;
+
+         ResetLastError();
+         if(!FrameAdd(m_indicator_file + "." + m_symbol.Name() + "." + i, i, 0, indi_buf)) {
+            Print("Frame add error: ", GetLastError());
+            return false;
+         }
+      }
+   }
+   return true;
 }
 
 bool CCustomSignal::WriteBuffersToFile(datetime start_date, string filename) {

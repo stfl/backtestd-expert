@@ -72,11 +72,11 @@ input double Confirm_input12 = 0.;                    // Confirm double input 12
 input double Confirm_input13 = 0.;                    // Confirm double input 13
 input double Confirm_input14 = 0.;                    // Confirm double input 14
 double Confirm_inputs[15];
-input uint Confirm_buffer0 = 0;
-input uint Confirm_buffer1 = 0;
-input uint Confirm_buffer2 = 0;
-input uint Confirm_buffer3 = 0;
-input uint Confirm_buffer4 = 0;
+input int Confirm_buffer0 = -1;
+input int Confirm_buffer1 = -1;
+input int Confirm_buffer2 = -1;
+input int Confirm_buffer3 = -1;
+input int Confirm_buffer4 = -1;
 uint Confirm_buffer[5];
 input double Confirm_param0 = 0.;
 input double Confirm_param1 = 0.;
@@ -279,6 +279,8 @@ CArrayString symbols;
 CArrayString currencies;
 bool CandleProcessed = false;
 
+//CDatabaseFrames DB_Frames;
+
 //+------------------------------------------------------------------+
 //| Initialization function of the expert                            |
 //+------------------------------------------------------------------+
@@ -480,16 +482,12 @@ double OnTester() {
   // each trade opens 2 positions, one with tp and one without
   // => half of the trades are considered
 
-  datetime stop_time = TimeCurrent();
-  uint passed_bars = (stop_time - start_time) / PeriodSeconds();
-  if ((TesterStatistics(STAT_TRADES) / Experts.Total()) < (passed_bars / 40)) {
-    // we want a signal at least every 40 candles -> 6.5/year (5 days a week)
-    return 0.0;
-  }
-
-  datetime start_date = D'2016.01.01 00:00';
-  CBacktestExpert *expert = Experts.At(0);
-  expert.m_signal.m_confirm.WriteBuffersToFile(start_date, "test.csv");
+  // datetime stop_time = TimeCurrent();
+  // uint passed_bars = (stop_time - start_time) / PeriodSeconds();
+  // if ((TesterStatistics(STAT_TRADES) / Experts.Total()) < (passed_bars / 40)) {
+  //   // we want a signal at least every 40 candles -> 6.5/year (5 days a week)
+  //   return 0.0;
+  // }
 
   int tp_cnt = 0;
   int sl_cnt = 0;
@@ -510,13 +508,51 @@ double OnTester() {
     Print("Profit: ", TesterStatistics(STAT_PROFIT));
   }
 
-  return (TesterStatistics(STAT_TRADES) == 0.
-              ? 0.
-              : tp_cnt / (TesterStatistics(STAT_TRADES) / 2));
-  // return(TesterStatistics(STAT_TRADES) == 0. ? 0.
-  //       :
-  //       TesterStatistics(STAT_PROFIT_TRADES)/TesterStatistics(STAT_TRADES));
+  double ret = TesterStatistics(STAT_TRADES) == 0.
+     ? 0.
+     : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
+
+
+  // TODO generate a Frame with all indicator buffers on all Symbols
+  datetime start_date = D'2016.01.01 00:00';
+  CBacktestExpert *expert = Experts.At(0);
+  expert.m_signal.m_confirm.WriteBuffersToFrame(start_date);
+
+  return ret;
 }
+
+// int OnTesterInit() {
+//    return(INIT_SUCCEEDED);
+// }
+
+void OnTesterDeinit(void) {
+   string        name;
+   ulong         pass;
+   long          idx;
+   double        value;
+   double        indi_buf[];
+
+   FrameFirst();
+   while(FrameNext(pass, name, idx, value, indi_buf)) {
+      string filename = name + "." + pass + ".csv";
+      int file_handle=FileOpen(filename,FILE_READ|FILE_WRITE|FILE_CSV);
+      if(file_handle!=INVALID_HANDLE) {
+         // PrintFormat("%s file is available for writing",filename);
+         // PrintFormat("File path: %s\\Files\\",TerminalInfoString(TERMINAL_DATA_PATH));
+         // for(int i=0;i<indi_size;i++)
+         FileWriteArray(file_handle,indi_buf);
+         //--- close the file
+         FileClose(file_handle);
+         // PrintFormat("Data is written, %s file is closed",filename);
+      }
+      else {
+         // PrintFormat("Failed to open %s file, Error code = %d",filename,GetLastError());
+         break;
+      }
+
+   }
+}
+
 //+------------------------------------------------------------------+
 //| Deinitialization function of the expert                          |
 //+------------------------------------------------------------------+
