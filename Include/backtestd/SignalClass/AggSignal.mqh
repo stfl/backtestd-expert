@@ -18,7 +18,7 @@
 //+------------------------------------------------------------------+
 class CAggSignal : public CExpertSignal
   {
-protected:
+public:
    //--- variables
    double            m_base_price;     // base price for detection of level of entering (and/or exit?)
    //--- variables for working with additional filters

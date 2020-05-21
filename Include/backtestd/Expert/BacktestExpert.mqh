@@ -42,7 +42,7 @@ enum ENUM_EXPERT_STATE
 //+------------------------------------------------------------------+
 class CBacktestExpert : public CExpertBase
   {
-protected:
+public:
    int               m_period_flags;             // timeframe flags (as visible flags)
    int               m_max_orders;               // max number of orders (include position)
    MqlDateTime       m_last_tick_time;           // time of last tick

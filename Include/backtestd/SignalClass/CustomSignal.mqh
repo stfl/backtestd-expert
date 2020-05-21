@@ -107,6 +107,8 @@ public:
    virtual bool Update();
    SIGNAL_STATE GetState() { return m_state; }
 
+   bool WriteBuffersToFile(datetime start_date, string filename);
+
 protected:
    //--- method of initialization of the indicator
    bool              InitCustomIndicator(CIndicators *indicators);         // TODO replace with CreateIndicator
@@ -267,4 +269,77 @@ int CCustomSignal::UpdateSide(void) {
     break;
   }
   return m_side;
+}
+
+bool CCustomSignal::WriteBuffersToFile(datetime start_date, string filename) {
+   datetime date_finish; // data copying end date
+   // bool     sign_buf[]; // signal array (true - buy, false - sell)
+   // datetime time_buf[]; // array of signals' arrival time
+   // int      sign_size=0; // signal array size
+   double   indi_buf[]; // array of indicator values
+   datetime date_buf[]; // array of indicator dates
+   int      indi_size=0; // size of indicator arrays
+//--- end time is the current time
+   date_finish=TimeCurrent();
+//--- being in the loop until the indicator calculates all its values
+   while(BarsCalculated(m_indicator.Handle())==-1)
+      Sleep(10); // pause to allow the indicator to calculate all its values
+//--- copy the indicator values for a certain period of time
+   ResetLastError();
+   if(CopyBuffer(m_indicator.Handle(),m_buffers[0],start_date,date_finish,indi_buf)==-1) {
+      PrintFormat("Failed to copy indicator values. Error code = %d",GetLastError());
+      return false;
+   }
+//--- copy the appropriate time for the indicator values
+   ResetLastError();
+   if(CopyTime(m_symbol.Name(),m_period,start_date,date_finish,date_buf)==-1) {
+
+      PrintFormat("Failed to copy time values. Error code = %d",GetLastError());
+      return false;
+   }
+// //--- free the memory occupied by the indicator
+//    IndicatorRelease(m_indicator);
+// //--- receive the bufer size
+   indi_size=ArraySize(indi_buf);
+// //--- analyze the data and save the indicator signals to the arrays
+//    ArrayResize(sign_buf,indi_size-1);
+//    ArrayResize(time_buf,indi_size-1);
+//    for(int i=1;i<indi_size;i++)
+//      {
+//       //--- buy signal
+//       if(indi_buf[i-1]<0 && indi_buf[i]>=0)
+//         {
+//          sign_buf[sign_size]=true;
+//          time_buf[sign_size]=date_buf[i];
+//          sign_size++;
+//         }
+//       //--- sell signal
+//       if(indi_buf[i-1]>0 && indi_buf[i]<=0)
+//         {
+//          sign_buf[sign_size]=false;
+//          time_buf[sign_size]=date_buf[i];
+//          sign_size++;
+//         }
+//      }
+//--- open the file for writing the indicator values (if the file is absent, it will be created automatically)
+   ResetLastError();
+   int file_handle=FileOpen(filename,FILE_READ|FILE_WRITE|FILE_CSV);
+   if(file_handle!=INVALID_HANDLE) {
+      PrintFormat("%s file is available for writing",filename);
+      PrintFormat("File path: %s\\Files\\",TerminalInfoString(TERMINAL_DATA_PATH));
+      //--- first, write the number of signals
+      FileWrite(file_handle,indi_size);
+      //--- write the time and values of signals to the file
+      for(int i=0;i<indi_size;i++)
+         FileWrite(file_handle,date_buf[i],indi_buf[i]);
+      //--- close the file
+      FileClose(file_handle);
+      PrintFormat("Data is written, %s file is closed",filename);
+   }
+   else {
+      PrintFormat("Failed to open %s file, Error code = %d",filename,GetLastError());
+      return false;
+   }
+
+   return true;
 }

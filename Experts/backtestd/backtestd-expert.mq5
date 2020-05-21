@@ -296,6 +296,10 @@ int OnInit() {
     else
       return ret; // break fail
   }
+  
+  datetime start_date = D'2016.01.01 00:00';
+  CBacktestExpert *expert = Experts.At(0);
+  expert.m_signal.m_confirm.WriteBuffersToFile(start_date, "test.csv");
 
   return INIT_SUCCEEDED;
 }
