@@ -105,17 +105,18 @@ public:
    // the stored direction states need to be updated every round (candle) only once!
    // getting the stored states later will be faster than calculating each time
    virtual bool Update();
+   virtual bool UpdateSide(void);
    SIGNAL_STATE GetState() { return m_state; }
 
    bool WriteBuffersToFile(datetime date_start, string filename);
    bool GetIndiBuffers(datetime date_start, uint idx, double &indi_buf[]);
    bool WriteBuffersToFrame(datetime date_start);
+   bool WriteSideChangeToFrame();
 
 protected:
    //--- method of initialization of the indicator
    bool              InitCustomIndicator(CIndicators *indicators);         // TODO replace with CreateIndicator
    virtual bool      InitIndicatorBuffers()                                  { return true; }
-  virtual int UpdateSide(void);
   };
 //+------------------------------------------------------------------+
 //| Constructor                                                      |
@@ -249,28 +250,13 @@ double CCustomSignal::GetData(const int buffer_num, uint shift)
 bool CCustomSignal::Update(void) {
    m_sig_direction = LongSignal() ? 1 :
       ShortSignal() ? -1 : 0;
+   return UpdateSide();
+}
+
+bool CCustomSignal::UpdateSide(void) {
    m_side = LongSide() ? 1 :
       ShortSide() ? -1 : 0;
    return true;
-}
-
-int CCustomSignal::UpdateSide(void) {
-  switch (m_state) {
-  // case Init:
-  //    m_side = EMPTY_VALUE;
-  case SignalNoTrade:
-    m_side = 0;
-    break;
-  case SignalLongReturn:
-  case SignalLong:
-    m_side = 1;
-    break;
-  case SignalShortReturn:
-  case SignalShort:
-    m_side = -1;
-    break;
-  }
-  return m_side;
 }
 
 bool CCustomSignal::GetIndiBuffers(datetime date_start, uint idx, double &indi_buf[]) {
@@ -309,12 +295,35 @@ bool CCustomSignal::WriteBuffersToFrame(datetime date_start) {
          }
          // if (!GetIndiBuffers(date_start, i, indi_buf))
          //       return false;
+         PrintFormat("size of indi buffer array %d",ArraySize(indi_buf));
+
 
          ResetLastError();
-         if(!FrameAdd(m_indicator_file + "." + m_symbol.Name() + "." + i, i, 0, indi_buf)) {
+         if(!FrameAdd(m_symbol.Name(), 0, i, indi_buf)) {
             Print("Frame add error: ", GetLastError());
             return false;
          }
+      }
+   }
+   return true;
+}
+
+bool CCustomSignal::WriteSideChangeToFrame() {
+   datetime date_finish=TimeCurrent();
+
+   int last_side = m_side;
+   UpdateSide();
+   if (last_side != m_side) {
+      // write side change with date to Frame
+      Print("Side changed: ", last_side, " -> ", m_side);
+
+      datetime date[1];
+      date[0] = TimeCurrent();
+
+      ResetLastError();
+      if(!FrameAdd(m_symbol.Name(), 0, m_side, date)) {
+         Print("Frame add error: ", GetLastError());
+         return false;
       }
    }
    return true;

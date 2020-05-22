@@ -23,6 +23,8 @@
 #include <backtestd\Money\MoneyFixedRiskFixedBalance.mqh>
 #include <backtestd\SignalClass\AggSignal.mqh>
 
+#include <Database\DatabaseFrames.mqh>
+
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
 //+------------------------------------------------------------------+
@@ -279,7 +281,7 @@ CArrayString symbols;
 CArrayString currencies;
 bool CandleProcessed = false;
 
-//CDatabaseFrames DB_Frames;
+CDatabaseFrames DB_Frames;
 
 //+------------------------------------------------------------------+
 //| Initialization function of the expert                            |
@@ -482,13 +484,6 @@ double OnTester() {
   // each trade opens 2 positions, one with tp and one without
   // => half of the trades are considered
 
-  // datetime stop_time = TimeCurrent();
-  // uint passed_bars = (stop_time - start_time) / PeriodSeconds();
-  // if ((TesterStatistics(STAT_TRADES) / Experts.Total()) < (passed_bars / 40)) {
-  //   // we want a signal at least every 40 candles -> 6.5/year (5 days a week)
-  //   return 0.0;
-  // }
-
   int tp_cnt = 0;
   int sl_cnt = 0;
   for (int i = 0; i < Experts.Total(); i++) {
@@ -518,39 +513,78 @@ double OnTester() {
   CBacktestExpert *expert = Experts.At(0);
   expert.m_signal.m_confirm.WriteBuffersToFrame(start_date);
 
+  // DB_Frames.OnTesterDeinit();
+  // DB_Frames.OnTester();
   return ret;
 }
 
-// int OnTesterInit() {
-//    return(INIT_SUCCEEDED);
+// NOTE write sides to csv
+// void OnTesterDeinit(void) {
+//    string        name;
+//    ulong         pass;
+//    long          id;
+//    double        value;
+//    datetime        date[];
+
+//    string filename = "test.csv";
+//    int file_handle=FileOpen(filename,FILE_READ|FILE_WRITE|FILE_CSV);
+//    if(file_handle!=INVALID_HANDLE) {
+//       FileWrite(file_handle, "symbol", "pass", "func", "date", "value");
+
+//       FrameFirst();
+//       // FrameFilter("", 0); // select frames with trading statistics for further work
+//       while(FrameNext(pass, name, id, value, date)) {
+//          PrintFormat("%s file is available for writing",filename);
+//          PrintFormat("File path: %s\\Files\\",TerminalInfoString(TERMINAL_DATA_PATH));
+//          FileWrite(file_handle, name, pass, id, (datetime) date[0], (int) value);
+//          //--- close the file
+//          PrintFormat("Data is written, %s file is closed",filename);
+//       }
+//       FileClose(file_handle);
+//    }
+//    else {
+//       PrintFormat("Failed to open %s file, Error code = %d",filename,GetLastError());
+//    }
 // }
 
-void OnTesterDeinit(void) {
-   string        name;
-   ulong         pass;
-   long          idx;
-   double        value;
-   double        indi_buf[];
+// NOTE write indi buffer values to csv
+// void OnTesterDeinit(void) {
+//    string        sybmol;
+//    ulong         pass;
+//    long          id;
+//    double        value;
+//    double        indi_buf[];
 
-   FrameFirst();
-   while(FrameNext(pass, name, idx, value, indi_buf)) {
-      string filename = name + "." + pass + ".csv";
-      int file_handle=FileOpen(filename,FILE_READ|FILE_WRITE|FILE_CSV);
-      if(file_handle!=INVALID_HANDLE) {
-         // PrintFormat("%s file is available for writing",filename);
-         // PrintFormat("File path: %s\\Files\\",TerminalInfoString(TERMINAL_DATA_PATH));
-         // for(int i=0;i<indi_size;i++)
-         FileWriteArray(file_handle,indi_buf);
-         //--- close the file
-         FileClose(file_handle);
-         // PrintFormat("Data is written, %s file is closed",filename);
-      }
-      else {
-         // PrintFormat("Failed to open %s file, Error code = %d",filename,GetLastError());
-         break;
-      }
+//    string filename = "test.csv";
+//    int file_handle=FileOpen(filename,FILE_READ|FILE_WRITE|FILE_CSV);
+//    if(file_handle!=INVALID_HANDLE) {
+//       FileWrite(file_handle, "symbol", "pass", "func", "buf idx", "value");
 
-   }
+//       FrameFirst();
+//       // FrameFilter("", 0); // select frames with trading statistics for further work
+//       while(FrameNext(pass, name, id, value, indi_buf)) {
+//          PrintFormat("%s file is available for writing",filename);
+//          PrintFormat("File path: %s\\Files\\",TerminalInfoString(TERMINAL_DATA_PATH));
+//          for(int i=0;i<ArraySize(indi_buf);i++)
+//             FileWrite(file_handle, symbol, pass, id, (uint) value, indi_buf[i]);
+//          //--- close the file
+//          PrintFormat("Data is written, %s file is closed",filename);
+//       }
+//       FileClose(file_handle);
+//    }
+//    else {
+//       PrintFormat("Failed to open %s file, Error code = %d",filename,GetLastError());
+//    }
+
+// }
+
+int OnTesterInit() {
+   return(DB_Frames.OnTesterInit());
+}
+
+void OnTesterDeinit() {
+   Print("OnTestDeinit()");
+   DB_Frames.OnTesterDeinit();
 }
 
 //+------------------------------------------------------------------+

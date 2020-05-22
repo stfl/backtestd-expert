@@ -38,6 +38,7 @@ protected:
 
 public:
   virtual bool Update(void);
+  virtual bool UpdateSide(void);
   virtual ENUM_REGION UpdateRegion(void) { return m_region; }
   CSaturationSignal(void);
 
@@ -102,5 +103,25 @@ bool CSaturationSignal::Update() {
   UpdateLongSignal();
   UpdateShortSignal();
   UpdateSide();
+  return true;
+}
+
+bool CSaturationSignal::UpdateSide(void) {
+// FIXME run Update()
+  switch (m_state) {
+  // case Init:
+  //    m_side = EMPTY_VALUE;
+  case SignalNoTrade:
+    m_side = 0;
+    break;
+  case SignalLongReturn:
+  case SignalLong:
+    m_side = 1;
+    break;
+  case SignalShortReturn:
+  case SignalShort:
+    m_side = -1;
+    break;
+  }
   return true;
 }

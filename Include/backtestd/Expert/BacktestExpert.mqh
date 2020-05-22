@@ -636,6 +636,8 @@ bool CBacktestExpert::Processing(void)
   {
    bool res=false;
 //--- calculate signal direction once
+   // return m_signal.WriteSideChangeToFrame();
+   return true;
    m_signal.Update();
 
    m_next_state=m_state;

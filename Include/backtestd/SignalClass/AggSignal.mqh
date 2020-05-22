@@ -150,6 +150,8 @@ public:
    //virtual int  Side(void) { return(Direction()>0) ? 100 : -100; }
 
    bool Update();
+   bool UpdateSide();
+   bool WriteSideChangeToFrame();
   };
 
 
@@ -724,6 +726,38 @@ bool CAggSignal::Update() {
       continue;
 
     ret &= filter.Update();
+
+    if (!ret) {
+       break;
+    }
+  }
+  return ret;
+}
+
+bool CAggSignal::UpdateSide() {
+  bool ret = false;
+  for (int i = 0; i < m_filters.Total(); i++) {
+    CCustomSignal *filter = m_filters.At(i);
+    if (filter == NULL)
+      continue;
+
+    ret &= filter.UpdateSide();
+
+    if (!ret) {
+       break;
+    }
+  }
+  return ret;
+}
+
+bool CAggSignal::WriteSideChangeToFrame() {
+  bool ret = false;
+  for (int i = 0; i < m_filters.Total(); i++) {
+    CCustomSignal *filter = m_filters.At(i);
+    if (filter == NULL)
+      continue;
+
+    ret &= filter.WriteSideChangeToFrame();
 
     if (!ret) {
        break;

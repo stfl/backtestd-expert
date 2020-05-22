@@ -50,14 +50,14 @@ protected:
 
   virtual bool UpdateStrictSide(void);
 
-  virtual int UpdateSide(void);
+  virtual bool UpdateSide(void);
 
   virtual bool InitIndicatorBuffers();
 };
 
 //CBothLinesTwoLevelsCrossSignal::CBothLinesTwoLevelsCrossSignal(void) {}
 
-int CBothLinesTwoLevelsCrossSignal::UpdateSide(void) {
+bool CBothLinesTwoLevelsCrossSignal::UpdateSide(void) {
   switch (m_state) {
   // case Init:
   //    m_side = EMPTY_VALUE;
@@ -73,7 +73,7 @@ int CBothLinesTwoLevelsCrossSignal::UpdateSide(void) {
     m_side = -100;
     break;
   }
-  return m_side;
+  return true;
 }
 
 // bool CBothLinesTwoLevelsCrossSignal::LongSide(void) {
