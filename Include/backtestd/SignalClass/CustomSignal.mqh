@@ -46,7 +46,7 @@ protected:
    string             m_indicator_file;
    // string             m_indicator_name;
 
-   int m_buffers[];
+   uint m_buffers[];
    double m_config[];
 
    int m_sig_direction; // <0 short | 0 no signal | >0 long
@@ -110,8 +110,8 @@ public:
 
    bool WriteBuffersToFile(datetime date_start, string filename);
    bool GetIndiBuffers(datetime date_start, uint idx, double &indi_buf[]);
-   bool WriteBuffersToFrame(datetime date_start);
-   bool WriteSideChangeToFrame();
+   bool AddBuffersToFrame(datetime date_start);
+   bool AddSideChangeToFrame();
 
 protected:
    //--- method of initialization of the indicator
@@ -281,7 +281,7 @@ bool CCustomSignal::GetIndiBuffers(datetime date_start, uint idx, double &indi_b
    return true;
 }
 
-bool CCustomSignal::WriteBuffersToFrame(datetime date_start) {
+bool CCustomSignal::AddBuffersToFrame(datetime date_start) {
    datetime date_finish=TimeCurrent();
 
    for (int i=0; i<5; i++) {
@@ -308,21 +308,27 @@ bool CCustomSignal::WriteBuffersToFrame(datetime date_start) {
    return true;
 }
 
-bool CCustomSignal::WriteSideChangeToFrame() {
+bool CCustomSignal::AddSideChangeToFrame() {
    datetime date_finish=TimeCurrent();
 
    int last_side = m_side;
    UpdateSide();
    if (last_side != m_side) {
       // write side change with date to Frame
-      Print("Side changed: ", last_side, " -> ", m_side);
+      // Print("Side changed: ", last_side, " -> ", m_side);
 
-      datetime date[1];
-      date[0] = TimeCurrent();
+      datetime date;
+      if(!SeriesInfoInteger(m_symbol.Name(),m_period,SERIES_LASTBAR_DATE,date))
+      { // If request has failed, print error message:
+         Print(__FUNCTION__+" Error when getting time of last bar opening: "+IntegerToString(GetLastError()));
+         return(0);
+      }
 
       ResetLastError();
-      if(!FrameAdd(m_symbol.Name(), 0, m_side, date)) {
-         Print("Frame add error: ", GetLastError());
+      if(!FrameAdd(m_symbol.Name(),
+                   0,  // func not implemented
+                   m_side, date)) {
+         Print("Frame add error: ", IntegerToString(GetLastError()));
          return false;
       }
    }

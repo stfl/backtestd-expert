@@ -84,8 +84,8 @@ bool CTwoLinesColorChangeSignal::InitIndicatorBuffers()
   {
    m_buf_up = m_indicator.At(m_buffers[0]);
    m_buf_down = m_indicator.At(m_buffers[1]);
-   m_color_neutr = m_config[0];
-   m_color_up = m_config[1];
-   m_color_down = m_config[2];
+   m_color_neutr = (uint)m_config[0];
+   m_color_up = (uint)m_config[1];
+   m_color_down = (uint)m_config[2];
    return true;
   }

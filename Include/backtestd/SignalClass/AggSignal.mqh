@@ -151,7 +151,7 @@ public:
 
    bool Update();
    bool UpdateSide();
-   bool WriteSideChangeToFrame();
+   bool AddSideChangeToFrame();
   };
 
 
@@ -750,14 +750,14 @@ bool CAggSignal::UpdateSide() {
   return ret;
 }
 
-bool CAggSignal::WriteSideChangeToFrame() {
+bool CAggSignal::AddSideChangeToFrame() {
   bool ret = false;
   for (int i = 0; i < m_filters.Total(); i++) {
     CCustomSignal *filter = m_filters.At(i);
     if (filter == NULL)
       continue;
 
-    ret &= filter.WriteSideChangeToFrame();
+    ret &= filter.AddSideChangeToFrame();
 
     if (!ret) {
        break;

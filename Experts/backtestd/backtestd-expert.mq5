@@ -25,6 +25,13 @@
 
 #include <Database\DatabaseFrames.mqh>
 
+enum STORE_RESULTS {
+    None = 0,
+    SideChanges,
+    Buffers,
+    Results
+};
+
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
 //+------------------------------------------------------------------+
@@ -34,6 +41,8 @@ ulong Expert_MagicNumber = 13876;               //
 bool Expert_EveryTick = false;                  //
 input int Expert_ProcessOnTimeLeft =
     10 * 60; // Time in seconds to run before the candle closes
+
+input STORE_RESULTS Expert_Store_Results = None;
 
 //--- inputs for main signal
 // input int                Signal_ThresholdOpen=100;         // Signal
@@ -52,7 +61,7 @@ input double Money_Risk = 1.0; // Risk per trade (a regular entry has 2 trades..
                                // x2 is the actual risk)
 input double Money_FixLot_Lots = 0.1; // Fixed volume
 
-datetime start_time = TimeCurrent();
+//datetime start_time = TimeCurrent();
 
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator = ""; // Name of Confirmation Indicator to use
@@ -508,13 +517,11 @@ double OnTester() {
      : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
 
 
-  // TODO generate a Frame with all indicator buffers on all Symbols
-  datetime start_date = D'2016.01.01 00:00';
-  CBacktestExpert *expert = Experts.At(0);
-  expert.m_signal.m_confirm.WriteBuffersToFrame(start_date);
-
-  // DB_Frames.OnTesterDeinit();
-  // DB_Frames.OnTester();
+  if (Expert_Store_Results == Buffers) {
+     // datetime start_date = D'2016.01.01 00:00';
+     // CBacktestExpert *expert = Experts.At(0);
+     // expert.m_signal.m_confirm.AddBuffersToFrame(start_date);
+  }
   return ret;
 }
 
@@ -583,8 +590,9 @@ int OnTesterInit() {
 }
 
 void OnTesterDeinit() {
-   Print("OnTestDeinit()");
-   DB_Frames.OnTesterDeinit();
+  if (Expert_Store_Results == SideChanges) {
+     DB_Frames.StoreSideChanges();
+  }
 }
 
 //+------------------------------------------------------------------+

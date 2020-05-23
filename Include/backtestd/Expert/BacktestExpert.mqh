@@ -85,8 +85,8 @@ public:
    ENUM_EXPERT_STATE m_next_state;
    uint              m_baseline_wait;
    uint              m_baseline_wait_cnt;
-   long              m_pos_take;
-   long              m_pos_open_end;
+   ulong             m_pos_take;
+   ulong             m_pos_open_end;
    double            m_pos_take_tp;
    double            m_pos_take_sl;
    uint              m_take_profit_cnt;
@@ -635,11 +635,13 @@ bool CBacktestExpert::SelectPosition(void)
 bool CBacktestExpert::Processing(void)
   {
    bool res=false;
-//--- calculate signal direction once
-   // return m_signal.WriteSideChangeToFrame();
-   return true;
-   m_signal.Update();
-
+   if (Expert_Store_Results == SideChanges) {
+      m_signal.AddSideChangeToFrame();
+   } else {
+//  calculate signal direction once
+      m_signal.Update();
+   }
+  
    m_next_state=m_state;
 
    // TODO move this statemachine to AggSignal
@@ -872,7 +874,7 @@ bool CBacktestExpert::Processing(void)
          assert(lot!=0.0,"can't open lot");
          m_trade.Buy(lot,price,sl,tp);
 
-         bool res=m_position.SelectByIndex(PositionsTotal()-1);
+         res=m_position.SelectByIndex(PositionsTotal()-1);
          assert(res,"position was not selected correctly");
          m_pos_take=m_position.Ticket();
          string str;
@@ -903,7 +905,7 @@ bool CBacktestExpert::Processing(void)
          assert(lot!=0.0,"can't open lot");
          m_trade.Sell(lot,price,sl,tp);
 
-         bool res=m_position.SelectByIndex(PositionsTotal()-1);
+         res=m_position.SelectByIndex(PositionsTotal()-1);
          assert(res,"position was not selected correctly");
          m_pos_take=m_position.Ticket();
          string str;
