@@ -19,11 +19,8 @@
 class CAggSignal : public CExpertSignal
   {
 public:
-   //--- variables
-   double            m_base_price;     // base price for detection of level of entering (and/or exit?)
    //--- variables for working with additional filters
-   CArrayObj         m_filters;        // array of all filters
-
+   //CArrayObj         m_filters;        // array of all filters
 
    CCustomSignal     *m_confirm;
    CCustomSignal     *m_confirm2;
@@ -38,18 +35,6 @@ public:
    // CArrayObj         m_side_filters;   // array of filters that are checked for a state
    // CArrayObj         m_exit_filters;   // array of filters that are checked for exit
    //--- Adjusted parameters
-   double            m_weight;         // "weight" of a signal in a combined filter
-   int               m_patterns_usage; // bit mask of  using of the market models of signals
-   int               m_general;        // index of the "main" signal (-1 - no)
-   long              m_ignore;         // bit mask of "ignoring" the additional filter
-   long              m_invert;         // bit mask of "inverting" the additional filter
-   int               m_threshold_open; // threshold value for opening
-   int               m_threshold_close;// threshold level for closing
-   double            m_price_level;    // level of placing a pending orders relatively to the base price
-   double            m_stop_level;     // level of placing of the "stop loss" order relatively to the open price
-   double            m_take_level;     // level of placing of the "take profit" order relatively to the open price
-   int               m_expiration;     // time of expiration of a pending order in bars
-   double            m_direction;      // weighted direction
    double            m_side;           // the general side of the indicators
    double            m_exit_direction; //
 
@@ -158,21 +143,7 @@ public:
 //+------------------------------------------------------------------+
 //| Constructor                                                      |
 //+------------------------------------------------------------------+
-CAggSignal::CAggSignal(void) : m_base_price(0.0),
-   m_general(-1),// no "main" signal
-   m_weight(1.0),
-   m_patterns_usage(-1),   // all models are used
-   m_ignore(0),            // all additional filters are used
-   m_invert(0),
-   m_threshold_open(50),
-   m_threshold_close(100),
-   m_price_level(0.0),
-   m_stop_level(0.0),
-   m_take_level(0.0),
-   m_expiration(0),
-   m_direction(EMPTY_VALUE)
-  {
-  }
+CAggSignal::CAggSignal(void) {}
 //+------------------------------------------------------------------+
 //| Destructor                                                       |
 //+------------------------------------------------------------------+
@@ -384,7 +355,7 @@ bool CAggSignal::CheckOpenLong(double &price,double &sl,double &tp,datetime &exp
 //--- check of exceeding the threshold value
    if(m_direction>=m_threshold_open)
      {
-      printf(__FUNCTION__+": Direction: "+m_direction+" >= "+m_threshold_open);
+      Print(__FUNCTION__, ": Direction:", m_direction, " > ", m_threshold_open);
       //--- there's a signal
       result=true;
       //--- try to get the levels of opening
@@ -408,7 +379,7 @@ bool CAggSignal::CheckOpenShort(double &price,double &sl,double &tp,datetime &ex
 //--- check of exceeding the threshold value
    if(-m_direction>=m_threshold_open)
      {
-      printf(__FUNCTION__+": Direction: "+m_direction+" > "+m_threshold_open);
+      Print(__FUNCTION__, ": Direction:", m_direction, " > ", m_threshold_open);
       //--- there's a signal
       result=true;
       //--- try to get the levels of opening

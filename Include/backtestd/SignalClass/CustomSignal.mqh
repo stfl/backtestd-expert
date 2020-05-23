@@ -318,10 +318,14 @@ bool CCustomSignal::AddSideChangeToFrame() {
       // Print("Side changed: ", last_side, " -> ", m_side);
 
       datetime date;
-      if(!SeriesInfoInteger(m_symbol.Name(),m_period,SERIES_LASTBAR_DATE,date))
-      { // If request has failed, print error message:
-         Print(__FUNCTION__+" Error when getting time of last bar opening: "+IntegerToString(GetLastError()));
-         return(0);
+      if (Expert_EveryTick) {
+         date = TimeCurrent();
+      } else {
+         if (!SeriesInfoInteger(m_symbol.Name(),m_period,SERIES_LASTBAR_DATE,date))
+         { // If request has failed, print error message:
+            Print(__FUNCTION__+" Error when getting time of last bar opening: "+IntegerToString(GetLastError()));
+            return(false);
+         }
       }
 
       ResetLastError();

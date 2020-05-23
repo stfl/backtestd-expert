@@ -117,11 +117,11 @@ input double Confirm2_input12 = 0.; // Confirm2 double input 12
 input double Confirm2_input13 = 0.; // Confirm2 double input 13
 input double Confirm2_input14 = 0.; // Confirm2 double input 14
 double Confirm2_inputs[15];
-input uint Confirm2_buffer0 = 0;
-input uint Confirm2_buffer1 = 0;
-input uint Confirm2_buffer2 = 0;
-input uint Confirm2_buffer3 = 0;
-input uint Confirm2_buffer4 = 0;
+input int Confirm2_buffer0 = -1;
+input int Confirm2_buffer1 = -1;
+input int Confirm2_buffer2 = -1;
+input int Confirm2_buffer3 = -1;
+input int Confirm2_buffer4 = -1;
 uint Confirm2_buffer[5];
 input double Confirm2_param0 = 0.;
 input double Confirm2_param1 = 0.;
@@ -149,11 +149,11 @@ input double Exit_input12 = 0.;                    // Exit double input 12
 input double Exit_input13 = 0.;                    // Exit double input 13
 input double Exit_input14 = 0.;                    // Exit double input 14
 double Exit_inputs[15];
-input uint Exit_buffer0 = 0;
-input uint Exit_buffer1 = 0;
-input uint Exit_buffer2 = 0;
-input uint Exit_buffer3 = 0;
-input uint Exit_buffer4 = 0;
+input int Exit_buffer0 = -1;
+input int Exit_buffer1 = -1;
+input int Exit_buffer2 = -1;
+input int Exit_buffer3 = -1;
+input int Exit_buffer4 = -1;
 uint Exit_buffer[5];
 input double Exit_param0 = 0.;
 input double Exit_param1 = 0.;
@@ -182,11 +182,11 @@ input double Baseline_input12 = 0.; // Baseline double input 12
 input double Baseline_input13 = 0.; // Baseline double input 13
 input double Baseline_input14 = 0.; // Baseline double input 14
 double Baseline_inputs[15];
-input uint Baseline_buffer0 = 0;
-input uint Baseline_buffer1 = 0;
-input uint Baseline_buffer2 = 0;
-input uint Baseline_buffer3 = 0;
-input uint Baseline_buffer4 = 0;
+input int Baseline_buffer0 = -1;
+input int Baseline_buffer1 = -1;
+input int Baseline_buffer2 = -1;
+input int Baseline_buffer3 = -1;
+input int Baseline_buffer4 = -1;
 uint Baseline_buffer[5];
 input double Baseline_param0 = 0.;
 input double Baseline_param1 = 0.;
@@ -214,11 +214,11 @@ input double Volume_input12 = 0.;                    // Volume double input 12
 input double Volume_input13 = 0.;                    // Volume double input 13
 input double Volume_input14 = 0.;                    // Volume double input 14
 double Volume_inputs[15];
-input uint Volume_buffer0 = 0;
-input uint Volume_buffer1 = 0;
-input uint Volume_buffer2 = 0;
-input uint Volume_buffer3 = 0;
-input uint Volume_buffer4 = 0;
+input int Volume_buffer0 = -1;
+input int Volume_buffer1 = -1;
+input int Volume_buffer2 = -1;
+input int Volume_buffer3 = -1;
+input int Volume_buffer4 = -1;
 uint Volume_buffer[5];
 input double Volume_param0 = 0.;
 input double Volume_param1 = 0.;
@@ -493,8 +493,8 @@ double OnTester() {
   // each trade opens 2 positions, one with tp and one without
   // => half of the trades are considered
 
-  int tp_cnt = 0;
-  int sl_cnt = 0;
+  uint tp_cnt = 0;
+  uint sl_cnt = 0;
   for (int i = 0; i < Experts.Total(); i++) {
     CBacktestExpert *expert = Experts.At(i);
     tp_cnt += expert.TakeProfitCnt();

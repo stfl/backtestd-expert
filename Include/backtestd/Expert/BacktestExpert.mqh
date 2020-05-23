@@ -636,7 +636,8 @@ bool CBacktestExpert::Processing(void)
   {
    bool res=false;
    if (Expert_Store_Results == SideChanges) {
-      m_signal.AddSideChangeToFrame();
+      if (!m_signal.AddSideChangeToFrame())
+         return false;
    } else {
 //  calculate signal direction once
       m_signal.Update();
@@ -1556,7 +1557,6 @@ bool CBacktestExpert::TrailingOrderShort(double delta)
 //+------------------------------------------------------------------+
 bool CBacktestExpert::CheckDeleteOrderLong(void)
   {
-   double price;
 //--- check the possibility of deleting the long order
    if(m_expiration!=0 && TimeCurrent()>m_expiration)
      {
@@ -1573,7 +1573,6 @@ bool CBacktestExpert::CheckDeleteOrderLong(void)
 //+------------------------------------------------------------------+
 bool CBacktestExpert::CheckDeleteOrderShort(void)
   {
-   double price;
 //--- check the possibility of deleting the short order
    if(m_expiration!=0 && TimeCurrent()>m_expiration)
      {
