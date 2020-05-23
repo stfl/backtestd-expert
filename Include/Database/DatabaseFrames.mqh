@@ -39,9 +39,7 @@ int               CDatabaseFrames::OnTesterInit(void) {
 void               CDatabaseFrames::StoreSideChanges(void) {
 //--- take the EA name and optimization end time
    // string filename="test.sqlite";
-   string filename=MQLInfoString(MQL_PROGRAM_NAME)+"_sides_"+TimeToString(TimeCurrent())+".sqlite";
-   StringReplace(filename, ":", "."); // ":" character is not allowed in file names
-   StringReplace(filename, " ", "_");
+   string filename=Expert_Title+"_sides.sqlite";
 //--- open/create the database in the common terminal folder
    int db=DatabaseOpen(filename, DATABASE_OPEN_READWRITE | DATABASE_OPEN_CREATE );
    if(db==INVALID_HANDLE) {
@@ -125,10 +123,7 @@ void               CDatabaseFrames::StoreSideChanges(void) {
 //+------------------------------------------------------------------+
 void               CDatabaseFrames::StoreIndiBuffers(void) {
 //--- take the EA name and optimization end time
-   // string filename="test.sqlite";
-   string filename=MQLInfoString(MQL_PROGRAM_NAME)+" "+TimeToString(TimeCurrent())+".sqlite";
-   StringReplace(filename, ":", "."); // ":" character is not allowed in file names
-   StringReplace(filename, " ", "_");
+   string filename=Expert_Title+"_buffers.sqlite";
 //--- open/create the database in the common terminal folder
    int db=DatabaseOpen(filename, DATABASE_OPEN_READWRITE | DATABASE_OPEN_CREATE );
    if(db==INVALID_HANDLE)

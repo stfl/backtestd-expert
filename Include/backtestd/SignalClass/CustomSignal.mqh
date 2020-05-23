@@ -106,6 +106,7 @@ public:
    // getting the stored states later will be faster than calculating each time
    virtual bool Update();
    virtual bool UpdateSide(void);
+   virtual bool UpdateSignal(void);
    SIGNAL_STATE GetState() { return m_state; }
 
    bool WriteBuffersToFile(datetime date_start, string filename);
@@ -124,7 +125,7 @@ protected:
 CCustomSignal::CCustomSignal(void) : m_indicator_type(IND_CUSTOM),
                                      m_sig_direction(0),
                                      m_exit_direction(0),
-                                     m_side(0),
+                                     m_side(-9999),
                                      m_state(SignalInit)
   {
 //--- initialization of protected data
@@ -248,9 +249,13 @@ double CCustomSignal::GetData(const int buffer_num, uint shift)
 //+------------------------------------------------------------------+
 
 bool CCustomSignal::Update(void) {
+   return UpdateSignal() && UpdateSide();
+}
+
+bool CCustomSignal::UpdateSignal(void) {
    m_sig_direction = LongSignal() ? 1 :
       ShortSignal() ? -1 : 0;
-   return UpdateSide();
+   return true;
 }
 
 bool CCustomSignal::UpdateSide(void) {
@@ -311,17 +316,25 @@ bool CCustomSignal::AddBuffersToFrame(datetime date_start) {
 bool CCustomSignal::AddSideChangeToFrame() {
    datetime date_finish=TimeCurrent();
 
+
+   //if (m_side == -9999) {
+   //   // skip the first change from "not-initialized"
+   //   UpdateSide();
+   //   return true;
+   //}
+
    int last_side = m_side;
    UpdateSide();
+
    if (last_side != m_side) {
       // write side change with date to Frame
-      // Print("Side changed: ", last_side, " -> ", m_side);
+      //Print("Side changed: ", last_side, " -> ", m_side);
 
-      datetime date;
+      datetime date[1];
       if (Expert_EveryTick) {
-         date = TimeCurrent();
+         date[0] = TimeCurrent();  // TODO get current bar time
       } else {
-         if (!SeriesInfoInteger(m_symbol.Name(),m_period,SERIES_LASTBAR_DATE,date))
+         if (!SeriesInfoInteger(m_symbol.Name(),m_period,SERIES_LASTBAR_DATE,date[0]))
          { // If request has failed, print error message:
             Print(__FUNCTION__+" Error when getting time of last bar opening: "+IntegerToString(GetLastError()));
             return(false);

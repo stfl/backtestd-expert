@@ -638,6 +638,7 @@ bool CBacktestExpert::Processing(void)
    if (Expert_Store_Results == SideChanges) {
       if (!m_signal.AddSideChangeToFrame())
          return false;
+      m_signal.UpdateSignal();
    } else {
 //  calculate signal direction once
       m_signal.Update();
