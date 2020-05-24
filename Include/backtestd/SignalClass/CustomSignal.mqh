@@ -344,7 +344,7 @@ bool CCustomSignal::AddSideChangeToFrame() {
       ResetLastError();
       if(!FrameAdd(m_symbol.Name(),
                    0,  // func not implemented
-                   m_side, date)) {
+                   (double) m_side, date)) {
          Print("Frame add error: ", IntegerToString(GetLastError()));
          return false;
       }

@@ -87,18 +87,18 @@ void               CDatabaseFrames::StoreSideChanges(void) {
    bool failed=false;
    // while(FrameNext(pass, symbol, func, side, date))
    while(FrameNext(pass, symbol, func, side, date)) {
-        // PrintFormat("Received pass %d size %u", pass, ArraySize(values));
+      // PrintFormat("Received pass %d", pass);
         //--- write data to the table
-         string request=StringFormat("INSERT INTO %s (PASS,DATE,SIDE) "
-                                    "VALUES (%d, %d, %d)",
-                                    Symbol(), pass, date[0], (int) side);
+      string request=StringFormat("INSERT INTO %s (PASS,DATE,SIDE) "
+                                  "VALUES (%u, %d, %d)",
+                                  Symbol(), pass, date[0], (int) side);
 
-         //--- execute a query to add a pass to the PASSES table
-         if(!DatabaseExecute(db, request)) {
-            PrintFormat("Failed to insert pass %d with code %d\n%s", pass, IntegerToString(GetLastError()), request);
-            failed=true;
-            break;
-         }
+      //--- execute a query to add a pass to the PASSES table
+      if(!DatabaseExecute(db, request)) {
+         PrintFormat("Failed to insert pass %d with code %d\n%s", pass, IntegerToString(GetLastError()), request);
+         failed=true;
+         break;
+      }
    }
 //--- if an error occurred during a transaction, inform of that and complete the work
    if(failed) {
@@ -183,7 +183,7 @@ void               CDatabaseFrames::StoreIndiBuffers(void) {
                continue;
               }
             string request=StringFormat("INSERT INTO BUFFER (PASS,SYMBOL,FUNC,BUFFER_IDX,IDX,VALUE) "
-                                       "VALUES (%d, \"%s\", %d, %d, %d, %f)",
+                                       "VALUES (%u, \"%s\", %d, %d, %d, %f)",
                                        pass, symbol, func, (int) idx, i, (double) values[i]);
 
             //--- execute a query to add a pass to the PASSES table

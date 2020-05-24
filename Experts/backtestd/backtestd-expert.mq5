@@ -522,6 +522,7 @@ double OnTester() {
      // CBacktestExpert *expert = Experts.At(0);
      // expert.m_signal.m_confirm.AddBuffersToFrame(start_date);
   }
+
   return ret;
 }
 

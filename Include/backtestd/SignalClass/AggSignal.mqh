@@ -706,7 +706,7 @@ bool CAggSignal::Update() {
 }
 
 bool CAggSignal::UpdateSide() {
-  bool ret = false;
+  bool ret = true;
   for (int i = 0; i < m_filters.Total(); i++) {
     CCustomSignal *filter = m_filters.At(i);
     if (filter == NULL)
@@ -721,7 +721,7 @@ bool CAggSignal::UpdateSide() {
 }
 
 bool CAggSignal::UpdateSignal() {
-  bool ret = false;
+  bool ret = true;
   for (int i = 0; i < m_filters.Total(); i++) {
     CCustomSignal *filter = m_filters.At(i);
     if (filter == NULL)
@@ -736,7 +736,7 @@ bool CAggSignal::UpdateSignal() {
 }
 
 bool CAggSignal::AddSideChangeToFrame() {
-  bool ret = false;
+  bool ret = true;
   for (int i = 0; i < m_filters.Total(); i++) {
     CCustomSignal *filter = m_filters.At(i);
     if (filter == NULL)
