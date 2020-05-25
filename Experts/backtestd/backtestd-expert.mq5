@@ -291,7 +291,7 @@ CArrayString currencies;
 bool CandleProcessed = false;
 
 CDatabaseFrames DB_Frames;
-ulong frames_received = 0;
+ulong frames_received = 1;
 
 //+------------------------------------------------------------------+
 //| Initialization function of the expert                            |
@@ -588,13 +588,34 @@ double OnTester() {
 // }
 
 int OnTesterInit() {
-   return(DB_Frames.OnTesterInit());
+   if (Expert_Store_Results == SideChanges) {
+      // EventSetTimer(10);
+      return(DB_Frames.OnTesterInit());
+   }
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| "Timer" event handler function                                   |
+//+------------------------------------------------------------------+
+void OnTimer() {
+  // if (Expert_Store_Results == SideChanges) {
+  //    // because we are receiven MANY frames incrementally store a couple of frames during the backtest
+  //    Print("writing side changes to DB");
+  //    DB_Frames.StoreSideChanges();
+  // }
+
+  // for (int i = 0; i < Experts.Total(); i++) {
+  //   CBacktestExpert *expert = Experts.At(i);
+  //   expert.OnTimer();
+  // }
 }
 
 void OnTesterPass() {
   if (Expert_Store_Results == SideChanges) {
      // because we are receiven MANY frames incrementally store a couple of frames during the backtest
-     if (MathMod(frames_received++, 1000000) == 0) {
+     frames_received++;
+     if (MathMod(frames_received, 100000000) == 0) {
         frames_received = 0;
         DB_Frames.StoreSideChanges();
      }
@@ -605,7 +626,11 @@ void OnTesterDeinit() {
   if (Expert_Store_Results == SideChanges) {
      DB_Frames.StoreSideChanges();
   }
+  // Sleep(5);
+  // EventKillTimer();
 }
+
+//+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
 //| Deinitialization function of the expert                          |
@@ -684,16 +709,6 @@ void OnTrade() {
     expert.OnTrade();
   }
 }
-//+------------------------------------------------------------------+
-//| "Timer" event handler function                                   |
-//+------------------------------------------------------------------+
-void OnTimer() {
-  for (int i = 0; i < Experts.Total(); i++) {
-    CBacktestExpert *expert = Experts.At(i);
-    expert.OnTimer();
-  }
-}
-//+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
 //|                                                                  |
