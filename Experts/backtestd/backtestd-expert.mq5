@@ -4,7 +4,7 @@
 //|                                             https://www.mql5.com |
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2020, Stefan Lendl."
-#property version "1.0"
+#property version "1.1"
 //+------------------------------------------------------------------+
 //| Include                                                          |
 //+------------------------------------------------------------------+
@@ -27,9 +27,9 @@
 
 enum STORE_RESULTS {
     None = 0,
-    SideChanges,
-    Buffers,
-    Results
+    SideChanges = 1,
+    //Buffers = 2,
+    //Results = 3
 };
 
 //+------------------------------------------------------------------+
@@ -291,6 +291,7 @@ CArrayString currencies;
 bool CandleProcessed = false;
 
 CDatabaseFrames DB_Frames;
+ulong frames_received = 0;
 
 //+------------------------------------------------------------------+
 //| Initialization function of the expert                            |
@@ -517,11 +518,11 @@ double OnTester() {
      : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
 
 
-  if (Expert_Store_Results == Buffers) {
+  //if (Expert_Store_Results == Buffers) {
      // datetime start_date = D'2016.01.01 00:00';
      // CBacktestExpert *expert = Experts.At(0);
      // expert.m_signal.m_confirm.AddBuffersToFrame(start_date);
-  }
+  //}
 
   return ret;
 }
@@ -588,6 +589,16 @@ double OnTester() {
 
 int OnTesterInit() {
    return(DB_Frames.OnTesterInit());
+}
+
+void OnTesterPass() {
+  if (Expert_Store_Results == SideChanges) {
+     // because we are receiven MANY frames incrementally store a couple of frames during the backtest
+     if (MathMod(frames_received++, 1000000) == 0) {
+        frames_received = 0;
+        DB_Frames.StoreSideChanges();
+     }
+  }
 }
 
 void OnTesterDeinit() {

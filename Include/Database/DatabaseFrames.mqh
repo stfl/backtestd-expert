@@ -13,9 +13,22 @@
 //+------------------------------------------------------------------+
 class CDatabaseFrames
   {
+private:
+        int db;
 public:
-                     CDatabaseFrames(void) {};
-                    ~CDatabaseFrames(void) {};
+        CDatabaseFrames(void) : db(INVALID_HANDLE) {
+           // init the mutex with 0
+           GlobalVariableSet(Expert_Title,0);
+        };
+        ~CDatabaseFrames(void) {
+//--- close the database
+           if(db!=INVALID_HANDLE) {
+              PrintFormat("Close database with handle=%d", db);
+              Print("Database stored in file", Expert_Title+".sqlite");
+              DatabaseClose(db);
+           }
+           //GlobalVariableDel(Expert_Title);
+        };
    //--- functions for working in the tester
    int               OnTesterInit(void);
    void              StoreIndiBuffers(void);
@@ -33,39 +46,24 @@ int               CDatabaseFrames::OnTesterInit(void) {
 //--- show messages on the chart and the terminal journal
    Print(start_message);
    Comment(start_message);
+
+   string filename=Expert_Title+".sqlite";
+//--- open/create the database in the common terminal folder
+   db=DatabaseOpen(filename, DATABASE_OPEN_READWRITE | DATABASE_OPEN_CREATE );
+   if(db==INVALID_HANDLE) {
+      Print("DB: ", filename, " open failed with code ", IntegerToString(GetLastError()));
+      return(INIT_FAILED);
+   } else
+      Print("DB: ", filename, " opened successfully");
+
    return(INIT_SUCCEEDED);
 }
 
 void               CDatabaseFrames::StoreSideChanges(void) {
 //--- take the EA name and optimization end time
    // string filename="test.sqlite";
-   string filename=Expert_Title+"_sides.sqlite";
-//--- open/create the database in the common terminal folder
-   int db=DatabaseOpen(filename, DATABASE_OPEN_READWRITE | DATABASE_OPEN_CREATE );
-   if(db==INVALID_HANDLE) {
-      Print("DB: ", filename, " open failed with code ", IntegerToString(GetLastError()));
-      return;
-   } else
-      Print("DB: ", filename, " opened successful");
 //--- create the PASSES table
 
-   if(DatabaseTableExists(db, Symbol())) {
-      //--- delete the table
-      if(!DatabaseExecute(db, "DROP TABLE " + Symbol())) {
-         Print("Failed to drop table SIDES with code ", IntegerToString(GetLastError()));
-         DatabaseClose(db);
-         return;
-      }
-   }
-
-   if(!DatabaseExecute(db, StringFormat("CREATE TABLE %s("
-                       "PASS               INT NOT NULL,"
-                       "DATE               INT NOT NULL,"               // in Unix Time
-                       "SIDE               INT NOT NULL );", Symbol()))) {
-      Print("DB: ", filename, " create table failed with code ", IntegerToString(GetLastError()));
-      DatabaseClose(db);
-      return;
-   }
 
    // TODO create index on PASS
   
@@ -75,6 +73,11 @@ void               CDatabaseFrames::StoreSideChanges(void) {
    long          func;
    double        side;
    datetime      date[];
+
+   while (!GlobalVariableSetOnCondition(Expert_Title, 1, 0)) {
+      // wait until the value is 0 and set it to 1
+      Sleep(200);
+   }
 //--- move the frame pointer to the beginning
    FrameFirst();
    // FrameFilter("", STATS_FRAME); // select frames with trading statistics for further work
@@ -87,11 +90,23 @@ void               CDatabaseFrames::StoreSideChanges(void) {
    bool failed=false;
    // while(FrameNext(pass, symbol, func, side, date))
    while(FrameNext(pass, symbol, func, side, date)) {
-      // PrintFormat("Received pass %d", pass);
+      if(!DatabaseTableExists(db, symbol)) {
+         if(!DatabaseExecute(db, StringFormat("CREATE TABLE %s ("
+                                              "PASS   INT NOT NULL,"
+                                              "DATE   INT NOT NULL,"               // in Unix Time
+                                              "SIDE   INT NOT NULL );"
+                                              , symbol))) {
+            Print("DB: create table failed with code ", IntegerToString(GetLastError()));
+            failed=true;
+            break;
+         }
+      }
+     
+      //  PrintFormat("Received pass %d", pass);
         //--- write data to the table
       string request=StringFormat("INSERT INTO %s (PASS,DATE,SIDE) "
                                   "VALUES (%u, %d, %d)",
-                                  Symbol(), pass, date[0], (int) side);
+                                  symbol, pass, date[0], (int) side);
 
       //--- execute a query to add a pass to the PASSES table
       if(!DatabaseExecute(db, request)) {
@@ -100,22 +115,17 @@ void               CDatabaseFrames::StoreSideChanges(void) {
          break;
       }
    }
+
 //--- if an error occurred during a transaction, inform of that and complete the work
    if(failed) {
       Print("Transaction failed, error code=", IntegerToString(GetLastError()));
       DatabaseTransactionRollback(db);
-      DatabaseClose(db);
-      return;
    } else {
       DatabaseTransactionCommit(db);
       Print("Transaction done successfully");
    }
-//--- close the database
-   if(db!=INVALID_HANDLE) {
-      PrintFormat("Close database with handle=%d", db);
-      PrintFormat("Database stored in file '%s'", filename);
-      DatabaseClose(db);
-   }
+
+   GlobalVariableSet(Expert_Title,0);
 //---
 }
 //+------------------------------------------------------------------+
@@ -125,14 +135,14 @@ void               CDatabaseFrames::StoreIndiBuffers(void) {
 //--- take the EA name and optimization end time
    string filename=Expert_Title+"_buffers.sqlite";
 //--- open/create the database in the common terminal folder
-   int db=DatabaseOpen(filename, DATABASE_OPEN_READWRITE | DATABASE_OPEN_CREATE );
+   db=DatabaseOpen(filename, DATABASE_OPEN_READWRITE | DATABASE_OPEN_CREATE );
    if(db==INVALID_HANDLE)
      {
       Print("DB: ", filename, " open failed with code ", IntegerToString(GetLastError()));
       return;
      }
    else
-      Print("DB: ", filename, " opened successful");
+      Print("DB: ", filename, " opened successfully");
 //--- create the PASSES table
 
    if(DatabaseTableExists(db, "BUFFER"))
