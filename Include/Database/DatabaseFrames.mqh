@@ -30,7 +30,7 @@ public:
    //--- functions for working in the tester
    int               OnTesterInit(void);
    void              StoreIndiBuffers(void);
-   void              StoreSideChanges(void);
+   void              StoreSideChanges(int transaction_limit);
    void              OnTester(const double OnTesterValue);
   };
 //+------------------------------------------------------------------+
@@ -57,7 +57,7 @@ int               CDatabaseFrames::OnTesterInit(void) {
    return(INIT_SUCCEEDED);
 }
 
-void               CDatabaseFrames::StoreSideChanges(void) {
+void               CDatabaseFrames::StoreSideChanges(int transaction_limit) {
 //--- take the EA name and optimization end time
    // string filename="test.sqlite";
 //--- create the PASSES table
@@ -71,6 +71,7 @@ void               CDatabaseFrames::StoreSideChanges(void) {
    long          func;
    double        side;
    datetime      date[];
+   int frame_cnt = 0;
 
 //--- move the frame pointer to the beginning
    FrameFirst();
@@ -83,7 +84,7 @@ void               CDatabaseFrames::StoreSideChanges(void) {
 //--- go through frames and read data from them
    bool failed=false;
    // while(FrameNext(pass, symbol, func, side, date))
-   while(FrameNext(pass, symbol, func, side, date)) {
+   while(FrameNext(pass, symbol, func, side, date)) {      
       if(!DatabaseTableExists(db, symbol)) {
          if(!DatabaseExecute(db, StringFormat("CREATE TABLE %s ("
                                               "PASS   INT NOT NULL,"
@@ -108,6 +109,11 @@ void               CDatabaseFrames::StoreSideChanges(void) {
          failed=true;
          break;
       }
+      
+      frame_cnt++;
+      if (transaction_limit != -1 && frame_cnt > transaction_limit) {
+         break;
+      }
    }
 
 //--- if an error occurred during a transaction, inform of that and complete the work
@@ -116,7 +122,7 @@ void               CDatabaseFrames::StoreSideChanges(void) {
       DatabaseTransactionRollback(db);
    } else {
       DatabaseTransactionCommit(db);
-      Print("Transaction done successfully");
+      Print("Transaction done successfully ", frame_cnt, " frames ", pass_cnt, " passes done");
    }
 
    // GlobalVariableSet(Expert_Title,0);

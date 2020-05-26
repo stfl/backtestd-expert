@@ -292,8 +292,11 @@ CArrayString currencies;
 bool CandleProcessed = false;
 
 CDatabaseFrames DB_Frames;
-uint frames_received = 0;
+ulong frames_received = 0;
 CMutexSync mutex;
+uint pass_cnt = 0;
+datetime frame_time;
+bool started_storing = false;
 
 //+------------------------------------------------------------------+
 //| Initialization function of the expert                            |
@@ -496,6 +499,11 @@ double OnTester() {
   // each trade opens 2 positions, one with tp and one without
   // => half of the trades are considered
 
+  pass_cnt++;
+  if (pass_cnt == 1) {
+    Print("first pass ", pass_cnt);
+  }
+  
   uint tp_cnt = 0;
   uint sl_cnt = 0;
   for (int i = 0; i < Experts.Total(); i++) {
@@ -597,7 +605,8 @@ int OnTesterInit() {
          return false;
       }
       Print(__FUNCTION__, "MutexSync created OK!");
-
+      
+      frame_time = TimeLocal();
       return(DB_Frames.OnTesterInit());
    }
    return(INIT_SUCCEEDED);
@@ -620,19 +629,31 @@ void OnTesterPass() {
      CMutexLock lock(mutex, (DWORD)INFINITE);
      //Print("Locked");
      
-     frames_received += 1;
-     // because we are receiven MANY frames incrementally store a couple of frames during the backtest
-     if (MathMod(frames_received, 100000) == 0) {
-        Print("StoreSideChanges");
-        frames_received = 0;
-        DB_Frames.StoreSideChanges();
+     frames_received += 1;     
+     datetime t = TimeLocal();
+     if ((t - frame_time) >= 10) {
+       PrintFormat("Time elapsed %ds passes received: %u", (t - frame_time), frames_received);
+       frame_time = t;
+       started_storing = true;
      }
+     
+     if (started_storing == true) {
+       Print("Saving ", frames_received);
+       DB_Frames.StoreSideChanges(1000000);
+     }
+     if (MathMod(frames_received, 10000) == 0) {
+       Print("got a bunch of passes ", frames_received);
+     }
+     
+     // because we are receiven MANY frames incrementally store a couple of frames during the backtest
   }
 }
 
 void OnTesterDeinit() {
+  Print("OnTesterDeinit");
   if (Expert_Store_Results == SideChanges) {
-     DB_Frames.StoreSideChanges();
+     CMutexLock lock(mutex, (DWORD)INFINITE);
+     DB_Frames.StoreSideChanges(-1);
   }
   // Sleep(5);
   // EventKillTimer();
