@@ -29,6 +29,11 @@ enum SIGNAL_STATE {
    SignalShortReturn,
 };
 
+struct SideChange {
+   datetime date;
+   int side;
+};
+
 class CCustomSignal : public CExpertSignal
   {
 protected:
@@ -54,6 +59,8 @@ protected:
    int m_side;
 
    SIGNAL_STATE m_state;
+   SideChange m_side_changes[];
+   int m_side_cnt;
 
 public:
                      CCustomSignal(void);
@@ -113,6 +120,8 @@ public:
    bool GetIndiBuffers(datetime date_start, uint idx, double &indi_buf[]);
    bool AddBuffersToFrame(datetime date_start);
    bool AddSideChangeToFrame();
+   bool AddSideChangesToFrame();
+   bool AddSideChange();
 
 protected:
    //--- method of initialization of the indicator
@@ -126,38 +135,40 @@ CCustomSignal::CCustomSignal(void) : m_indicator_type(IND_CUSTOM),
                                      m_sig_direction(0),
                                      m_exit_direction(0),
                                      m_side(-9999),
-                                     m_state(SignalInit)
-  {
+                                     m_state(SignalInit),
+                                     m_side_cnt(0)
+{
 //--- initialization of protected data
    m_used_series=USE_SERIES_OPEN+USE_SERIES_HIGH+USE_SERIES_LOW+USE_SERIES_CLOSE;
    m_Idx = StartIndex();
    ArrayResize(m_buffers, 5);
-  }
+   if (Expert_Store_Results == SideChanges) {
+      ArrayResize(m_side_changes, 300);
+   }
+}
 //+------------------------------------------------------------------+
 //| Destructor                                                       |
 //+------------------------------------------------------------------+
-CCustomSignal::~CCustomSignal(void)
-  {
-  ArrayFree(m_buffers);
-  }
+CCustomSignal::~CCustomSignal(void) {
+   ArrayFree(m_buffers);
+   ArrayFree(m_side_changes);
+}
 
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void CCustomSignal::Params(MqlParam &param[], int size)
-  {
+void CCustomSignal::Params(MqlParam &param[], int size) {
    m_params_size = size; // TODO this can be replaced by ArraySize(param)
    ArrayResize(m_params, size);
    for(int i=0; i<size; i++)
-     {
+   {
       m_params[i] = param[i];
-     }
-  }
+   }
+}
 
 // TODO if we need to consider &Signal_string[] this can be checked in the for loop
 // if inputs[i] != "" > set in MqlParam array
-void CCustomSignal::ParamsFromInput(double &inputs[])
-{
+void CCustomSignal::ParamsFromInput(double &inputs[]) {
    uint size = ArraySize(inputs);
    m_params_size = size+1;
    ArrayResize(m_params, m_params_size);
@@ -310,6 +321,63 @@ bool CCustomSignal::AddBuffersToFrame(datetime date_start) {
          }
       }
    }
+   return true;
+}
+
+bool CCustomSignal::AddSideChange() {
+   datetime date_finish=TimeCurrent();
+
+   //if (m_side == -9999) {
+   //   // skip the first change from "not-initialized"
+   //   UpdateSide();
+   //   return true;
+   //}
+
+   int last_side = m_side;
+   UpdateSide();
+
+   if (last_side != m_side) {
+      // write side change with date to Frame
+      //Print("Side changed: ", last_side, " -> ", m_side);
+
+      datetime date;
+      if (Expert_EveryTick) {
+         date = TimeCurrent();  // TODO get current bar time
+      } else {
+         if (!SeriesInfoInteger(m_symbol.Name(),m_period,SERIES_LASTBAR_DATE,date))
+         { // If request has failed, print error message:
+            Print(__FUNCTION__+" Error when getting time of last bar opening: "+IntegerToString(GetLastError()));
+            return(false);
+         }
+      }
+
+      m_side_changes[m_side_cnt].date = date;
+      m_side_changes[m_side_cnt].side = m_side;
+      m_side_cnt++;
+
+      // ResetLastError();
+      // if(!FrameAdd(m_symbol.Name(),
+      //              0,  // func not implemented
+      //              (double) m_side, date)) {
+      //    Print("Frame add error: ", IntegerToString(GetLastError()));
+      //    return false;
+      // }
+   }
+   return true;
+}
+
+bool CCustomSignal::AddSideChangesToFrame() {
+   ArrayResize(m_side_changes, m_side_cnt);
+   ResetLastError();
+   if(!FrameAdd(m_symbol.Name(),
+                     0,  // func not implemented
+                     0,  // value in SideChanges array
+                     m_side_changes)) {
+      Print("Frame add error: ", IntegerToString(GetLastError()));
+      return false;
+   }
+   Print("Added ", m_side_cnt, " side changes to the frame");
+   ArrayFree(m_side_changes);
    return true;
 }
 

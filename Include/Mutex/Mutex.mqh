@@ -103,3 +103,19 @@ public:
   ~CMutexLock() { ReleaseMutexX(m_mutex); }
   bool Success() { return m_success; }
 };
+
+class CMutexTryLock {
+  HANDLE64 m_mutex;
+  bool m_success;
+public:
+  CMutexTryLock(CMutexSync &m) {
+    m_mutex = m.Get();
+    const DWORD res = WaitForSingleObjectX(m_mutex, 0);
+    if (res == WAIT_OBJECT_0)
+       m_success = true;
+    else
+       m_success = false;
+  }
+  ~CMutexTryLock() { ReleaseMutexX(m_mutex); }
+  bool Success() { return m_success; }
+};

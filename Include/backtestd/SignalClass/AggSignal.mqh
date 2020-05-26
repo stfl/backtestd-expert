@@ -138,6 +138,7 @@ public:
    bool UpdateSide();
    bool UpdateSignal();
    bool AddSideChangeToFrame();
+   bool AddSideChange();
   };
 
 
@@ -148,9 +149,14 @@ CAggSignal::CAggSignal(void) {}
 //+------------------------------------------------------------------+
 //| Destructor                                                       |
 //+------------------------------------------------------------------+
-CAggSignal::~CAggSignal(void)
-  {
+CAggSignal::~CAggSignal(void){
+  for (int i = 0; i < m_filters.Total(); i++) {
+    CCustomSignal *filter = m_filters.At(i);
+    if (filter == NULL)
+      continue;
+    delete filter;
   }
+}
 //+------------------------------------------------------------------+
 //| Get flags of used timeseries                                     |
 //+------------------------------------------------------------------+
@@ -743,6 +749,21 @@ bool CAggSignal::AddSideChangeToFrame() {
       continue;
 
     ret &= filter.AddSideChangeToFrame();
+
+    if (!ret)
+       break;
+  }
+  return ret;
+}
+
+bool CAggSignal::AddSideChange() {
+  bool ret = true;
+  for (int i = 0; i < m_filters.Total(); i++) {
+    CCustomSignal *filter = m_filters.At(i);
+    if (filter == NULL)
+      continue;
+
+    ret &= filter.AddSideChange();
 
     if (!ret)
        break;

@@ -31,6 +31,7 @@ public:
    int               OnTesterInit(void);
    void              StoreIndiBuffers(void);
    void              StoreSideChanges(int transaction_limit);
+   void              StoreSideChangesArray(int transaction_limit);
    void              OnTester(const double OnTesterValue);
   };
 //+------------------------------------------------------------------+
@@ -55,6 +56,71 @@ int               CDatabaseFrames::OnTesterInit(void) {
       Print("DB: ", filename, " opened successfully");
 
    return(INIT_SUCCEEDED);
+}
+
+void               CDatabaseFrames::StoreSideChangesArray(int transaction_limit) {
+//--- variables for reading frames
+   string        symbol;
+   ulong         pass;
+   long          func;
+   double        value;
+   SideChange    sides[];
+   int frame_cnt = 0;
+
+//--- move the frame pointer to the beginning
+   FrameFirst();
+   DatabaseTransactionBegin(db);
+
+//--- go through frames and read data from them
+   bool failed=false;
+   // while(FrameNext(pass, symbol, func, side, date))
+   while(FrameNext(pass, symbol, func, value, sides)) {
+      if(!DatabaseTableExists(db, symbol)) {
+         if(!DatabaseExecute(db, StringFormat("CREATE TABLE %s ("
+                                              "PASS   INT NOT NULL,"
+                                              "DATE   INT NOT NULL,"               // in Unix Time
+                                              "SIDE   INT NOT NULL );"
+                                              , symbol))) {
+            Print("DB: create table failed with code ", IntegerToString(GetLastError()));
+            failed=true;
+            break;
+         }
+      }
+
+
+      for(int i=0;i<ArraySize(sides);i++) {
+         //--- write data to the table
+         string request=StringFormat("INSERT INTO %s (PASS,DATE,SIDE) "
+                                     "VALUES (%u, %d, %d)",
+                                     symbol, pass, sides[i].date, sides[i].side);
+
+         //--- execute a query to add a pass to the PASSES table
+         if(!DatabaseExecute(db, request)) {
+            PrintFormat("Failed to insert pass %d with code %d\n%s", pass, IntegerToString(GetLastError()), request);
+            failed=true;
+            break;
+         }
+
+         frame_cnt++;
+      }
+
+      if (transaction_limit != -1 && frame_cnt >= transaction_limit) {
+         break;
+      }
+   }
+
+//--- if an error occurred during a transaction, inform of that and complete the work
+   if(failed) {
+      Print("Transaction failed, error code=", IntegerToString(GetLastError()));
+      DatabaseTransactionRollback(db);
+   } else {
+      DatabaseTransactionCommit(db);
+      Print("Transaction done successfully ", frame_cnt, " frames ");
+   }
+
+   // GlobalVariableSet(Expert_Title,0);
+   // mutex is automatically released here when lock goes out of scope
+//---
 }
 
 void               CDatabaseFrames::StoreSideChanges(int transaction_limit) {
@@ -111,7 +177,7 @@ void               CDatabaseFrames::StoreSideChanges(int transaction_limit) {
       }
       
       frame_cnt++;
-      if (transaction_limit != -1 && frame_cnt > transaction_limit) {
+      if (transaction_limit != -1 && frame_cnt >= transaction_limit) {
          break;
       }
    }
@@ -122,7 +188,7 @@ void               CDatabaseFrames::StoreSideChanges(int transaction_limit) {
       DatabaseTransactionRollback(db);
    } else {
       DatabaseTransactionCommit(db);
-      Print("Transaction done successfully ", frame_cnt, " frames ", pass_cnt, " passes done");
+      Print("Transaction done successfully ", frame_cnt, " frames ");
    }
 
    // GlobalVariableSet(Expert_Title,0);

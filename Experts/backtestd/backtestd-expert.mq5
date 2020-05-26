@@ -292,9 +292,8 @@ CArrayString currencies;
 bool CandleProcessed = false;
 
 CDatabaseFrames DB_Frames;
-ulong frames_received = 0;
+ulong frames_received = 1;
 CMutexSync mutex;
-uint pass_cnt = 0;
 datetime frame_time;
 bool started_storing = false;
 
@@ -499,11 +498,6 @@ double OnTester() {
   // each trade opens 2 positions, one with tp and one without
   // => half of the trades are considered
 
-  pass_cnt++;
-  if (pass_cnt == 1) {
-    Print("first pass ", pass_cnt);
-  }
-  
   uint tp_cnt = 0;
   uint sl_cnt = 0;
   for (int i = 0; i < Experts.Total(); i++) {
@@ -528,6 +522,10 @@ double OnTester() {
      : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
 
 
+  if (Expert_Store_Results == SideChanges) {
+     CBacktestExpert *expert = Experts.At(0);
+     expert.m_signal.m_confirm.AddSideChangesToFrame();
+  }
   //if (Expert_Store_Results == Buffers) {
      // datetime start_date = D'2016.01.01 00:00';
      // CBacktestExpert *expert = Experts.At(0);
@@ -600,11 +598,11 @@ double OnTester() {
 int OnTesterInit() {
    if (Expert_Store_Results == SideChanges) {
       // init the mutex with 0
-      if (!mutex.Create("Local\\" + Expert_Title)) {
-         Print(__FUNCTION__, "MutexSync create ERROR!");
-         return false;
-      }
-      Print(__FUNCTION__, "MutexSync created OK!");
+      // if (!mutex.Create("Local\\" + Expert_Title)) {
+      //    Print(__FUNCTION__, "MutexSync create ERROR!");
+      //    return false;
+      // }
+      // Print(__FUNCTION__, "MutexSync created OK!");
       
       frame_time = TimeLocal();
       return(DB_Frames.OnTesterInit());
@@ -626,24 +624,27 @@ void OnTesterPass() {
   if (Expert_Store_Results == SideChanges) {
      // lock the mutex and wait INFINITE
      // Print("Trying to lock");
-     CMutexLock lock(mutex, (DWORD)INFINITE);
-     //Print("Locked");
-     
-     frames_received += 1;     
+     // CMutexTryLock lock(mutex);
+     // if (! lock.Success())
+     //    return;
+     // Print("Locked");
+         
+     frames_received += 1;
      datetime t = TimeLocal();
-     if ((t - frame_time) >= 10) {
-       PrintFormat("Time elapsed %ds passes received: %u", (t - frame_time), frames_received);
+     if ((t - frame_time) >= 15) {
+       // PrintFormat("Time elapsed %ds passes received: %u", (t - frame_time), frames_received);
+       PrintFormat("Time elapsed %ds", (t - frame_time));
        frame_time = t;
        started_storing = true;
      }
      
      if (started_storing == true) {
-       Print("Saving ", frames_received);
-       DB_Frames.StoreSideChanges(1000000);
+       // Print("Saving ", frames_received);
+       DB_Frames.StoreSideChangesArray(2000000);  // limit the number of INSERTS for the intermediate transaction
      }
-     if (MathMod(frames_received, 10000) == 0) {
-       Print("got a bunch of passes ", frames_received);
-     }
+     // if (MathMod(frames_received, 10000) == 0) {
+       // Print("recieved ", frames_received, " passes. Storing intermediate side results");
+     // }
      
      // because we are receiven MANY frames incrementally store a couple of frames during the backtest
   }
@@ -652,8 +653,8 @@ void OnTesterPass() {
 void OnTesterDeinit() {
   Print("OnTesterDeinit");
   if (Expert_Store_Results == SideChanges) {
-     CMutexLock lock(mutex, (DWORD)INFINITE);
-     DB_Frames.StoreSideChanges(-1);
+     // CMutexLock lock(mutex, (DWORD)INFINITE);
+     DB_Frames.StoreSideChangesArray(-1);
   }
   // Sleep(5);
   // EventKillTimer();

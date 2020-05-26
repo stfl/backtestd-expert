@@ -636,7 +636,9 @@ bool CBacktestExpert::Processing(void)
   {
    bool res=false;
    if (Expert_Store_Results == SideChanges) {
-      if (!m_signal.AddSideChangeToFrame())
+      // if (!m_signal.AddSideChangeToFrame())
+      //    return false;
+      if (!m_signal.AddSideChange())
          return false;
       m_signal.UpdateSignal();
    } else {
