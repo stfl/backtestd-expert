@@ -24,6 +24,7 @@
 #include <backtestd\SignalClass\AggSignal.mqh>
 
 #include <Database\DatabaseFrames.mqh>
+#include <Mutex/Mutex.mqh>
 
 enum STORE_RESULTS {
     None = 0,
@@ -291,7 +292,8 @@ CArrayString currencies;
 bool CandleProcessed = false;
 
 CDatabaseFrames DB_Frames;
-ulong frames_received = 1;
+uint frames_received = 0;
+CMutexSync mutex;
 
 //+------------------------------------------------------------------+
 //| Initialization function of the expert                            |
@@ -589,7 +591,13 @@ double OnTester() {
 
 int OnTesterInit() {
    if (Expert_Store_Results == SideChanges) {
-      // EventSetTimer(10);
+      // init the mutex with 0
+      if (!mutex.Create("Local\\" + Expert_Title)) {
+         Print(__FUNCTION__, "MutexSync create ERROR!");
+         return false;
+      }
+      Print(__FUNCTION__, "MutexSync created OK!");
+
       return(DB_Frames.OnTesterInit());
    }
    return(INIT_SUCCEEDED);
@@ -599,12 +607,6 @@ int OnTesterInit() {
 //| "Timer" event handler function                                   |
 //+------------------------------------------------------------------+
 void OnTimer() {
-  // if (Expert_Store_Results == SideChanges) {
-  //    // because we are receiven MANY frames incrementally store a couple of frames during the backtest
-  //    Print("writing side changes to DB");
-  //    DB_Frames.StoreSideChanges();
-  // }
-
   // for (int i = 0; i < Experts.Total(); i++) {
   //   CBacktestExpert *expert = Experts.At(i);
   //   expert.OnTimer();
@@ -613,9 +615,15 @@ void OnTimer() {
 
 void OnTesterPass() {
   if (Expert_Store_Results == SideChanges) {
+     // lock the mutex and wait INFINITE
+     // Print("Trying to lock");
+     CMutexLock lock(mutex, (DWORD)INFINITE);
+     //Print("Locked");
+     
+     frames_received += 1;
      // because we are receiven MANY frames incrementally store a couple of frames during the backtest
-     frames_received++;
-     if (MathMod(frames_received, 100000000) == 0) {
+     if (MathMod(frames_received, 100000) == 0) {
+        Print("StoreSideChanges");
         frames_received = 0;
         DB_Frames.StoreSideChanges();
      }

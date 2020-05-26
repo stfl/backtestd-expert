@@ -99,16 +99,6 @@ public:
   CMutexLock(CMutexSync &m, DWORD dwWaitMsec) {
     m_mutex = m.Get();
     const DWORD res = WaitForSingleObjectX(m_mutex, dwWaitMsec);
-    switch (res) {
-      case WAIT_ABANDONED:
-      case WAIT_OBJECT_0:
-        m_success = true;
-        break;
-      case WAIT_TIMEOUT:
-      case WAIT_FAILED:
-        m_success = false;
-        break;
-      }
   }
   ~CMutexLock() { ReleaseMutexX(m_mutex); }
   bool Success() { return m_success; }

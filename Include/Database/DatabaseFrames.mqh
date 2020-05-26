@@ -7,7 +7,6 @@
 #property link      "https://www.mql5.com"
 #property tester_no_cache
 
-// #include <Mutex/Mutex.mqh>
 
 #define  STATS_FRAME  1
 //+------------------------------------------------------------------+
@@ -17,16 +16,8 @@ class CDatabaseFrames
   {
 private:
         int db;
-        // CMutexSync mutex;
 public:
         CDatabaseFrames(void) : db(INVALID_HANDLE) {
-           // init the mutex with 0
-           // if (!mutex.Create("Local\\" + Expert_Title)) {
-           //    Print(__FUNCTION__, "MutexSync create ERROR!");
-           //    return;
-           // }
-           // Print(__FUNCTION__, "MutexSync created OK!");
-           // GlobalVariableSet(Expert_Title,0);
         };
         ~CDatabaseFrames(void) {
 //--- close the database
@@ -35,7 +26,6 @@ public:
               Print("Database stored in file", Expert_Title+".sqlite");
               DatabaseClose(db);
            }
-           //GlobalVariableDel(Expert_Title);
         };
    //--- functions for working in the tester
    int               OnTesterInit(void);
@@ -82,8 +72,6 @@ void               CDatabaseFrames::StoreSideChanges(void) {
    double        side;
    datetime      date[];
 
-   // lock the mutex and wait INFINITE
-   // CMutexLock lock(mutex, (DWORD)INFINITE);
 //--- move the frame pointer to the beginning
    FrameFirst();
    // FrameFilter("", STATS_FRAME); // select frames with trading statistics for further work
