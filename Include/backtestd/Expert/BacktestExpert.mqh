@@ -645,9 +645,10 @@ bool CBacktestExpert::Processing(void)
 //  calculate signal direction once
       m_signal.Update();
    }
-  
+
    m_next_state=m_state;
 
+   // TODO Rewrite Signal and Side checks below to only access the pre-calculated m_sig_direction and so on
    // TODO move this statemachine to AggSignal
    do
      {
@@ -884,7 +885,9 @@ bool CBacktestExpert::Processing(void)
          string str;
          Print("watching position: ",m_position.FormatPosition(str));
 
-         m_trade.Buy(lot,price,sl,0.0);
+         double tp2  =((Signal_TPOnAllTrades == false) || (m_take_atr==0.0)) ? 0.0 :
+            price + (2 * m_take_atr * atr_value);
+         m_trade.Buy(lot,price,sl,tp2);
          res=m_position.SelectByIndex(PositionsTotal()-1);
          assert(res,"position was not selected correctly");
          m_pos_open_end=m_position.Ticket();
@@ -915,7 +918,9 @@ bool CBacktestExpert::Processing(void)
          string str;
          Print("watching position: ",m_position.FormatPosition(str));
 
-         m_trade.Sell(lot,price,sl,0.0);
+         double tp2  =((Signal_TPOnAllTrades == false) || (m_take_atr==0.0)) ? 0.0 :
+            price - (2 * m_take_atr * atr_value);
+         m_trade.Sell(lot,price,sl,tp2);
          res=m_position.SelectByIndex(PositionsTotal()-1);
          assert(res,"position was not selected correctly");
          m_pos_open_end=m_position.Ticket();

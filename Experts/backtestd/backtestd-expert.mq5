@@ -53,6 +53,7 @@ input STORE_RESULTS Expert_Store_Results = None;
 input double Signal_StopLevel = 1.5; // Stop Loss level ATR multiplier
 input double Signal_TakeLevel = 1.0; // Take Profit level ATR multiplier
 input int Signal_Expiration = 1;     // Expiration of pending orders (in bars)
+input bool Signal_TPOnAllTrades = true;
 
 input int Algo_Baseline_Wait =
     7; // candles for the baseline to wait for other indicators to catch up
