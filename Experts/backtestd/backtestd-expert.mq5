@@ -314,7 +314,7 @@ int OnInit() {
     else
       return ret; // break fail
   }
-  
+
   return INIT_SUCCEEDED;
 }
 //+------------------------------------------------------------------+
@@ -603,7 +603,7 @@ int OnTesterInit() {
       //    return false;
       // }
       // Print(__FUNCTION__, "MutexSync created OK!");
-      
+
       frame_time = TimeLocal();
       return(DB_Frames.OnTesterInit());
    }
@@ -620,35 +620,35 @@ void OnTimer() {
   // }
 }
 
-void OnTesterPass() {
-  if (Expert_Store_Results == SideChanges) {
-     // lock the mutex and wait INFINITE
-     // Print("Trying to lock");
-     // CMutexTryLock lock(mutex);
-     // if (! lock.Success())
-     //    return;
-     // Print("Locked");
-         
-     frames_received += 1;
-     datetime t = TimeLocal();
-     if ((t - frame_time) >= 15) {
-       // PrintFormat("Time elapsed %ds passes received: %u", (t - frame_time), frames_received);
-       PrintFormat("Time elapsed %ds", (t - frame_time));
-       frame_time = t;
-       started_storing = true;
-     }
-     
-     if (started_storing == true) {
-       // Print("Saving ", frames_received);
-       DB_Frames.StoreSideChangesArray(2000000);  // limit the number of INSERTS for the intermediate transaction
-     }
-     // if (MathMod(frames_received, 10000) == 0) {
-       // Print("recieved ", frames_received, " passes. Storing intermediate side results");
-     // }
-     
-     // because we are receiven MANY frames incrementally store a couple of frames during the backtest
-  }
-}
+//void OnTesterPass() {
+//  if (Expert_Store_Results == SideChanges) {
+//     // lock the mutex and wait INFINITE
+//     // Print("Trying to lock");
+//     // CMutexTryLock lock(mutex);
+//     // if (! lock.Success())
+//     //    return;
+//     // Print("Locked");
+//
+//     frames_received += 1;
+//     datetime t = TimeLocal();
+//     if ((t - frame_time) >= 15) {
+//       // PrintFormat("Time elapsed %ds passes received: %u", (t - frame_time), frames_received);
+//       PrintFormat("Time elapsed %ds", (t - frame_time));
+//       frame_time = t;
+//       started_storing = true;
+//     }
+//
+//     if (started_storing == true) {
+//       // Print("Saving ", frames_received);
+//       DB_Frames.StoreSideChangesArray(2000000);  // limit the number of INSERTS for the intermediate transaction
+//     }
+//     // if (MathMod(frames_received, 10000) == 0) {
+//       // Print("recieved ", frames_received, " passes. Storing intermediate side results");
+//     // }
+//
+//     // because we are receiven MANY frames incrementally store a couple of frames during the backtest
+//  }
+//}
 
 void OnTesterDeinit() {
   Print("OnTesterDeinit");
