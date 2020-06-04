@@ -9,7 +9,7 @@
 *.log
 .ccls-cache/
 
-/Indicators/Examples
+/Indicators
 
 /config
 
