@@ -76,12 +76,12 @@ input enColorOn  ColorOn          = chg_onLevel; // Color change on :
 input int        LevelsPeriod     = 25;          // Levels period
 input double     LevelsUp         = 90;          // Upper level %
 input double     LevelsDown       = 10;          // Lower level %
-input bool       AlertsOn         = false;       // Turn alerts on?
-input bool       AlertsOnCurrent  = true;        // Alert on current bar?
-input bool       AlertsMessage    = true;        // Display messageas on alerts?
-input bool       AlertsSound      = false;       // Play sound on alerts?
-input bool       AlertsEmail      = false;       // Send email on alerts?
-input bool       AlertsNotify     = false;       // Send push notification on alerts?
+bool       AlertsOn         = false;       // Turn alerts on?
+bool       AlertsOnCurrent  = true;        // Alert on current bar?
+bool       AlertsMessage    = true;        // Display messageas on alerts?
+bool       AlertsSound      = false;       // Play sound on alerts?
+bool       AlertsEmail      = false;       // Send email on alerts?
+bool       AlertsNotify     = false;       // Send push notification on alerts?
 
 double  val[],valc[],fill1[],fill2[],levelUp[],levelMi[],levelDn[],cor[],corc[],prices[];
 

@@ -82,13 +82,13 @@ input int             SlowPeriod      = 34;             // Slow period
 input enMaTypes       MaMethod        = ma_sma;         // Average method
 input enPrices        Price           = pr_median;      // Price
 input enColorOn       ColorOn         = cc_onLevel;     // Color change 
-input bool            AlertsOn        = false;          // Turn alerts on?
-input bool            AlertsOnCurrent = true;           // Alert on current bar?
-input bool            AlertsMessage   = true;           // Display messageas on alerts?
-input bool            AlertsSound     = false;          // Play sound on alerts?
-input bool            AlertsEmail     = false;          // Send email on alerts?
-input bool            AlertsNotify    = false;          // Send push notification on alerts?
-input bool            Interpolate     = true;           // Interpolate mtf data ?
+bool            AlertsOn        = false;          // Turn alerts on?
+bool            AlertsOnCurrent = true;           // Alert on current bar?
+bool            AlertsMessage   = true;           // Display messageas on alerts?
+bool            AlertsSound     = false;          // Play sound on alerts?
+bool            AlertsEmail     = false;          // Send email on alerts?
+bool            AlertsNotify    = false;          // Send push notification on alerts?
+bool            Interpolate     = true;           // Interpolate mtf data ?
 
 double val[],valc[],fill1[],fill2[],levelUp[],levelMi[],levelDn[],count[];
 int     _mtfHandle = INVALID_HANDLE; ENUM_TIMEFRAMES timeFrame;

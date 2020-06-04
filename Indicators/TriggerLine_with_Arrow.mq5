@@ -22,7 +22,7 @@
 
 input int   period      =  24;        // Period
 input int   LSMA_Period =  6;
-input bool  ShowArrow   =  true;
+ bool  ShowArrow   =  true;
 
 int length;
 int lsma_length;

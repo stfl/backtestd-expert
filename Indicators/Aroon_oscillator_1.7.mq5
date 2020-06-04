@@ -72,13 +72,13 @@ input double          LevelsDown      = 20;             // Levels down
 input double          FilterValue     = 0;              // Filter (<=0, for no filter)
 input int             FilterPeriod    = 0;              // Filter period (<=0 for using Aroon period)
 input enFilterWhat    FilterWhat      = _fltVal;        // Filter what?
-input bool            alertsOn        = false;          // Turn alerts on?
-input bool            alertsOnCurrent = true;           // Alert on current bar?
-input bool            alertsMessage   = true;           // Display messageas on alerts?
-input bool            alertsSound     = false;          // Play sound on alerts?
-input bool            alertsEmail     = false;          // Send email on alerts?
-input bool            alertsNotify    = false;          // Send push notification on alerts?
-input bool            Interpolate     = true;           // Interpolate mtf data ?
+bool            alertsOn        = false;          // Turn alerts on?
+bool            alertsOnCurrent = false;           // Alert on current bar?
+bool            alertsMessage   = false;           // Display messageas on alerts?
+bool            alertsSound     = false;          // Play sound on alerts?
+bool            alertsEmail     = false;          // Send email on alerts?
+bool            alertsNotify    = false;          // Send push notification on alerts?
+bool            Interpolate     = true;           // Interpolate mtf data ?
 
 double osc[],oscc[],oscu[],oscd[],levu[],levd[],prh[],prl[],count[];
 int     _mtfHandle = INVALID_HANDLE; ENUM_TIMEFRAMES timeFrame;

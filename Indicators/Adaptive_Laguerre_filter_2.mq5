@@ -45,13 +45,13 @@ input ENUM_TIMEFRAMES TimeFrame       = PERIOD_CURRENT; // Time frame
 input double          LaggPeriod      = 10;             // Laguerre period
 input double          LaggSmooth      = 0.5;            // Laguerre "smooth" 
 input enPrices        Price           = pr_median;      // Price 
-input bool            AlertsOn        = false;          // Turn alerts on?
-input bool            AlertsOnCurrent = true;           // Alert on current bar?
-input bool            AlertsMessage   = true;           // Display messageas on alerts?
-input bool            AlertsSound     = false;          // Play sound on alerts?
-input bool            AlertsEmail     = false;          // Send email on alerts?
-input bool            AlertsNotify    = false;          // Send push notification on alerts?
-input bool            Interpolate     = true;           // Interpolate mtf data ?
+bool            AlertsOn        = false;          // Turn alerts on?
+bool            AlertsOnCurrent = false;           // Alert on current bar?
+bool            AlertsMessage   = false;           // Display messageas on alerts?
+bool            AlertsSound     = false;          // Play sound on alerts?
+bool            AlertsEmail     = false;          // Send email on alerts?
+bool            AlertsNotify    = false;          // Send push notification on alerts?
+bool            Interpolate     = true;           // Interpolate mtf data ?
 
 //
 //

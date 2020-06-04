@@ -25,8 +25,8 @@
 
 //---- indicator parameters
 input int AroonPeriod = 14;
-input bool MailAlert = false;  //Alerts will be mailed to address set in MT5 options
-input bool SoundAlert = false; //Alerts will sound on indicator cross
+bool MailAlert = false;  //Alerts will be mailed to address set in MT5 options
+bool SoundAlert = false; //Alerts will sound on indicator cross
 
 //---- indicator buffers
 double AroonUpBuffer[];

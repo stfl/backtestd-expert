@@ -150,12 +150,7 @@ CAggSignal::CAggSignal(void) {}
 //| Destructor                                                       |
 //+------------------------------------------------------------------+
 CAggSignal::~CAggSignal(void){
-  for (int i = 0; i < m_filters.Total(); i++) {
-    CCustomSignal *filter = m_filters.At(i);
-    if (filter == NULL)
-      continue;
-    delete filter;
-  }
+  m_filters.Clear();
 }
 //+------------------------------------------------------------------+
 //| Get flags of used timeseries                                     |

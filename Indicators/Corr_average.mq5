@@ -75,13 +75,13 @@ input chgColor        ColorOn          = chg_onOrig;     // Color change on :
 input int             FlPeriod         = 25;             // Period for finding floating levels
 input double          FlUp             = 90;             // Upper level %
 input double          FlDown           = 10;             // Lower level %
-input bool            AlertsOn         = false;          // Turn alerts on?
-input bool            AlertsOnCurrent  = true;           // Alert on current bar?
-input bool            AlertsMessage    = true;           // Display messageas on alerts?
-input bool            AlertsSound      = false;          // Play sound on alerts?
-input bool            AlertsEmail      = false;          // Send email on alerts?
-input bool            AlertsNotify     = false;          // Send push notification on alerts?
-input bool            Interpolate      = true;           // Interpolate when in multi time frame mode?
+bool            AlertsOn         = false;          // Turn alerts on?
+bool            AlertsOnCurrent  = false;           // Alert on current bar?
+bool            AlertsMessage    = false;           // Display messageas on alerts?
+bool            AlertsSound      = false;          // Play sound on alerts?
+bool            AlertsEmail      = false;          // Send email on alerts?
+bool            AlertsNotify     = false;          // Send push notification on alerts?
+bool            Interpolate      = true;           // Interpolate when in multi time frame mode?
 
 double val[],valc[],mid[],fup[],fdn[],count[],orig[],origc[];
 string  _maNames[] = {"SMA","EMA","SMMA","LWMA"};

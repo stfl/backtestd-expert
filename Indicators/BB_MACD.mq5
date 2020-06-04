@@ -34,11 +34,11 @@ input int SlowLen = 26;
 input int Length = 10;
 input int barsCount = 400;
 input double StDv = 2.5;
-input bool EnableNativeAlerts = false;
-input bool EnableSoundAlerts = false;
-input bool EnableEmailAlerts = false;
-input bool EnablePushAlerts = false;
-input string SoundFileName	= "alert.wav";
+bool EnableNativeAlerts = false;
+bool EnableSoundAlerts = false;
+bool EnableEmailAlerts = false;
+bool EnablePushAlerts = false;
+string SoundFileName	= "alert.wav";
 
 // Indicator data and color buffers:
 double ExtMapBuffer1[]; // bbMACD

@@ -1039,7 +1039,7 @@ void CBacktestExpert::OnTrade(void)
         {
          if(LastOrderTPHit(m_pos_take))
            {
-            assert(MoveBreakEven(m_pos_open_end),"could not move break even");
+            MoveBreakEven(m_pos_open_end);
             m_pos_take_sl=m_position.PriceOpen();
            }
          else if(OrderSLHit()) // history order is already selected
@@ -2260,7 +2260,7 @@ bool CBacktestExpert::MoveBreakEven(long position_id)
    PositionSelectByTicket(position_id);
    if(position_id!=m_position.Ticket())
      {
-      Alert("position to modify not found");
+      Print("position to move break even not found");
       return false;
      }
 

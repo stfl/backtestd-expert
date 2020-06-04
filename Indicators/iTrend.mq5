@@ -69,13 +69,13 @@ input enMaTypes       ItMaMethod        = ma_ema;         // iTrend average meth
 input enPrices        ItPrice           = pr_close;       // Price
 input int             LevelBars         = 300;            // Look back period for levels
 input double          LevelFactor       = 0.283;          // Levels factor
-input bool            alertsOn          = false;          // Turn alerts on?
-input bool            alertsOnCurrent   = true;           // Alert on current bar?
-input bool            alertsMessage     = true;           // Display messageas on alerts?
-input bool            alertsSound       = false;          // Play sound on alerts?
-input bool            alertsEmail       = false;          // Send email on alerts?
-input bool            alertsNotify      = false;          // Send push notification on alerts?
-input bool            Interpolate       = true;           // Interpolate mtf data ?
+bool            alertsOn          = false;          // Turn alerts on?
+bool            alertsOnCurrent   = true;           // Alert on current bar?
+bool            alertsMessage     = true;           // Display messageas on alerts?
+bool            alertsSound       = false;          // Play sound on alerts?
+bool            alertsEmail       = false;          // Send email on alerts?
+bool            alertsNotify      = false;          // Send push notification on alerts?
+bool            Interpolate       = true;           // Interpolate mtf data ?
 
 double itrend[],itrendc[],lup[],ldn[],fillu[],filluz[],filld[],filldz[],count[];
 int indHandle = INVALID_HANDLE; ENUM_TIMEFRAMES timeFrame;

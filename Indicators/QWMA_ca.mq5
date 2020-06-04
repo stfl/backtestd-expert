@@ -67,13 +67,13 @@ input chgColor        ColorOn          = chg_onLevel;    // Color change on :
 input int             FlPeriod         = 25;             // Period for finding floating levels
 input double          FlUp             = 90;             // Upper level %
 input double          FlDown           = 10;             // Lower level %
-input bool            AlertsOn         = false;          // Turn alerts on?
-input bool            AlertsOnCurrent  = true;           // Alert on current bar?
-input bool            AlertsMessage    = true;           // Display messageas on alerts?
-input bool            AlertsSound      = false;          // Play sound on alerts?
-input bool            AlertsEmail      = false;          // Send email on alerts?
-input bool            AlertsNotify     = false;          // Send push notification on alerts?
-input bool            Interpolate      = true;           // Interpolate when in multi time frame mode?
+ bool            AlertsOn         = false;          // Turn alerts on?
+ bool            AlertsOnCurrent  = true;           // Alert on current bar?
+ bool            AlertsMessage    = true;           // Display messageas on alerts?
+ bool            AlertsSound      = false;          // Play sound on alerts?
+ bool            AlertsEmail      = false;          // Send email on alerts?
+ bool            AlertsNotify     = false;          // Send push notification on alerts?
+ bool            Interpolate      = true;           // Interpolate when in multi time frame mode?
 
 double qwma[],qwmac[],mid[],fup[],fdn[],count[],work[];
 int     _mtfHandle = INVALID_HANDLE; ENUM_TIMEFRAMES timeFrame;

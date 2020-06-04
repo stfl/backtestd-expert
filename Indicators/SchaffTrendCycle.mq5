@@ -32,13 +32,13 @@ input int MAShort = 23;
 input int MALong = 50;
 input int Cycle = 10;
 
-input bool ShowArrows = false;
-input color UpColor = clrBlue;
-input color DownColor = clrRed;
-input bool ShowAlerts = false;
-input bool SoundAlerts = false;
-input bool EmailAlerts = false;
-input bool PushAlerts = false;
+ bool ShowArrows = false;
+ color UpColor = clrBlue;
+ color DownColor = clrRed;
+bool ShowAlerts = false;
+ bool SoundAlerts = false;
+ bool EmailAlerts = false;
+ bool PushAlerts = false;
 
 //---- Global Variables
 double Factor = 0.5;

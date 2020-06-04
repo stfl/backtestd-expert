@@ -79,13 +79,13 @@ input enColorOn       ColorOn         = cc_onLevels;    // Color change :
 input int             MinMaxPeriod    = 50;             // Floating levels period (<= 1 to use velocity period)
 input double          LevelUp         = 80.0;           // Up level %
 input double          LevelDown       = 20.0;           // Down level %
-input bool            alertsOn        = false;          // Turn alerts on?
-input bool            alertsOnCurrent = true;           // Alert on current bar?
-input bool            alertsMessage   = true;           // Display messageas on alerts?
-input bool            alertsSound     = false;          // Play sound on alerts?
-input bool            alertsEmail     = false;          // Send email on alerts?
-input bool            alertsNotify    = false;          // Send push notification on alerts?
-input bool            Interpolate     = true;           // Interpolate mtf data ?
+ bool            alertsOn        = false;          // Turn alerts on?
+ bool            alertsOnCurrent = true;           // Alert on current bar?
+ bool            alertsMessage   = true;           // Display messageas on alerts?
+ bool            alertsSound     = false;          // Play sound on alerts?
+ bool            alertsEmail     = false;          // Send email on alerts?
+ bool            alertsNotify    = false;          // Send push notification on alerts?
+ bool            Interpolate     = true;           // Interpolate mtf data ?
 
 
 double vel[],velc[],fill1[],fill2[],levelUp[],levelMi[],levelDn[],count[];

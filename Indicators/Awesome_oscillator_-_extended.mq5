@@ -63,13 +63,13 @@ input enPrices        MaPrice1          = pr_median; // Fast average price
 input enMaTypes       MaMethod2         = ma_sma;    // Slow average method
 input int             MaPeriod2         = 34;        // Slow average period
 input enPrices        MaPrice2          = pr_median; // Slow average price
-input bool            AlertsOn          = false;     // Turn alerts on?
-input bool            AlertsOnCurrent   = true;      // Alert on current bar?
-input bool            AlertsMessage     = true;      // Display messageas on alerts?
-input bool            AlertsSound       = false;     // Play sound on alerts?
-input bool            AlertsEmail       = false;     // Send email on alerts?
-input bool            AlertsNotify      = false;     // Send push notification on alerts?
-input bool            Interpolate       = true;           // Interpolate in multi time frame mode?
+bool            AlertsOn          = false;     // Turn alerts on?
+bool            AlertsOnCurrent   = false;      // Alert on current bar?
+bool            AlertsMessage     = false;      // Display messageas on alerts?
+bool            AlertsSound       = false;     // Play sound on alerts?
+bool            AlertsEmail       = false;     // Send email on alerts?
+bool            AlertsNotify      = false;     // Send push notification on alerts?
+bool            Interpolate       = true;           // Interpolate in multi time frame mode?
 
 
 //

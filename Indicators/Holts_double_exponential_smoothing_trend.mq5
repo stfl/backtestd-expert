@@ -44,12 +44,12 @@ enum enPrices
 input double   EstimatePeriod  = 14.33;     // Estimation component period
 input double   TrendPeriod     = 10;        // Trend component period
 input enPrices Price           = pr_close;  // Price
-input bool     AlertsOn        = false;     // Turn alerts on?
-input bool     AlertsOnCurrent = true;      // Alert on current bar?
-input bool     AlertsMessage   = true;      // Display messageas on alerts?
-input bool     AlertsSound     = false;     // Play sound on alerts?
-input bool     AlertsEmail     = false;     // Send email on alerts?
-input bool     AlertsNotify    = false;     // Send push notification on alerts?
+bool     AlertsOn        = false;     // Turn alerts on?
+bool     AlertsOnCurrent = true;      // Alert on current bar?
+bool     AlertsMessage   = true;      // Display messageas on alerts?
+bool     AlertsSound     = false;     // Play sound on alerts?
+bool     AlertsEmail     = false;     // Send email on alerts?
+bool     AlertsNotify    = false;     // Send push notification on alerts?
 
 double avg[],worku[],workd[],trend[];
 
