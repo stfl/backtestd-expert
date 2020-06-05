@@ -29,7 +29,7 @@ public:
    CCustomSignal     *m_exit;
    CCustomSignal     *m_volume;
    CCustomSignal     *m_baseline;  // TODO write a CExpertBaselineSignal class
-   CiATR             m_atr;
+   CiATR              m_atr;
 
    // CArrayObj         m_entry_filters;  // array of filters that are checked for an open/close signal
    // CArrayObj         m_side_filters;   // array of filters that are checked for a state
@@ -99,7 +99,8 @@ public:
    void              SetDirection(void) { m_direction=Direction(); }
 
    virtual double    GetData(const int buffer_num)                            { return(0.0); }
-   double            GetAtrValue() { m_atr.Refresh(); return m_atr.Main(m_every_tick ? 0 : 1); }
+   double            GetAtrValue() { return m_atr.Main(m_every_tick ? 0 : 1); }
+   void              RefreshAtr() { m_atr.Refresh(); }
 
    bool              ConfirmSignalLong()     { return m_confirm && m_confirm.LongSignal();  }
    bool              ConfirmSideLong()       { return !m_confirm  || m_confirm.LongSide();    }
@@ -664,11 +665,11 @@ bool CAggSignal::BaselineATRChannelLong()
    if(!m_baseline.LongSide())
       return false;
 
-   double atr_value = GetAtrValue();
-   double price=(m_base_price==0.0) ? m_symbol.Ask() : m_base_price;
-   double base = m_baseline.GetData(0);
+   double atr_value = m_atr.Main(m_baseline.GetIdx());
+   double price= Close(m_baseline.GetIdx());
+   double base = m_baseline.GetData(m_baseline.GetIdx());
    assert(base != EMPTY_VALUE, "baseline empty value");
-//Print(__FUNCTION__," atr: ", atr_value, " diff: ", (price - base), " price: ", price);
+   //Print(__FUNCTION__," atr: ", atr_value, " diff: ", (price - base), " price: ", price);
    return (price - base) <= atr_value;
   }
 
@@ -682,10 +683,10 @@ bool CAggSignal::BaselineATRChannelShort()
    if(!m_baseline.ShortSide())
       return false;
 
-   double atr_value = GetAtrValue();
-   double price=(m_base_price==0.0) ? m_symbol.Ask() : m_base_price;
-   double base = m_baseline.GetData(0);
-//Print(__FUNCTION__," atr: ", atr_value, " diff: ", (base - price), " price: ", price);
+   double atr_value = m_atr.Main(m_baseline.GetIdx());
+   double price= Close(m_baseline.GetIdx());   // get the price from the view of the baseline (with shift)
+   double base = m_baseline.GetData(m_baseline.GetIdx());
+   //Print(__FUNCTION__," atr: ", atr_value, " diff: ", (base - price), " price: ", price);
    return (base - price) <= atr_value;
   }
 

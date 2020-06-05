@@ -78,6 +78,9 @@ public:
    void               IndicatorType(ENUM_INDICATOR value)      { m_indicator_type=value;   }
    void               IndicatorFile(string filename);
    // void               IndicatorName(string name)               { m_indicator_name=name;   }
+   uint    GetShift() { return m_Shift; }
+   uint    GetIdx() { return m_Idx; }
+
 
    //--- method of verification of settings
    virtual bool      ValidationSettings(void);

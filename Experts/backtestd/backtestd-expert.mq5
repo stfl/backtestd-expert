@@ -24,7 +24,10 @@
 #include <backtestd\SignalClass\AggSignal.mqh>
 
 #include <Database\DatabaseFrames.mqh>
+
+#ifdef MUTEX
 #include <Mutex/Mutex.mqh>
+#endif
 
 enum STORE_RESULTS {
     None = 0,
@@ -294,7 +297,11 @@ bool CandleProcessed = false;
 
 CDatabaseFrames DB_Frames;
 ulong frames_received = 1;
+
+#ifdef MUTEX
 CMutexSync mutex;
+#endif
+
 datetime frame_time;
 bool started_storing = false;
 
@@ -356,24 +363,20 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
   }
 
   // -------------- add confirmation indicator
-  if (StringCompare(Confirm_Indicator, "") == 0) {
-    //--- failed
-    printf(__FUNCTION__ + ": No Confirmation Indicator configured");
-    ExtExpert.Deinit();
-    return (INIT_FAILED);
+  if (StringCompare(Confirm_Indicator, "") != 0) {
+     CCustomSignal *confirm_signal = CSignalFactory::MakeSignal(
+         Confirm_Indicator, Confirm_inputs, Confirm_buffer, Confirm_param,
+         Confirm_SignalClass, PERIOD_CURRENT, Confirm_Shift);
+   
+     if (confirm_signal == NULL) {
+       //--- failed
+       printf(__FUNCTION__ + ": error creating signal " + Confirm_Indicator);
+       ExtExpert.Deinit();
+       return (INIT_FAILED);
+     }
+     signal.AddConfirmSignal(confirm_signal);
+     printf("Added Confirmation Indicator " + Confirm_Indicator);
   }
-  CCustomSignal *confirm_signal = CSignalFactory::MakeSignal(
-      Confirm_Indicator, Confirm_inputs, Confirm_buffer, Confirm_param,
-      Confirm_SignalClass, PERIOD_CURRENT, Confirm_Shift);
-
-  if (confirm_signal == NULL) {
-    //--- failed
-    printf(__FUNCTION__ + ": error creating signal " + Confirm_Indicator);
-    ExtExpert.Deinit();
-    return (INIT_FAILED);
-  }
-  signal.AddConfirmSignal(confirm_signal);
-  printf("Added Confirmation Indicator " + Confirm_Indicator);
 
   // -------------- add 2nd confirmation indicator -----------------------------
   if (StringCompare(Confirm2_Indicator, "") != 0) {

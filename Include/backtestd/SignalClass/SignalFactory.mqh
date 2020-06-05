@@ -4,7 +4,7 @@
 //|                                                                  |
 //+------------------------------------------------------------------+
 #include "CustomSignal.mqh"
-// #include <backtestd\Signal\PresetSignals.mqh>
+#include <backtestd\Signal\PresetSignals.mqh>
 
 #include <backtestd\SignalClass\AggSignal.mqh>
 #include <backtestd\SignalClass\BothLinesLevelCrossSignal.mqh>
@@ -249,7 +249,7 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
    //    return signal;
    //   }
      
-   // PRODUCE_SIGNALS();
+   PRODUCE_SIGNALS();
 
    CCustomSignal *signal = NULL;
    switch (signal_class) {

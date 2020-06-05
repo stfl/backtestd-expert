@@ -29,11 +29,11 @@ void CSignalChaikin::ParamsFromInput(double &Input[]) {
   m_params_size = 4;
   ArrayResize(m_params, m_params_size);
   m_params[0].type=TYPE_INT;
-  m_params[0].integer_value=Input[0];
+  m_params[0].integer_value=(int)Input[0];
   m_params[1].type=TYPE_INT;
-  m_params[1].integer_value=Input[1];
+  m_params[1].integer_value=(int)Input[1];
   m_params[2].type=TYPE_INT;
-  m_params[2].integer_value=Input[2];
+  m_params[2].integer_value=(int)Input[2];
   m_params[3].type=TYPE_INT;
-  m_params[3].integer_value=Input[3];
+  m_params[3].integer_value=(int)Input[3];
   }

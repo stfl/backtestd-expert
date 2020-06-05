@@ -611,6 +611,7 @@ bool CBacktestExpert::Refresh(void)
    m_last_tick_time=time;
 //--- refresh indicators
    m_indicators.Refresh();
+   m_signal.RefreshAtr();
 
 //--- ok
    return(true);

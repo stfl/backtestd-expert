@@ -32,11 +32,11 @@ void CSignalKijunSen::ParamsFromInput(double &Signal_double[])
    m_params_size = 3;
    ArrayResize(m_params, m_params_size);
    m_params[0].type=TYPE_INT;
-   m_params[0].integer_value=Signal_double[0];
+   m_params[0].integer_value=(int)Signal_double[0];
    m_params[1].type=TYPE_INT;
-   m_params[1].integer_value=Signal_double[1];
+   m_params[1].integer_value=(int)Signal_double[1];
    m_params[2].type=TYPE_INT;
-   m_params[2].integer_value=Signal_double[2];
+   m_params[2].integer_value=(int)Signal_double[2];
   }
 
 //+------------------------------------------------------------------+
