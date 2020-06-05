@@ -62,7 +62,7 @@ input int Algo_Baseline_Wait =
     7; // candles for the baseline to wait for other indicators to catch up
 
 //--- inputs for money
-input double Money_Risk = 1.0; // Risk per trade (a regular entry has 2 trades..
+input double Money_Risk = 0.1; // Risk per trade (a regular entry has 2 trades..
                                // x2 is the actual risk)
 input double Money_FixLot_Lots = 0.1; // Fixed volume
 
