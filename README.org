@@ -1,0 +1,19 @@
+* Installation
+
+** checkout source
+
+#+begin_src bash
+cd \Path\To\MQL5
+git init
+git remote add origin https://github.com/stfl/backtestd-expert.git
+git pull origin master
+#+end_src
+
+** compile the expert
+
+- Open MetaEditor
+- select the ea and click compile
+
+* Configuration
+
+* Signal Classes
