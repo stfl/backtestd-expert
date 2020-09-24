@@ -86,17 +86,28 @@ void               CDatabaseFrames::StoreSideChangesArray(int transaction_limit)
    bool failed=false;
    // while(FrameNext(pass, symbol, func, side, date))
    while(FrameNext(pass, symbol, func, value, sides)) {
-
-
       for(int i=0;i<ArraySize(sides);i++) {
+         if(!DatabaseTableExists(db, symbol)) {
+            if(!DatabaseExecute(db, StringFormat("CREATE TABLE %s ("
+                                                 "PASS   INT NOT NULL,"
+                                                 "DATE   INT NOT NULL,"               // in Unix Time
+                                                 "SIDE   INT NOT NULL );"
+                                                 , symbol))) {
+               Print("DB: create table failed with code ", IntegerToString(GetLastError()));
+               failed=true;
+               break;
+            }
+         }
+
          //--- write data to the table
-         string request=StringFormat("INSERT INTO SIDES (PASS,DATE,SIDE) "
+         string request=StringFormat("INSERT INTO %s (PASS,DATE,SIDE) "
                                      "VALUES (%u, %d, %d)",
                                      symbol, pass, sides[i].date, sides[i].side);
 
          //--- execute a query to add a pass to the PASSES table
          if(!DatabaseExecute(db, request)) {
-            PrintFormat("Failed to insert pass %d with code %d\nSIDES", pass, IntegerToString(GetLastError()), request);
+            PrintFormat("Failed to insert pass %d with code %d\n%s",
+                        pass, IntegerToString(GetLastError()), request);
             failed=true;
             break;
          }
