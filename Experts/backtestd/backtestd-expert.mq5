@@ -17,6 +17,7 @@
 #include <backtestd\SignalClass\SignalFactory.mqh>
 //--- available trailing
 #include <Expert\Trailing\TrailingNone.mqh>
+#include <Expert\Trailing\TrailingFixedPips.mqh>
 //--- available money management
 #include <NewBar\CisNewBar.mqh>
 #include <backtestd\Expert\BacktestExpert.mqh>
@@ -32,8 +33,9 @@
 enum STORE_RESULTS {
     None = 0,
     SideChanges = 1,
-    //Buffers = 2,
-    //Results = 3
+    //Buffers = 2,  // Really slow
+    //Results = 3   // TODO
+    //Trades = 3    // TODO should be easier than SideChanges
 };
 
 //+------------------------------------------------------------------+
@@ -43,8 +45,7 @@ enum STORE_RESULTS {
 input string Expert_Title = "backtestd-expert"; // Document name
 ulong Expert_MagicNumber = 13876;               //
 bool Expert_EveryTick = false;                  //
-input int Expert_ProcessOnTimeLeft =
-    10 * 60; // Time in seconds to run before the candle closes
+input int Expert_ProcessOnTimeLeft = 10 * 60; // Time in seconds to run before the candle closes
 
 input STORE_RESULTS Expert_Store_Results = None;
 
@@ -53,18 +54,20 @@ input STORE_RESULTS Expert_Store_Results = None;
 // threshold value to open input int                Signal_ThresholdClose=10; //
 // Signal threshold value to close input double             Signal_PriceLevel
 // =0.0;         // Price level to execute a deal
-input double Signal_StopLevel = 1.5; // Stop Loss level ATR multiplier
-input double Signal_TakeLevel = 1.0; // Take Profit level ATR multiplier
 input int Signal_Expiration = 1;     // Expiration of pending orders (in bars)
-input bool Signal_TPOnAllTrades = true;
 
-input int Algo_Baseline_Wait =
-    7; // candles for the baseline to wait for other indicators to catch up
+input bool Backtest_TPOnAllTrades = false; // set a TP on both trades
+input bool Backtest_SingleTrade = true;    // use only a single trade
+// input bool Backtest_ScaleOut = false;      // scale out half of the trades (TODO NOT IMPLEMENTED)
+
+input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
 
 //--- inputs for money
-input double Money_Risk = 0.1; // Risk per trade (a regular entry has 2 trades..
-                               // x2 is the actual risk)
+input double Money_Risk = 0.1; // Risk per trade (a regular entry has 2 trades.. x2 is the actual risk)
 input double Money_FixLot_Lots = 0.1; // Fixed volume
+input double Money_StopLevel = 1.5; // Stop Loss level ATR multiplier
+input double Money_TakeLevel = 1.0; // Take Profit level ATR multiplier
+input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop ATR multiplier
 
 //datetime start_time = TimeCurrent();
 
@@ -101,10 +104,8 @@ input double Confirm_param3 = 0.;
 input double Confirm_param4 = 0.;
 double Confirm_param[5];
 
-input string Confirm2_Indicator =
-    ""; // Name of 2nd Confirmation Indicator to use
-input ENUM_SIGNAL_CLASS Confirm2_SignalClass =
-    Preset;                         // Type|Class of Indicator
+input string Confirm2_Indicator = ""; // Name of 2nd Confirmation Indicator to use
+input ENUM_SIGNAL_CLASS Confirm2_SignalClass = Preset;   // Type|Class of Indicator
 input uint Confirm2_Shift = 0;      // Confirm2 Shift in Bars
 input double Confirm2_input0 = 0.;  // Confirm2 double input 0
 input double Confirm2_input1 = 0.;  // Confirm2 double input 1
@@ -168,8 +169,7 @@ input double Exit_param4 = 0.;
 double Exit_param[5];
 
 input string Baseline_Indicator = ""; // Name of Baseline Indicator to use
-input ENUM_SIGNAL_CLASS Baseline_SignalClass =
-    Preset;                         // Type|Class of Indicator
+input ENUM_SIGNAL_CLASS Baseline_SignalClass = Preset; // Type|Class of Indicator
 input uint Baseline_Shift = 0;      // Baseline Shift in Bars
 input double Baseline_input0 = 0.;  // Baseline double input 0
 input double Baseline_input1 = 0.;  // Baseline double input 1
@@ -289,8 +289,7 @@ string Expert_symbols[50];
 //+------------------------------------------------------------------+
 CHashMap<string, int> ExpertsMap;
 CArrayObj *Experts;
-CisNewBar
-    isNewBarCurrentChart; // instance of the CisNewBar class: current chart
+CisNewBar isNewBarCurrentChart; // instance of the CisNewBar class: current chart
 CArrayString symbols;
 CArrayString currencies;
 bool CandleProcessed = false;
@@ -337,23 +336,15 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
     return (INIT_FAILED);
   }
 
+  // configure Money Management object
   ExtExpert.OnTradeProcess(true);
-  ExtExpert.StopAtrMultiplier(Signal_StopLevel);
-  ExtExpert.TakeAtrMultiplier(Signal_TakeLevel);
+  ExtExpert.StopAtrMultiplier(Money_StopLevel);
+  // do not set a take profit if we're only testing on a single trade
+  double take_level = (Backtest_SingleTrade == true) ? 0.0 : Money_TakeLevel;
+  ExtExpert.TakeAtrMultiplier(take_level);
 
-  //--- Creating signal
-  CAggSignal *signal = new CAggSignal;
-  if (signal == NULL) {
-    //--- failed
-    printf(__FUNCTION__ + ": error creating signal");
-    ExtExpert.Deinit();
-    return (INIT_FAILED);
-  }
-  //---
-  ExtExpert.InitSignal(signal);
-  // signal.ThresholdOpen(Signal_ThresholdOpen);
-  // signal.ThresholdClose(Signal_ThresholdClose);
-  // signal.PriceLevel(Signal_PriceLevel);
+  // get the AggSignal from the Expert (It has been automatically created at Init())
+  CAggSignal *signal = ExtExpert.Signal();
   signal.Expiration(Signal_Expiration);
   if (!signal.AddAtr()) {
     //--- failed
@@ -443,13 +434,18 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
   }
 
   //--- Creation of trailing object
-  CTrailingNone *trailing = new CTrailingNone;
+  CTrailingFixedPips *trailing = new CTrailingFixedPips;  // init with default values which will be changed later
   if (trailing == NULL) {
     //--- failed
     printf(__FUNCTION__ + ": error creating trailing");
     ExtExpert.Deinit();
     return (INIT_FAILED);
   }
+
+  // disable trailing take profit
+  trailing.ProfitLevel(0);
+  //trailing.StopLevel(100);
+
   //--- Add trailing to expert (will be deleted automatically))
   if (!ExtExpert.InitTrailing(trailing)) {
     //--- failed
@@ -522,13 +518,13 @@ double OnTester() {
   }
 
   double ret = TesterStatistics(STAT_TRADES) == 0.
-     ? 0.
-     : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
+                   ? 0.
+                   : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
 
 
   if (Expert_Store_Results == SideChanges) {
-     CBacktestExpert *expert = Experts.At(0);
-     expert.m_signal.m_confirm.AddSideChangesToFrame();
+    CBacktestExpert *expert = Experts.At(0);
+    expert.m_signal.m_confirm.AddSideChangesToFrame();
   }
   //if (Expert_Store_Results == Buffers) {
      // datetime start_date = D'2016.01.01 00:00';
@@ -655,7 +651,7 @@ void OnTimer() {
 //}
 
 void OnTesterDeinit() {
-  Print("OnTesterDeinit");
+  // Print("OnTesterDeinit");
   if (Expert_Store_Results == SideChanges) {
      // CMutexLock lock(mutex, (DWORD)INFINITE);
      DB_Frames.StoreSideChangesArray(-1);

@@ -8,6 +8,7 @@
 #include <Expert\ExpertSignal.mqh>
 #include <Expert\ExpertMoney.mqh>
 #include <Expert\ExpertTrailing.mqh>
+#include <Expert\Trailing\TrailingFixedPips.mqh>
 #include "Assert.mqh"
 #include <backtestd\SignalClass\AggSignal.mqh>
 
@@ -56,10 +57,11 @@ public:
    //---
    int               m_waiting_event;            // flags of expected trade events
    //--- trading objects
-   CExpertTrade     *m_trade;                    // trading object
-   CAggSignal       *m_signal;                   // trading signals object
-   CExpertMoney     *m_money;                    // money manager object
-   CExpertTrailing  *m_trailing;                 // trailing stops object
+   CExpertTrade      *m_trade;                    // trading object
+   CAggSignal        *m_signal;                   // trading signals object
+   CExpertMoney      *m_money;                    // money manager object
+   // CExpertTrailing  *m_trailing;                 // trailing stops object
+   CTrailingFixedPips  *m_trailing;                 // TODO workaround for ATR trailing stop -> include ATR calculation into CTrailingATR
    bool              m_check_volume;             // check and decrease trading volume before OrderSend
    //--- indicators
    CIndicators       m_indicators;               // indicator collection to fast recalculations
@@ -103,7 +105,7 @@ public:
    void              CheckVolumeBeforeTrade(const bool flag) { m_check_volume=flag; }
    //--- initialization trading objects
    virtual bool      InitSignal(CExpertSignal *signal=NULL);
-   virtual bool      InitTrailing(CExpertTrailing *trailing=NULL);
+   virtual bool      InitTrailing(CTrailingFixedPips *trailing=NULL);
    virtual bool      InitMoney(CExpertMoney *money=NULL);
    virtual bool      InitTrade(ulong magic,CExpertTrade *trade=NULL);
    //--- deinitialization
@@ -117,7 +119,7 @@ public:
    int               MaxOrders(void)                  const { return(m_max_orders);           }
    void              MaxOrders(int value)                   { m_max_orders=value;             }
    //--- methods of access to protected data
-   CExpertSignal    *Signal(void) const { return(m_signal);               }
+   CExpertSignal     *Signal(void) const { return(m_signal);               }
    //--- method of verification of settings
    virtual bool      ValidationSettings();
    //--- method of creating the indicator and timeseries
@@ -243,33 +245,33 @@ protected:
 //| Constructor                                                      |
 //+------------------------------------------------------------------+
 CBacktestExpert::CBacktestExpert(void) : m_period_flags(0),
-                         m_expiration(0),
-                         m_pos_tot(0),
-                         m_deal_tot(0),
-                         m_ord_tot(0),
-                         m_hist_ord_tot(0),
-                         m_beg_date(0),
-                         m_trade(NULL),
-                         m_signal(NULL),
-                         m_money(NULL),
-                         m_trailing(NULL),
-                         m_check_volume(false),
-                         m_on_tick_process(true),
-                         m_on_trade_process(false),
-                         m_on_timer_process(false),
-                         m_on_chart_event_process(false),
-                         m_on_book_event_process(false),
-                         m_max_orders(1),
-                         m_stop_atr(1.5),
-                         m_take_atr(1.0),
-                         m_baseline_wait(7),
-                         m_pos_take(0),
-                         m_pos_take_tp(0),
-                         m_pos_open_end(0),
-                         m_pos_take_sl(0),
-                         m_take_profit_cnt(0),
-                         m_stop_loss_cnt(0),
-                         m_state(NoTrade)
+   m_expiration(0),
+   m_pos_tot(0),
+   m_deal_tot(0),
+   m_ord_tot(0),
+   m_hist_ord_tot(0),
+   m_beg_date(0),
+   m_trade(NULL),
+   m_signal(NULL),
+   m_money(NULL),
+   m_trailing(NULL),
+   m_check_volume(false),
+   m_on_tick_process(true),
+   m_on_trade_process(false),
+   m_on_timer_process(false),
+   m_on_chart_event_process(false),
+   m_on_book_event_process(false),
+   m_max_orders(1),
+   m_stop_atr(1.5),
+   m_take_atr(1.0),
+   m_baseline_wait(7),
+   m_pos_take(0),
+   m_pos_take_tp(0),
+   m_pos_open_end(0),
+   m_pos_take_sl(0),
+   m_take_profit_cnt(0),
+   m_stop_loss_cnt(0),
+   m_state(NoTrade)
   {
    m_other_symbol      =true;
    m_other_period      =true;
@@ -315,31 +317,22 @@ bool CBacktestExpert::Init(string symbol,ENUM_TIMEFRAMES period,bool every_tick,
    int digits_adjust=(m_symbol.Digits()==3 || m_symbol.Digits()==5) ? 10 : 1;
    m_adjusted_point=m_symbol.Point()*digits_adjust;
 //--- initializing objects expert
-   if(!InitTrade(magic))
-     {
-      Print(__FUNCTION__+": error initialization trade object");
-      return(false);
-     }
-   if(!InitSignal())
-     {
-      Print(__FUNCTION__+": error initialization signal object");
-      return(false);
-     }
-   if(!InitTrailing())
-     {
-      Print(__FUNCTION__+": error initialization trailing object");
-      return(false);
-     }
-   if(!InitMoney())
-     {
-      Print(__FUNCTION__+": error initialization money object");
-      return(false);
-     }
-   if(!InitParameters())
-     {
-      Print(__FUNCTION__+": error initialization parameters");
-      return(false);
-     }
+   if (!InitTrade(magic, new CExpertTrade)) {
+     Print(__FUNCTION__ + ": error initialization trade object");
+     return (false);
+   }
+   if (!InitSignal(new CAggSignal)) {
+     Print(__FUNCTION__ + ": error initialization signal object");
+     return (false);
+   }
+   if (!InitTrailing(new CTrailingFixedPips)) {
+     Print(__FUNCTION__ + ": error initialization trailing object");
+     return (false);
+   }
+   if (!InitMoney(new CExpertMoney)) {
+     Print(__FUNCTION__ + ": error initialization money object");
+     return (false);
+   }
 //--- initialization for working with trade history
    PrepareHistoryDate();
    HistoryPoint();
@@ -370,19 +363,12 @@ void CBacktestExpert::Magic(ulong value)
 //+------------------------------------------------------------------+
 //| Initialization trade object                                      |
 //+------------------------------------------------------------------+
-bool CBacktestExpert::InitTrade(ulong magic,CExpertTrade *trade=NULL)
+bool CBacktestExpert::InitTrade(ulong magic,CExpertTrade *trade)
   {
 //--- óäàëÿåì ñóùåñòâóþùèé îáúåêò
    if(m_trade!=NULL)
       delete m_trade;
-//---
-   if(trade==NULL)
-     {
-      if((m_trade=new CExpertTrade)==NULL)
-         return(false);
-     }
-   else
-      m_trade=trade;
+   m_trade=trade;
 //--- tune trade object
    m_trade.SetSymbol(GetPointer(m_symbol));
    m_trade.SetExpertMagicNumber(magic);
@@ -399,14 +385,7 @@ bool CBacktestExpert::InitSignal(CExpertSignal *signal)
   {
    if(m_signal!=NULL)
       delete m_signal;
-//---
-   if(signal==NULL)
-     {
-      if((m_signal=new CAggSignal)==NULL)
-         return(false);
-     }
-   else
-      m_signal=signal;
+   m_signal=signal;
 //--- initializing signal object
    if(!m_signal.Init(GetPointer(m_symbol),m_period,m_adjusted_point))
       return(false);
@@ -418,22 +397,16 @@ bool CBacktestExpert::InitSignal(CExpertSignal *signal)
 //+------------------------------------------------------------------+
 //| Initialization trailing object                                   |
 //+------------------------------------------------------------------+
-bool CBacktestExpert::InitTrailing(CExpertTrailing *trailing)
+bool CBacktestExpert::InitTrailing(CTrailingFixedPips *trailing)
   {
    if(m_trailing!=NULL)
       delete m_trailing;
-//---
-   if(trailing==NULL)
-     {
-      if((m_trailing=new CExpertTrailing)==NULL)
-         return(false);
-     }
-   else
-      m_trailing=trailing;
+   m_trailing=trailing;
 //--- initializing trailing object
    if(!m_trailing.Init(GetPointer(m_symbol),m_period,m_adjusted_point))
       return(false);
-   m_trailing.EveryTick(m_every_tick);
+// m_trailing.EveryTick(m_every_tick);
+   m_trailing.EveryTick(false);   // FIXME -> this needs to go into the trailing class
    m_trailing.Magic(m_magic);
 //--- ok
    return(true);
@@ -445,14 +418,7 @@ bool CBacktestExpert::InitMoney(CExpertMoney *money)
   {
    if(m_money!=NULL)
       delete m_money;
-//---
-   if(money==NULL)
-     {
-      if((m_money=new CExpertMoney)==NULL)
-         return(false);
-     }
-   else
-      m_money=money;
+   m_money=money;
 //--- initializing money object
    if(!m_money.Init(GetPointer(m_symbol),m_period,m_adjusted_point))
       return(false);
@@ -503,6 +469,7 @@ bool CBacktestExpert::InitIndicators(CIndicators *indicators)
 //--- create required timeseries
    if(!CExpertBase::InitIndicators(indicators_ptr))
       return(false);
+
    m_signal.SetPriceSeries(m_open,m_high,m_low,m_close);
    m_signal.SetOtherSeries(m_spread,m_time,m_tick_volume,m_real_volume);
    if(!m_signal.InitIndicators(indicators_ptr))
@@ -510,6 +477,7 @@ bool CBacktestExpert::InitIndicators(CIndicators *indicators)
       Print(__FUNCTION__+": error initialization indicators of signal object");
       return(false);
      }
+
    m_trailing.SetPriceSeries(m_open,m_high,m_low,m_close);
    m_trailing.SetOtherSeries(m_spread,m_time,m_tick_volume,m_real_volume);
    if(!m_trailing.InitIndicators(indicators_ptr))
@@ -517,6 +485,7 @@ bool CBacktestExpert::InitIndicators(CIndicators *indicators)
       Print(__FUNCTION__+": error initialization indicators of trailing object");
       return(false);
      }
+
    m_money.SetPriceSeries(m_open,m_high,m_low,m_close);
    m_money.SetOtherSeries(m_spread,m_time,m_tick_volume,m_real_volume);
    if(!m_money.InitIndicators(indicators_ptr))
@@ -612,6 +581,7 @@ bool CBacktestExpert::Refresh(void)
 //--- refresh indicators
    m_indicators.Refresh();
    m_signal.RefreshAtr();
+// m_trailing.Refresh();  // FIXME
 
 //--- ok
    return(true);
@@ -636,350 +606,368 @@ bool CBacktestExpert::SelectPosition(void)
 bool CBacktestExpert::Processing(void)
   {
    bool res=false;
-   if (Expert_Store_Results == SideChanges) {
+   if(Expert_Store_Results == SideChanges)
+     {
       // if (!m_signal.AddSideChangeToFrame())
       //    return false;
-      if (!m_signal.AddSideChange())
+      if(!m_signal.AddSideChange())
          return false;
       m_signal.UpdateSignal();
-   } else {
-//  calculate signal direction once
+     }
+   else
+     {
+      //  calculate signal direction once
       m_signal.Update();
-   }
+     }
 
    m_next_state=m_state;
 
-   // TODO Rewrite Signal and Side checks below to only access the pre-calculated m_sig_direction and so on
-   // TODO move this statemachine to AggSignal
+// TODO Rewrite Signal and Side checks below to only access the pre-calculated m_sig_direction and so on
+// TODO move this statemachine to AggSignal
+// TODO Separate signals for Confirm, Baseline and Continue into separate state machines
    do
      {
-      m_state=m_next_state;
+      m_state = m_next_state;
       switch(m_state)
         {
          case NoTrade:
             if(m_signal.BaselineSignalLong())
               {
                if(m_signal.LongSide() && m_signal.Volume())
-                  m_next_state=Long;
-               else if(!m_signal.BaselineATRChannelLong())
-                  m_next_state=PullbackLong;
+                  m_next_state = Long;
                else
-                 {
-                  m_baseline_wait_cnt=0;
-                  m_next_state=WaitBaselineLong;
-                 }
-
-                 } else if(m_signal.ConfirmSignalLong()) {
-               if(m_signal.LongSide() && m_signal.Volume())
-                  m_next_state=Long;
-               else
-                  m_next_state=OneCandleLong;
+                  if(!m_signal.BaselineATRChannelLong())
+                     m_next_state = PullbackLong;
+                  else
+                    {
+                     m_baseline_wait_cnt = 0;
+                     m_next_state = WaitBaselineLong;
+                    }
 
               }
+            else
+               if(m_signal.ConfirmSignalLong())
+                 {
+                  if(m_signal.LongSide() && m_signal.Volume())
+                     m_next_state = Long;
+                  else
+                     m_next_state = OneCandleLong;
+                 }
 
             if(m_signal.BaselineSignalShort())
               {
                if(m_signal.ShortSide() && m_signal.Volume())
-                  m_next_state=Short;
-               else if(!m_signal.BaselineATRChannelShort())
-                  m_next_state=PullbackShort;
+                  m_next_state = Short;
                else
-                 {
-                  m_baseline_wait_cnt=0;
-                  m_next_state=WaitBaselineShort;
-                 }
-                 } else if(m_signal.ConfirmSignalShort()) {
-               if(m_signal.ShortSide() && m_signal.Volume())
-                  m_next_state=Short;
-               else
-                  m_next_state=OneCandleShort;
-
+                  if(!m_signal.BaselineATRChannelShort())
+                     m_next_state = PullbackShort;
+                  else
+                    {
+                     m_baseline_wait_cnt = 0;
+                     m_next_state = WaitBaselineShort;
+                    }
               }
+            else
+               if(m_signal.ConfirmSignalShort())
+                 {
+                  if(m_signal.ShortSide() && m_signal.Volume())
+                     m_next_state = Short;
+                  else
+                     m_next_state = OneCandleShort;
+                 }
 
             break;
 
-            // ------ Long direction
+         // ------ Long direction
          case OneCandleLong:
             if(m_signal.LongSide() && m_signal.Volume())
-            m_next_state=Long;
+               m_next_state = Long;
             else
-               m_next_state=NoTrade;
+               m_next_state = NoTrade;
             break;
 
          case PullbackLong:
             if(m_signal.BaselineATRChannelLong())
               {
                if(m_signal.LongSide() && m_signal.Volume())
-                  m_next_state=Long;
+                  m_next_state = Long;
                else
                  {
-                  m_baseline_wait_cnt=0;
-                  m_next_state=WaitBaselineLong;
+                  m_baseline_wait_cnt = 0;
+                  m_next_state = WaitBaselineLong;
                  }
               }
             else
-               m_next_state=NoTrade;
+               m_next_state = NoTrade;
             break;
 
          case WaitBaselineLong:
-            //m_baseline_wait++;
+            // m_baseline_wait++;
             if(m_signal.BaselineSideShort())
-            m_next_state=NoTrade;
-            else if(m_signal.LongSide() && m_signal.Volume())
-               m_next_state=Long;
-            // else if (!m_signal.BaselineATRChannelLong())
-            //   m_next_state = NoTrade;
-            else if(++m_baseline_wait_cnt>=m_baseline_wait)
-              {
-               m_next_state=NoTrade;
-              }
+               m_next_state = NoTrade;
+            else
+               if(m_signal.LongSide() && m_signal.Volume())
+                  m_next_state = Long;
+               // else if (!m_signal.BaselineATRChannelLong())
+               //   m_next_state = NoTrade;
+               else
+                  if(++m_baseline_wait_cnt >= m_baseline_wait)
+                    {
+                     m_next_state = NoTrade;
+                    }
             break;
 
          case WaitContinueLong:
             if(m_signal.ConfirmSignalLong())
               {
                if(m_signal.Confirm2SideLong())
-                  m_next_state=Long;
+                  m_next_state = Long;
                else
-                  m_next_state=ContinueOneCandleLong;
+                  m_next_state = ContinueOneCandleLong;
               }
-            else if(m_signal.BaselineSignalShort())
-               m_next_state=NoTrade;
+            else
+               if(m_signal.BaselineSignalShort())
+                  m_next_state = NoTrade;
             break;
 
          case ContinueOneCandleLong:
             if(m_signal.Confirm2SideLong())
-            m_next_state=Long;
-            else if(m_signal.BaselineSignalShort())
-               m_next_state=NoTrade;
+               m_next_state = Long;
             else
-               m_next_state=WaitContinueLong;
+               if(m_signal.BaselineSignalShort())
+                  m_next_state = NoTrade;
+               else
+                  m_next_state = WaitContinueLong;
             break;
 
          case Long:
             if(m_signal.BaselineSignalShort())
-            m_next_state=NoTrade;
-            else if(m_signal.ExitSignalShort() || m_signal.ConfirmSignalShort())
-            //m_next_state = WaitContinueLong;
-               m_next_state=NoTrade;
+               m_next_state = NoTrade;
+            else
+               if(m_signal.ExitSignalShort() || m_signal.ConfirmSignalShort())
+                  // m_next_state = WaitContinueLong;
+                  m_next_state = NoTrade;
             break;
 
-            // ------------ Short direction
+         // ------------ Short direction
          case OneCandleShort:
             if(m_signal.ShortSide() && m_signal.Volume())
-            m_next_state=Short;
+               m_next_state = Short;
             else
-               m_next_state=NoTrade;
+               m_next_state = NoTrade;
             break;
 
          case PullbackShort:
             if(m_signal.BaselineATRChannelShort())
               {
                if(m_signal.ShortSide() && m_signal.Volume())
-                  m_next_state=Short;
+                  m_next_state = Short;
                else
                  {
-                  m_baseline_wait_cnt=0;
-                  m_next_state=WaitBaselineShort;
+                  m_baseline_wait_cnt = 0;
+                  m_next_state = WaitBaselineShort;
                  }
               }
             else
-               m_next_state=NoTrade;
+               m_next_state = NoTrade;
             break;
 
          case WaitBaselineShort:
-            //m_baseline_wait++;
+            // m_baseline_wait++;
             if(m_signal.BaselineSideLong())
-            m_next_state=NoTrade;
-            else if(m_signal.ShortSide() && m_signal.Volume())
-               m_next_state=Short;
-            //else if (!m_signal.BaselineATRChannelShort())
-            //  m_next_state = NoTrade;
-            else if(++m_baseline_wait_cnt>=m_baseline_wait)
-              {
-               m_next_state=NoTrade;
-              }
+               m_next_state = NoTrade;
+            else
+               if(m_signal.ShortSide() && m_signal.Volume())
+                  m_next_state = Short;
+               // else if (!m_signal.BaselineATRChannelShort())
+               //  m_next_state = NoTrade;
+               else
+                  if(++m_baseline_wait_cnt >= m_baseline_wait)
+                    {
+                     m_next_state = NoTrade;
+                    }
             break;
 
          case WaitContinueShort:
             if(m_signal.ConfirmSignalShort())
               {
                if(m_signal.Confirm2SideShort())
-                  m_next_state=Short;
+                  m_next_state = Short;
                else
-                  m_next_state=ContinueOneCandleShort;
+                  m_next_state = ContinueOneCandleShort;
               }
-            else if(m_signal.BaselineSignalLong())
-               m_next_state=NoTrade;
+            else
+               if(m_signal.BaselineSignalLong())
+                  m_next_state = NoTrade;
             break;
 
          case ContinueOneCandleShort:
             if(m_signal.Confirm2SideShort())
-            m_next_state=Short;
-            else if(m_signal.BaselineSignalLong())
-               m_next_state=NoTrade;
+               m_next_state = Short;
             else
-               m_next_state=WaitContinueShort;
+               if(m_signal.BaselineSignalLong())
+                  m_next_state = NoTrade;
+               else
+                  m_next_state = WaitContinueShort;
             break;
 
          case Short:
             if(m_signal.BaselineSignalLong())
-            m_next_state=NoTrade;
-            else if(m_signal.ExitSignalLong() || m_signal.ConfirmSignalLong())
-            //m_next_state = WaitContinueShort;
-               m_next_state=NoTrade;
+               m_next_state = NoTrade;
+            else
+               if(m_signal.ExitSignalLong() || m_signal.ConfirmSignalLong())
+                  // m_next_state = WaitContinueShort;
+                  m_next_state = NoTrade;
             break;
 
          default:
-            //ERROR
+            // ERROR
             break;
         }
       if(!MQL5InfoInteger(MQL5_OPTIMIZATION))
          PrintTransition();
 
-      if(m_next_state!=m_state)
+      if(m_next_state != m_state)
         {
          // there has been a transition
-         if(m_state==Long || m_state==Short)
+         if(m_state == Long || m_state == Short)
            {
-            m_pos_take=0;
-            m_pos_open_end=0;
-            m_position=m_position1;
-            res=Close();
-            m_position=m_position2;
-            res=Close();
-            //assert(ret,"Trade did not close properly");
+            // Close current trades to allow reverting the direction
+            m_pos_take = 0;
+            m_pos_open_end = 0;
+            m_position = m_position1;
+            res = Close();
+            if(!Backtest_SingleTrade)
+              {
+               m_position = m_position2;
+               res = Close();
+              }
+            // assert(res,"Trade did not close properly");
            }
         }
 
-      // on the transition from any state to NoTrade the states are evaluated again to allow reversals
-      // and simplify the entier transition matrix
+      // on the transition from any state to NoTrade the states are evaluated again
+      // to allow reversals and simplify the entier transition matrix
      }
-   while(m_next_state!=m_state && m_next_state==NoTrade);
+   while(m_next_state != m_state && m_next_state == NoTrade);
 
-   if(m_next_state!=m_state)
-     {
-      // there has been a transition
+   if (m_next_state != m_state) {
+     // there has been a transition
+     datetime expiration = TimeCurrent() + m_expiration * PeriodSeconds(m_period);
+     double atr_value = m_signal.GetAtrValue();
 
-      if(m_next_state==Long)
-        {
-         datetime expiration=TimeCurrent()+m_expiration*PeriodSeconds(m_period);;
-         double price=m_symbol.Ask();
-         double atr_value=m_signal.GetAtrValue();
-         double sl         =(m_stop_atr==0.0) ? 0.0 : price-(m_stop_atr*atr_value);
-         double tp         =(m_take_atr==0.0) ? 0.0 : price+(m_take_atr*atr_value);
-         m_pos_take_tp=tp;
-         m_pos_take_sl=sl;
+     if (m_next_state == Long) {
+       double price = m_symbol.Ask();
+       double sl = (m_stop_atr == 0.0) ? 0.0 : price - (m_stop_atr * atr_value);
+       double tp = (m_take_atr == 0.0) ? 0.0 : price + (m_take_atr * atr_value);
 
-         //m_signal.OpenLongParams(price,sl,tp,expiration);
-         if(!m_trade.SetOrderExpiration(expiration))
-            m_expiration=expiration;
+       // save tp and sl for scale out mechanism
+       m_pos_take_tp = tp;
+       m_pos_take_sl = sl;
 
-         double lot=LotOpenLong(price,sl);
-         lot=LotCheck(lot,price,ORDER_TYPE_BUY);
-         assert(lot!=0.0,"can't open lot");
-         m_trade.Buy(lot,price,sl,tp);
+       // m_signal.OpenLongParams(price,sl,tp,expiration);
+       if (!m_trade.SetOrderExpiration(expiration))
+         m_expiration = expiration;
 
-         res=m_position.SelectByIndex(PositionsTotal()-1);
-         assert(res,"position was not selected correctly");
-         m_pos_take=m_position.Ticket();
-         string str;
-         Print("watching position: ",m_position.FormatPosition(str));
+       double lot = LotOpenLong(price, sl);
+       lot = LotCheck(lot, price, ORDER_TYPE_BUY);
+       assert(lot != 0.0, "can't open lot");
+       m_trade.Buy(lot, price, sl, tp);
 
-         double tp2  =((Signal_TPOnAllTrades == false) || (m_take_atr==0.0)) ? 0.0 :
-            price + (2 * m_take_atr * atr_value);
-         m_trade.Buy(lot,price,sl,tp2);
-         res=m_position.SelectByIndex(PositionsTotal()-1);
-         assert(res,"position was not selected correctly");
-         m_pos_open_end=m_position.Ticket();
-         Print("watching position to modify: #",m_position.FormatPosition(str));
+       res = m_position.SelectByIndex(PositionsTotal() - 1);
+       assert(res, "position was not selected correctly");
+       m_pos_take = m_position.Ticket();
+       string str;
+       Print("watching position: ", m_position.FormatPosition(str));
 
-        }
-      else if(m_next_state==Short)
-        {
-         datetime expiration=TimeCurrent()+m_expiration*PeriodSeconds(m_period);;
-         double price=m_symbol.Bid();
-         double atr_value=m_signal.GetAtrValue();
-         double sl         =(m_stop_atr==0.0) ? 0.0 : price+(m_stop_atr*atr_value);
-         double tp         =(m_take_atr==0.0) ? 0.0 : price-(m_take_atr*atr_value);
-         m_pos_take_tp=tp;
-         m_pos_take_sl=sl;
+       if (!Backtest_SingleTrade) {
+         double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
+                          ? 0.0
+                          : price + (2 * m_take_atr * atr_value);
+         m_trade.Buy(lot, price, sl, tp2);
+         res = m_position.SelectByIndex(PositionsTotal() - 1);
+         assert(res, "position was not selected correctly");
+         m_pos_open_end = m_position.Ticket();
+         Print("watching position to modify: #", m_position.FormatPosition(str));
+       }
 
-         if(!m_trade.SetOrderExpiration(expiration))
-            m_expiration=expiration;
+     } else if (m_next_state == Short) {
+       double price = m_symbol.Bid();
+       double sl = (m_stop_atr == 0.0) ? 0.0 : price + (m_stop_atr * atr_value);
+       double tp = (m_take_atr == 0.0) ? 0.0 : price - (m_take_atr * atr_value);
 
-         double lot=LotOpenShort(price,sl);
-         lot=LotCheck(lot,price,ORDER_TYPE_SELL);
-         assert(lot!=0.0,"can't open lot");
-         m_trade.Sell(lot,price,sl,tp);
+       // save tp and sl for scale out mechanism
+       m_pos_take_tp = tp;
+       m_pos_take_sl = sl;
 
-         res=m_position.SelectByIndex(PositionsTotal()-1);
-         assert(res,"position was not selected correctly");
-         m_pos_take=m_position.Ticket();
-         string str;
-         Print("watching position: ",m_position.FormatPosition(str));
+       if (!m_trade.SetOrderExpiration(expiration))
+         m_expiration = expiration;
 
-         double tp2  =((Signal_TPOnAllTrades == false) || (m_take_atr==0.0)) ? 0.0 :
-            price - (2 * m_take_atr * atr_value);
-         m_trade.Sell(lot,price,sl,tp2);
-         res=m_position.SelectByIndex(PositionsTotal()-1);
-         assert(res,"position was not selected correctly");
-         m_pos_open_end=m_position.Ticket();
-         Print("watching position to modify: #",m_position.FormatPosition(str));
-        }
+       double lot = LotOpenShort(price, sl);
+       lot = LotCheck(lot, price, ORDER_TYPE_SELL);
+       assert(lot != 0.0, "can't open lot");
+       m_trade.Sell(lot, price, sl, tp);
+
+       res = m_position.SelectByIndex(PositionsTotal() - 1);
+       assert(res, "position was not selected correctly");
+       m_pos_take = m_position.Ticket();
+       string str;
+       Print("watching position: ", m_position.FormatPosition(str));
+
+       if (!Backtest_SingleTrade) {
+         double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
+                          ? 0.0
+                          : price - (2 * m_take_atr * atr_value);
+         m_trade.Sell(lot, price, sl, tp2);
+         res = m_position.SelectByIndex(PositionsTotal() - 1);
+         assert(res, "position was not selected correctly");
+         m_pos_open_end = m_position.Ticket();
+         Print("watching position to modify: #", m_position.FormatPosition(str));
+       }
      }
+     
+   }
 
    m_state=m_next_state;
 
 //--- check if open positions
-/* if(SelectPosition())
-    *   {
-    *    //--- open position is available
-    *    //--- check the possibility of reverse the position
-    *    if(CheckReverse())
-    *       return(true);
-    *    //--- check the possibility of closing the position/delete pending orders
-    *    if(!CheckClose())
-    *      {
-    *       //--- check the possibility of modifying the position
-    *       if(CheckTrailingStop())
-    *          return(true);
-    *       //--- return without operations
-    *       return(false);
-    *      }
-    *   } */
-//--- check if plased pending orders
-/*
-   int total=OrdersTotal();
-   if(total!=0)
-     {
-      for(int i=total-1; i>=0; i--)
+   if (SelectPosition()) { //--- open position is available
+      double atr_pips = m_signal.GetAtrValue() / m_adjusted_point;
+      m_trailing.StopLevel((int)MathRound(Money_TrailingStopATRLevel * atr_pips));
+      CheckTrailingStop();
+   }
+//--- TODO check if plased pending orders
+   /*
+      int total=OrdersTotal();
+      if(total!=0)
         {
-         m_order.SelectByIndex(i);
-         if(m_order.Symbol()!=m_symbol.Name())
-            continue;
-         if(m_order.OrderType()==ORDER_TYPE_BUY_LIMIT || m_order.OrderType()==ORDER_TYPE_BUY_STOP)
+         for(int i=total-1; i>=0; i--)
            {
-            //--- check the ability to delete a pending order to buy
-            if(CheckDeleteOrderLong())
-               return(true);
-            //--- check the possibility of modifying a pending order to buy
-            if(CheckTrailingOrderLong())
-               return(true);
+            m_order.SelectByIndex(i);
+            if(m_order.Symbol()!=m_symbol.Name())
+               continue;
+            if(m_order.OrderType()==ORDER_TYPE_BUY_LIMIT || m_order.OrderType()==ORDER_TYPE_BUY_STOP)
+              {
+               //--- check the ability to delete a pending order to buy
+               if(CheckDeleteOrderLong())
+                  return(true);
+               //--- check the possibility of modifying a pending order to buy
+               if(CheckTrailingOrderLong())
+                  return(true);
+              }
+            else
+              {
+               //--- check the ability to delete a pending order to sell
+               if(CheckDeleteOrderShort())
+                  return(true);
+               //--- check the possibility of modifying a pending order to sell
+               if(CheckTrailingOrderShort())
+                  return(true);
+              }
+            //--- return without operations
+            return(false);
            }
-         else
-           {
-            //--- check the ability to delete a pending order to sell
-            if(CheckDeleteOrderShort())
-               return(true);
-            //--- check the possibility of modifying a pending order to sell
-            if(CheckTrailingOrderShort())
-               return(true);
-           }
-         //--- return without operations
-         return(false);
-        }
-     } */
+        } */
 //--- check the possibility of opening a position/setting pending order
 //if(CheckOpen())
 //   return(true);
@@ -998,18 +986,20 @@ void CBacktestExpert::OnTick(void)
    if(!Refresh())
       return;
 
-    /* SeriesInfoInteger(m_symbol,m_period,SERIES_LASTBAR_DATE,newbar_time) */
-   if((MQL5InfoInteger(MQL5_TESTER) || MQL5InfoInteger(MQL5_OPTIMIZATION)) && !m_every_tick) {
-     // if we are running on open prices only: assert that we're are looking at the correct bar
-     m_last_bar.isNewBar();
-     datetime newbar_time = m_last_bar.GetLastBarTime();
-     if (TimeCurrent() - newbar_time > 600) {
-       Print(m_symbol.Name(), " last bar: ", TimeToString(newbar_time, TIME_DATE), " - ", TimeToString(newbar_time, TIME_SECONDS));
-       assert(true, "Bar updates for all symbols are not in sync - we are looking at an old bar");
-       // the bar is more than 10 minutes old
-       // we are probably lookin at yesterdays bar !!!
+   /* SeriesInfoInteger(m_symbol,m_period,SERIES_LASTBAR_DATE,newbar_time) */
+   if((MQL5InfoInteger(MQL5_TESTER) || MQL5InfoInteger(MQL5_OPTIMIZATION)) && !m_every_tick)
+     {
+      // if we are running on open prices only: assert that we're are looking at the correct bar
+      m_last_bar.isNewBar();
+      datetime newbar_time = m_last_bar.GetLastBarTime();
+      if(TimeCurrent() - newbar_time > 600)
+        {
+         Print(m_symbol.Name(), " last bar: ", TimeToString(newbar_time, TIME_DATE), " - ", TimeToString(newbar_time, TIME_SECONDS));
+         assert(true, "Bar updates for all symbols are not in sync - we are looking at an old bar");
+         // the bar is more than 10 minutes old
+         // we are probably lookin at yesterdays bar !!!
+        }
      }
-   }
 
 //--- expert processing
    Processing();
@@ -1043,10 +1033,11 @@ void CBacktestExpert::OnTrade(void)
             MoveBreakEven(m_pos_open_end);
             m_pos_take_sl=m_position.PriceOpen();
            }
-         else if(OrderSLHit()) // history order is already selected
-           {
-            m_state=NoTrade;
-           }
+         else
+            if(OrderSLHit()) // history order is already selected
+              {
+               m_state=NoTrade;
+              }
          m_pos_take=0;
         }
      }
@@ -1411,24 +1402,22 @@ bool CBacktestExpert::CloseShort(double price)
 //+------------------------------------------------------------------+
 //| Check for trailing stop/profit position                          |
 //+------------------------------------------------------------------+
-bool CBacktestExpert::CheckTrailingStop(void)
-  {
-//--- position must be selected before call
-   if(m_position.PositionType()==POSITION_TYPE_BUY)
-     {
-      //--- check the possibility of modifying the long position
-      if(CheckTrailingStopLong())
-         return(true);
+bool CBacktestExpert::CheckTrailingStop(void) {
+  //--- position must be selected before call
+  if (m_position.PositionType() == POSITION_TYPE_BUY) {
+     //--- check the possibility of modifying the long position
+     if (CheckTrailingStopLong()) {
+        return (true);
      }
-   else
-     {
-      //--- check the possibility of modifying the short position
-      if(CheckTrailingStopShort())
-         return(true);
+  } else {
+     //--- check the possibility of modifying the short position
+     if (CheckTrailingStopShort()) {
+        return (true);
      }
-//--- return without operations
-   return(false);
   }
+  //--- return without operations
+  return (false);
+}
 //+------------------------------------------------------------------+
 //| Check for trailing stop/profit long position                     |
 //+------------------------------------------------------------------+
@@ -1601,7 +1590,7 @@ bool CBacktestExpert::DeleteOrders(void)
    bool result=true;
    int  total=OrdersTotal();
 //---
-   for(int i=total-1;i>=0;i--)
+   for(int i=total-1; i>=0; i--)
       if(m_order.Select(OrderGetTicket(i)))
         {
          if(m_order.Symbol()!=m_symbol.Name())
@@ -1619,7 +1608,7 @@ bool CBacktestExpert::DeleteOrdersLong(void)
    bool result=true;
    int  total=OrdersTotal();
 //---
-   for(int i=total-1;i>=0;i--)
+   for(int i=total-1; i>=0; i--)
       if(m_order.Select(OrderGetTicket(i)))
         {
          if(m_order.Symbol()!=m_symbol.Name())
@@ -1640,7 +1629,7 @@ bool CBacktestExpert::DeleteOrdersShort(void)
    bool result=true;
    int  total=OrdersTotal();
 //---
-   for(int i=total-1;i>=0;i--)
+   for(int i=total-1; i>=0; i--)
       if(m_order.Select(OrderGetTicket(i)))
         {
          if(m_order.Symbol()!=m_symbol.Name())
@@ -1913,28 +1902,72 @@ void CBacktestExpert::TimeframeAdd(ENUM_TIMEFRAMES period)
   {
    switch(period)
      {
-      case PERIOD_M1:  m_period_flags|=OBJ_PERIOD_M1;  break;
-      case PERIOD_M2:  m_period_flags|=OBJ_PERIOD_M2;  break;
-      case PERIOD_M3:  m_period_flags|=OBJ_PERIOD_M3;  break;
-      case PERIOD_M4:  m_period_flags|=OBJ_PERIOD_M4;  break;
-      case PERIOD_M5:  m_period_flags|=OBJ_PERIOD_M5;  break;
-      case PERIOD_M6:  m_period_flags|=OBJ_PERIOD_M6;  break;
-      case PERIOD_M10: m_period_flags|=OBJ_PERIOD_M10; break;
-      case PERIOD_M12: m_period_flags|=OBJ_PERIOD_M12; break;
-      case PERIOD_M15: m_period_flags|=OBJ_PERIOD_M15; break;
-      case PERIOD_M20: m_period_flags|=OBJ_PERIOD_M20; break;
-      case PERIOD_M30: m_period_flags|=OBJ_PERIOD_M30; break;
-      case PERIOD_H1:  m_period_flags|=OBJ_PERIOD_H1;  break;
-      case PERIOD_H2:  m_period_flags|=OBJ_PERIOD_H2;  break;
-      case PERIOD_H3:  m_period_flags|=OBJ_PERIOD_H3;  break;
-      case PERIOD_H4:  m_period_flags|=OBJ_PERIOD_H4;  break;
-      case PERIOD_H6:  m_period_flags|=OBJ_PERIOD_H6;  break;
-      case PERIOD_H8:  m_period_flags|=OBJ_PERIOD_H8;  break;
-      case PERIOD_H12: m_period_flags|=OBJ_PERIOD_H12; break;
-      case PERIOD_D1:  m_period_flags|=OBJ_PERIOD_D1;  break;
-      case PERIOD_W1:  m_period_flags|=OBJ_PERIOD_W1;  break;
-      case PERIOD_MN1: m_period_flags|=OBJ_PERIOD_MN1; break;
-      default:         m_period_flags=WRONG_VALUE;     break;
+      case PERIOD_M1:
+         m_period_flags|=OBJ_PERIOD_M1;
+         break;
+      case PERIOD_M2:
+         m_period_flags|=OBJ_PERIOD_M2;
+         break;
+      case PERIOD_M3:
+         m_period_flags|=OBJ_PERIOD_M3;
+         break;
+      case PERIOD_M4:
+         m_period_flags|=OBJ_PERIOD_M4;
+         break;
+      case PERIOD_M5:
+         m_period_flags|=OBJ_PERIOD_M5;
+         break;
+      case PERIOD_M6:
+         m_period_flags|=OBJ_PERIOD_M6;
+         break;
+      case PERIOD_M10:
+         m_period_flags|=OBJ_PERIOD_M10;
+         break;
+      case PERIOD_M12:
+         m_period_flags|=OBJ_PERIOD_M12;
+         break;
+      case PERIOD_M15:
+         m_period_flags|=OBJ_PERIOD_M15;
+         break;
+      case PERIOD_M20:
+         m_period_flags|=OBJ_PERIOD_M20;
+         break;
+      case PERIOD_M30:
+         m_period_flags|=OBJ_PERIOD_M30;
+         break;
+      case PERIOD_H1:
+         m_period_flags|=OBJ_PERIOD_H1;
+         break;
+      case PERIOD_H2:
+         m_period_flags|=OBJ_PERIOD_H2;
+         break;
+      case PERIOD_H3:
+         m_period_flags|=OBJ_PERIOD_H3;
+         break;
+      case PERIOD_H4:
+         m_period_flags|=OBJ_PERIOD_H4;
+         break;
+      case PERIOD_H6:
+         m_period_flags|=OBJ_PERIOD_H6;
+         break;
+      case PERIOD_H8:
+         m_period_flags|=OBJ_PERIOD_H8;
+         break;
+      case PERIOD_H12:
+         m_period_flags|=OBJ_PERIOD_H12;
+         break;
+      case PERIOD_D1:
+         m_period_flags|=OBJ_PERIOD_D1;
+         break;
+      case PERIOD_W1:
+         m_period_flags|=OBJ_PERIOD_W1;
+         break;
+      case PERIOD_MN1:
+         m_period_flags|=OBJ_PERIOD_MN1;
+         break;
+      default:
+         m_period_flags=WRONG_VALUE;
+         break;
      }
   }
 //+------------------------------------------------------------------+
@@ -2017,6 +2050,9 @@ int CBacktestExpert::TimeframesFlags(MqlDateTime &time)
   }
 //+------------------------------------------------------------------+
 
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void CBacktestExpert::PrintTransition(void)
   {
 #ifdef _DEBUG
@@ -2042,7 +2078,7 @@ void CBacktestExpert::PrintTransition(void)
           m_signal.VolumeSignal()   == NULL ? "" : m_signal.Volume()                 ? "√" : "X",
           StateName(m_state),
           StateName(m_next_state)
-          );
+         );
 #endif
   }
 //+------------------------------------------------------------------+
@@ -2051,19 +2087,19 @@ void CBacktestExpert::PrintTransition(void)
 string CBacktestExpert::StateName(ENUM_EXPERT_STATE state)
   {
    return state == NoTrade            ? "NoTrade"
-      : state == Long                   ? "Long"
-      : state == OneCandleLong          ? "OneCanLong"
-      : state == PullbackLong           ? "PullbackLong"
-      : state == WaitBaselineLong       ? "BaseLong("+IntegerToString(m_baseline_wait_cnt)+")"
-      : state == WaitContinueLong       ? "ContLong"
-      : state == ContinueOneCandleLong  ? "ContOneCanLong"
-      : state == Short                  ? "Short"
-      : state == OneCandleShort         ? "OneCanShort"
-      : state == PullbackShort          ? "PullbackShort"
-      : state == WaitBaselineShort      ? "BaseShort("+IntegerToString(m_baseline_wait_cnt)+")"
-      : state == WaitContinueShort      ? "ContShort"
-      : state == ContinueOneCandleShort ? "ContOneCanShort"
-      : "Unknown";
+          : state == Long                   ? "Long"
+          : state == OneCandleLong          ? "OneCanLong"
+          : state == PullbackLong           ? "PullbackLong"
+          : state == WaitBaselineLong       ? "BaseLong("+IntegerToString(m_baseline_wait_cnt)+")"
+          : state == WaitContinueLong       ? "ContLong"
+          : state == ContinueOneCandleLong  ? "ContOneCanLong"
+          : state == Short                  ? "Short"
+          : state == OneCandleShort         ? "OneCanShort"
+          : state == PullbackShort          ? "PullbackShort"
+          : state == WaitBaselineShort      ? "BaseShort("+IntegerToString(m_baseline_wait_cnt)+")"
+          : state == WaitContinueShort      ? "ContShort"
+          : state == ContinueOneCandleShort ? "ContOneCanShort"
+          : "Unknown";
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
