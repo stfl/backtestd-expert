@@ -1,5 +1,31 @@
-* Installation
+* backtestd-expert
 
+This Metatrader 5 EA is based on the trading strategy of [[https://nononsenseforex.com/][No Nonsense Forex]] (NNFX) and is particularly optimized for backtesting and instantiation with [[https://github.com/stfl/backtestd][stfl/backtestd]].
+
+** Features
+
+- All of the indicators of the NNFX algo are configurable via inputs
+- All inputs can be used for optimization
+- Testing single indicator (Confirmation or Baseline) can be tested
+- Trailing Stop based on the ATR distance to closing price
+# - Calculate Conditional Value at Risk as Custom Max (good for external analysis)
+- Multicurrency backtesting and genetic optimization over all symbols
+- Store Side Changes (lines crossing, ...) for indicators to SQLite (this may be buggy)
+- Optimized to test on Open Price only
+
+** Disclaimer
+
+This EA is under development and tailored for my needs and particularly optimized for backtesting performance and configurabilty. This EA should not be used for live trading.
+
+*Please contribute* to get this EA to a quality level so it can be used for live trading.
+Testing the EA for bugs and logical mistakes is highly appreciated.
+
+I am not selling this EA because I believe in open source software and I don't have the time to polish and promote this EA nor I do want to write extensive documentation.
+
+*This EA is for developers and people who don't scare back from looking at the code*\
+Feel free to fork the repo and adopt to your needs. I would be very happy to receive feedback
+
+* Installation
 ** checkout source
 
 #+begin_src bash
@@ -14,6 +40,92 @@ git pull origin master
 - Open MetaEditor
 - select the ea and click compile
 
-* Configuration
+* Configuration :ATTACH:
+:PROPERTIES:
+:ID:       f568e1ce-3bad-471d-b2a8-95ffc23bf052
+:END:
+The EA can be configured with several inputs.
+
+** General Inputs
+
+Some of the general inputs for the EA taken from [[file:Experts/backtestd/backtestd-expert.mq5][backtestd-expert.mq5]].
+#+BEGIN_SRC cpp
+input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
+input double Money_Risk = 2; // Risk per trade (For two trades, each trade has this Risk)
+input double Money_StopLevel = 1.5; // Stop Loss level ATR multiplier
+input double Money_TakeLevel = 1.0; // Take Profit level ATR multiplier
+input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop ATR multiplier
+#+END_SRC
+
+** Indicator specific configuration
+
+Below the general input you can find the configuration for all the indicators in the algo. The list is long.
+It starts with Confirm_... which is for the configuration of the Confirmation indicator and so on.
+
+- name :: The filename of the indicator.
+- Signal Class :: The [[Signal Classes]] for the indicator
+- shift :: How many bars the signal is shifted. (just keep it on 0)
+- Confirm_double_input 0-14 :: The actual changable input parameters for the indicator in the same order as when configuring an indicator.
+- Confirm_buffer0-4 :: The internal buffers of the indicator used for calculating a signal.
+- Confirm_param0-4 :: Additional parameters depending on the signal class
+
+** finding values for buffers and params
+
+/Buffers/ and /params/ depend on the [[Signal Classes]] and need to be configured. Check the source code of the indicator to figure this out.
+
+** Example
+
+In this example we are configuring the ~tsi-indicator~ which has 4 input parameters (r, s, sp, sm).
+[[./doc/tsi_inputs.png]]
+
+If we look at the source code of ~tsi-indicator.mq5~ we find the definition of the buffers:
+
+#+BEGIN_SRC cpp
+SetIndexBuffer(0,TSIBuffer,INDICATOR_DATA);
+SetIndexBuffer(1,TSISigBuffer,INDICATOR_DATA);
+SetIndexBuffer(2,MTMBuffer,INDICATOR_CALCULATIONS);
+SetIndexBuffer(3,AbsMTMBuffer,INDICATOR_CALCULATIONS);
+SetIndexBuffer(4,EMA_MTMBuffer,INDICATOR_CALCULATIONS);
+SetIndexBuffer(5,EMA2_MTMBuffer,INDICATOR_CALCULATIONS);
+SetIndexBuffer(6,EMA_AbsMTMBuffer,INDICATOR_CALCULATIONS);
+SetIndexBuffer(7,EMA2_AbsMTMBuffer,INDICATOR_CALCULATIONS);
+#+END_SRC
+
+The buffer type ~INDICATOR_DATA~ reveals that this is a buffer that is displayed and - sometimes with try an error - we can figure out that the buffers for a TwoLinesCross indictor are 0 and 1.
+
+Everything configured it looks like this.
+
+[[./doc/EA_inputs2.png]]
+
+/Note: The Confirm_double_input4 was accidently configured but did not effect the functionality of the backtest/
 
 * Signal Classes
+
+The EA knows about several classes of indicators and describes them as signal classes. In the code these are configured as sub-classes of a CustomIndicator class. This allows easy replacing and implementation of a signal class logic.
+
+
+| class              | buffers    | params                                     | Description                                                               |
+|--------------------+------------+--------------------------------------------+---------------------------------------------------------------------------|
+| Preset             | -          | -                                          | The functionality is defined in the code                                  |
+| TwoLinesCross      | [up, down] | -                                          | Two lines crossing                                                        |
+| ZeroLineCross      | [line]     | -                                          | Single line crossing 0                                                    |
+| LevelCross         | [line]     | [level]                                    | A line crossing a level                                                   |
+| TwoLevelsCross     | [line]     | [up enter, up exit, down enter, down exit] | A Line crossing a two levels                                              |
+| PriceCross         | [line]     | -                                          | The price is crossing a line (Baseline)                                   |
+| PriceCrossInverted | [line]     | -                                          | The price is crossing a line, the signal is triggered the other direction |
+| ColorChange        | [line]     | color values: [neutral, up, down]          | Single line changing color                                                |
+| Semaphore          | [line]     | -                                          | Signal signs like arrows on the chart                                     |
+| Saturation         | [line]     | [up enter, up exit, down enter, down exit] | A line the enters a saturation (overbought/ oversold) region              |
+
+
+*Note:* there are more signal classes defined in the code but some of them don't work correctly. The onces in this table should work as expected. If you find a bug please report!
+
+** TwoLinesCross
+** ZeroLineCross
+** LevelCross
+** TwoLevelsCross
+** PriceCross
+** PriceCrossInverted
+** ColorChange
+** Semaphore
+** Saturation
