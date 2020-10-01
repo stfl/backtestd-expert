@@ -13,6 +13,7 @@
 #include <Expert\Expert.mqh>
 #include <Generic\ArrayList.mqh>
 #include <Generic\HashMap.mqh>
+#include <Math\Stat\Math.mqh>
 //--- available signals
 #include <backtestd\SignalClass\SignalFactory.mqh>
 //--- available trailing
@@ -22,6 +23,7 @@
 #include <NewBar\CisNewBar.mqh>
 #include <backtestd\Expert\BacktestExpert.mqh>
 #include <backtestd\Money\MoneyFixedRiskFixedBalance.mqh>
+#include <Expert\Money\MoneyFixedRisk.mqh>
 #include <backtestd\SignalClass\AggSignal.mqh>
 
 #include <Database\DatabaseFrames.mqh>
@@ -63,8 +65,8 @@ input bool Backtest_SingleTrade = true;    // use only a single trade
 input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
 
 //--- inputs for money
-input double Money_Risk = 0.1; // Risk per trade (a regular entry has 2 trades.. x2 is the actual risk)
-input double Money_FixLot_Lots = 0.1; // Fixed volume
+input double Money_Risk = 0.2; // Risk per trade (For two trades, each trade has this Risk)
+// input double Money_FixLot_Lots = 0.1; // Fixed volume
 input double Money_StopLevel = 1.5; // Stop Loss level ATR multiplier
 input double Money_TakeLevel = 1.0; // Take Profit level ATR multiplier
 input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop ATR multiplier
@@ -455,7 +457,7 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
   }
   //--- Set trailing parameters
   //--- Creation of money object
-  CMoneyFixedRiskFixedBalance *money = new CMoneyFixedRiskFixedBalance;
+  CMoneyFixedRisk *money = new CMoneyFixedRisk;
   if (money == NULL) {
     //--- failed
     printf(__FUNCTION__ + ": error creating money");
@@ -471,7 +473,7 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
   }
   //--- Set money parameters
   money.Percent(Money_Risk);
-  money.InitialBalance(TesterStatistics(STAT_INITIAL_DEPOSIT));
+  // money.InitialBalance(TesterStatistics(STAT_INITIAL_DEPOSIT));
   // money.Lots(Money_FixLot_Lots);
   //--- Check all trading objects parameters
   if (!ExtExpert.ValidationSettings()) {
@@ -498,6 +500,7 @@ double OnTester() {
   // each trade opens 2 positions, one with tp and one without
   // => half of the trades are considered
 
+
   uint tp_cnt = 0;
   uint sl_cnt = 0;
   for (int i = 0; i < Experts.Total(); i++) {
@@ -505,6 +508,7 @@ double OnTester() {
     tp_cnt += expert.TakeProfitCnt();
     sl_cnt += expert.StopLossCnt();
   }
+
   if (!MQL5InfoInteger(MQL5_OPTIMIZATION)) {
     Print("Trades: ", TesterStatistics(STAT_TRADES));
     Print("SL hit: ", sl_cnt);
@@ -522,17 +526,78 @@ double OnTester() {
                    : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
 
 
+
+  /*
   if (Expert_Store_Results == SideChanges) {
     CBacktestExpert *expert = Experts.At(0);
     expert.m_signal.m_confirm.AddSideChangesToFrame();
   }
-  //if (Expert_Store_Results == Buffers) {
-     // datetime start_date = D'2016.01.01 00:00';
-     // CBacktestExpert *expert = Experts.At(0);
-     // expert.m_signal.m_confirm.AddBuffersToFrame(start_date);
-  //}
+  */
 
-  return ret;
+  // first ceal will be the initial balance...
+  double balance = 0; // TesterStatistics(STAT_INITIAL_DEPOSIT);
+
+  // get all Deals from the trading history
+  HistorySelect(0,TimeCurrent());   // load deals
+  int deals_cnt=HistoryDealsTotal();
+  double return_history[];
+  ArrayResize(return_history, deals_cnt);
+  
+  // calculate the return for each trade(deal)
+  for(int i=0; i < deals_cnt; i++) {
+     ulong  deal_ticket = HistoryDealGetTicket(i);
+     double profit = HistoryDealGetDouble(deal_ticket,DEAL_PROFIT);
+     double swap = HistoryDealGetDouble(deal_ticket,DEAL_SWAP);
+     double fee = HistoryDealGetDouble(deal_ticket,DEAL_FEE);
+     double comission = HistoryDealGetDouble(deal_ticket,DEAL_COMMISSION);
+     double net_profit = profit + swap + fee + comission;
+     if (balance != 0.0)
+       return_history[i] = net_profit / balance;
+     
+     // update realized balance
+     balance += net_profit;
+  }
+  ArraySort(return_history);
+
+  // double q80 = MathCeil((double) deals_cnt * (1 - .80));
+  double q95 = MathCeil((double) deals_cnt * (1 - .95));
+  // double q99 = MathCeil((double) deals_cnt * (1 - .99));
+  // double q999= MathCeil((double) deals_cnt * (1 - .999));
+
+  // double var80 = return_history[(int) q80];
+  double var95 = return_history[(int) q95];
+  // double var99 = return_history[(int) q99];
+  // double var999 = return_history[(int) q999];
+
+  // double return_history80[];
+  double return_history95[];
+  // double return_history99[];
+  // double return_history999[];
+
+  // ArrayCopy(return_history80, return_history, 0, 0, (int) q80);
+  ArrayCopy(return_history95, return_history, 0, 0, (int) q95);
+  // ArrayCopy(return_history99, return_history, 0, 0, (int) q99);
+  // ArrayCopy(return_history999, return_history, 0, 0, (int) q999);
+
+  // double cvar80 = MathSum(return_history80) / q80;
+  double cvar95 = MathSum(return_history95) / q95;
+  // double cvar99 = MathSum(return_history99) / q99;
+  // double cvar999 = MathSum(return_history999) / q999;
+
+  /*
+  if (!MQL5InfoInteger(MQL5_OPTIMIZATION)) {
+     printf("(.95):%f\t(.99):%f\t(.999):%f",
+            q95, q99, q999);
+     printf("VaR(.95):%10.4f\tVaR(.99):%10.4f\tVaR(.999):%10.4f",
+            var95, var99, var999);
+     printf("CVaR(.95):%10.4f\tCVaR(.99):%10.4f\tCVaR(.999):%10.4f",
+            cvar95, cvar99, cvar999);
+     printf("balance: %10.4f",
+            balance);
+  }
+  */
+
+  return MathIsValidNumber(cvar95) ? cvar95 * 100 : -1;
 }
 
 // NOTE write sides to csv
