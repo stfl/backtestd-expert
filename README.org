@@ -104,21 +104,22 @@ Everything configured it looks like this.
 The EA knows about several classes of indicators and describes them as signal classes. In the code these are configured as sub-classes of a CustomIndicator class. This allows easy replacing and implementation of a signal class logic.
 
 
-| class              | buffers    | params                                     | Description                                                               |
-|--------------------+------------+--------------------------------------------+---------------------------------------------------------------------------|
-| Preset             | -          | -                                          | The functionality is defined in the code                                  |
-| TwoLinesCross      | [up, down] | -                                          | Two lines crossing                                                        |
-| ZeroLineCross      | [line]     | -                                          | Single line crossing 0                                                    |
-| LevelCross         | [line]     | [level]                                    | A line crossing a level                                                   |
-| TwoLevelsCross     | [line]     | [up enter, up exit, down enter, down exit] | A Line crossing a two levels                                              |
-| PriceCross         | [line]     | -                                          | The price is crossing a line (Baseline)                                   |
-| PriceCrossInverted | [line]     | -                                          | The price is crossing a line, the signal is triggered the other direction |
-| ColorChange        | [line]     | color values: [neutral, up, down]          | Single line changing color                                                |
-| Semaphore          | [line]     | -                                          | Signal signs like arrows on the chart                                     |
-| Saturation         | [line]     | [up enter, up exit, down enter, down exit] | A line the enters a saturation (overbought/ oversold) region              |
+| class              | buffers          | params                                     | Description                                                                                                  |
+|--------------------+------------------+--------------------------------------------+--------------------------------------------------------------------------------------------------------------|
+| Preset             | -                | -                                          | The functionality is defined in the code                                                                     |
+| TwoLinesCross      | [up, down]       | -                                          | Two lines crossing                                                                                           |
+| ZeroLineCross      | [line]           | -                                          | Single line crossing 0                                                                                       |
+| LevelCross         | [line]           | [level]                                    | A line crossing a level                                                                                      |
+| TwoLevelsCross     | [line]           | [up enter, up exit, down enter, down exit] | A Line crossing a two levels                                                                                 |
+| PriceCross         | [line]           | -                                          | The price is crossing a line (Baseline)                                                                      |
+| PriceCrossInverted | [line]           | -                                          | The price is crossing a line, the signal is triggered the other direction                                    |
+| ColorChange        | [line]           | color values: [neutral, up, down]          | Single line changing color                                                                                   |
+| Semaphore          | [line]           | -                                          | Signal signs like arrows on the chart                                                                        |
+| SaturationLevels   | [line]           | [up enter, up exit, down enter, down exit] | A line the enters a saturation (overbought/ oversold) region                                                 |
+# | SaturationLines    | [line, up, down] |                                            | A line the enters a saturation (overbought/ oversold) region. The saturtion region is guarded by other lines |
 
 
-*Note:* there are more signal classes defined in the code but some of them don't work correctly. The onces in this table should work as expected. If you find a bug please report!
+# *Note:* there are more signal classes defined in the code but some of them don't work correctly. The onces in this table should work as expected. If you find a bug please report!
 
 ** TwoLinesCross
 ** ZeroLineCross
@@ -128,4 +129,5 @@ The EA knows about several classes of indicators and describes them as signal cl
 ** PriceCrossInverted
 ** ColorChange
 ** Semaphore
-** Saturation
+** SaturationLevels
+# ** SaturationLines

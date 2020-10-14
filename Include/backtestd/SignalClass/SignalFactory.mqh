@@ -33,20 +33,20 @@ enum ENUM_SIGNAL_CLASS {
     Preset = 0,
     ZeroLineCross = 1,
     TwoLinesCross = 2,
-    TwoLinesTwoLevelsCross = 3,
+    // TwoLinesTwoLevelsCross = 3,
     TwoLevelsCross = 4,
     PriceCross = 5,
     PriceCrossInverted = 6,
     Semaphore = 7,
-    TwoLinesColorChange = 8,
+    // TwoLinesColorChange = 8,
     ColorChange = 9,
-    BothLinesTwoLevelsCross = 10,
-    BothLinesLevelCross = 11,
+    // BothLinesTwoLevelsCross = 10,
+    // BothLinesLevelCross = 11,
     SaturationLevels = 12,
-    SaturationLines = 13,
-    BothLinesSaturationLevels = 14,
-    SlopeChange = 15,
-    TwoLinesSlopeChange = 16,
+    // SaturationLines = 13,
+    // BothLinesSaturationLevels = 14,
+    // SlopeChange = 15,
+    // TwoLinesSlopeChange = 16,
 };
 
 /*
@@ -255,17 +255,18 @@ CCustomSignal* CSignalFactory::MakeSignal(string name,
    switch (signal_class) {
       case ZeroLineCross: signal=new CZeroLineCrossSignal(); break;
       case TwoLinesCross: signal=new CTwoLinesCrossSignal(); break;
-      case TwoLinesTwoLevelsCross: signal=new CTwoLinesTwoLevelsCrossSignal(); break;
+      // case TwoLinesTwoLevelsCross: signal=new CTwoLinesTwoLevelsCrossSignal(); break;
       case TwoLevelsCross: signal=new CTwoLevelsCrossSignal(); break;
       case PriceCross: signal=new CPriceCrossSignal(); break;
       case PriceCrossInverted: signal=new CPriceCrossInvertedSignal(); break;
       case Semaphore: signal=new CSemaphoreSignal(); break;
-      case TwoLinesColorChange: signal=new CTwoLinesColorChangeSignal(); break;
+      // case TwoLinesColorChange: signal=new CTwoLinesColorChangeSignal(); break;
       case ColorChange: signal=new CColorChangeSignal(); break;
-      case BothLinesTwoLevelsCross: signal=new CBothLinesTwoLevelsCrossSignal(); break;
-      case BothLinesLevelCross: signal=new CBothLinesLevelCrossSignal(); break;
+      // case BothLinesTwoLevelsCross: signal=new CBothLinesTwoLevelsCrossSignal(); break;
+      // case BothLinesLevelCross: signal=new CBothLinesLevelCrossSignal(); break;
       case SaturationLevels: signal=new CSaturationLevelsSignal(); break;
-      case BothLinesSaturationLevels: signal=new CBothLinesSaturationLevelsSignal(); break;
+      // case SaturationLines: signal=new CSaturationLinessSignal(); break;
+      // case BothLinesSaturationLevels: signal=new CBothLinesSaturationLevelsSignal(); break;
 
       //case TwoLinesLevelLineCross: signal=new CTwoLinesLevelLineCrossSignal(); break;
       //case TwoLinesTwoLevelLinesCross: signal=new CTwoLinesTwoLevelLinesCrossSignal(); break;
