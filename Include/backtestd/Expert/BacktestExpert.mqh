@@ -643,7 +643,6 @@ bool CBacktestExpert::Processing(void)
                      m_baseline_wait_cnt = 0;
                      m_next_state = WaitBaselineLong;
                     }
-
               }
             else
                if(m_signal.ConfirmSignalLong())
@@ -2056,7 +2055,7 @@ int CBacktestExpert::TimeframesFlags(MqlDateTime &time)
 void CBacktestExpert::PrintTransition(void)
   {
 #ifdef _DEBUG
-//      [C: C   CS  C2:C2S B: B   BS  BAC E:  E  V: V
+//             [C: C   CS  C2:C2S B: B   BS  BAC E:  E   V: V
    printf("%s: [%2s%1s %1s %3s%1s %2s%1s %1s %1s %2s%1s %2s%1s] %13s -> %13s",
           m_symbol.Name(),
           m_signal.ConfirmSignal()== NULL ? "" : "C:",

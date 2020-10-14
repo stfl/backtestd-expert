@@ -855,6 +855,18 @@ bool SetupInputArrays() {
   Confirm2_inputs[13] = Confirm2_input13;
   Confirm2_inputs[14] = Confirm2_input14;
 
+  Confirm2_buffer[0] = Confirm2_buffer0;
+  Confirm2_buffer[1] = Confirm2_buffer1;
+  Confirm2_buffer[2] = Confirm2_buffer2;
+  Confirm2_buffer[3] = Confirm2_buffer3;
+  Confirm2_buffer[4] = Confirm2_buffer4;
+
+  Confirm2_param[0] = Confirm2_param0;
+  Confirm2_param[1] = Confirm2_param1;
+  Confirm2_param[2] = Confirm2_param2;
+  Confirm2_param[3] = Confirm2_param3;
+  Confirm2_param[4] = Confirm2_param4;
+
   Exit_inputs[0] = Exit_input0;
   Exit_inputs[1] = Exit_input1;
   Exit_inputs[2] = Exit_input2;
@@ -870,6 +882,18 @@ bool SetupInputArrays() {
   Exit_inputs[12] = Exit_input12;
   Exit_inputs[13] = Exit_input13;
   Exit_inputs[14] = Exit_input14;
+
+  Exit_buffer[0] = Exit_buffer0;
+  Exit_buffer[1] = Exit_buffer1;
+  Exit_buffer[2] = Exit_buffer2;
+  Exit_buffer[3] = Exit_buffer3;
+  Exit_buffer[4] = Exit_buffer4;
+
+  Exit_param[0] = Exit_param0;
+  Exit_param[1] = Exit_param1;
+  Exit_param[2] = Exit_param2;
+  Exit_param[3] = Exit_param3;
+  Exit_param[4] = Exit_param4;
 
   Baseline_inputs[0] = Baseline_input0;
   Baseline_inputs[1] = Baseline_input1;
@@ -887,6 +911,18 @@ bool SetupInputArrays() {
   Baseline_inputs[13] = Baseline_input13;
   Baseline_inputs[14] = Baseline_input14;
 
+  Baseline_buffer[0] = Baseline_buffer0;
+  Baseline_buffer[1] = Baseline_buffer1;
+  Baseline_buffer[2] = Baseline_buffer2;
+  Baseline_buffer[3] = Baseline_buffer3;
+  Baseline_buffer[4] = Baseline_buffer4;
+
+  Baseline_param[0] = Baseline_param0;
+  Baseline_param[1] = Baseline_param1;
+  Baseline_param[2] = Baseline_param2;
+  Baseline_param[3] = Baseline_param3;
+  Baseline_param[4] = Baseline_param4;
+
   Volume_inputs[0] = Volume_input0;
   Volume_inputs[1] = Volume_input1;
   Volume_inputs[2] = Volume_input2;
@@ -902,6 +938,18 @@ bool SetupInputArrays() {
   Volume_inputs[12] = Volume_input12;
   Volume_inputs[13] = Volume_input13;
   Volume_inputs[14] = Volume_input14;
+
+  Volume_buffer[0] = Volume_buffer0;
+  Volume_buffer[1] = Volume_buffer1;
+  Volume_buffer[2] = Volume_buffer2;
+  Volume_buffer[3] = Volume_buffer3;
+  Volume_buffer[4] = Volume_buffer4;
+
+  Volume_param[0] = Volume_param0;
+  Volume_param[1] = Volume_param1;
+  Volume_param[2] = Volume_param2;
+  Volume_param[3] = Volume_param3;
+  Volume_param[4] = Volume_param4;
 
   Expert_symbols[0] = Expert_symbol0;
   Expert_symbols[1] = Expert_symbol1;
