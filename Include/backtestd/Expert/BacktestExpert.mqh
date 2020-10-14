@@ -622,9 +622,9 @@ bool CBacktestExpert::Processing(void)
 
    m_next_state=m_state;
 
-// TODO Rewrite Signal and Side checks below to only access the pre-calculated m_sig_direction and so on
-// TODO move this statemachine to AggSignal
-// TODO Separate signals for Confirm, Baseline and Continue into separate state machines
+// TODO (#10) Rewrite Signal and Side checks below to only access the pre-calculated m_sig_direction and so on
+// TODO (#6) move this statemachine to AggSignal
+// TODO (#6) Separate signals for Confirm, Baseline and Continue into separate state machines
    do
      {
       m_state = m_next_state;
