@@ -34,7 +34,6 @@ public:
    // CArrayObj         m_entry_filters;  // array of filters that are checked for an open/close signal
    // CArrayObj         m_side_filters;   // array of filters that are checked for a state
    // CArrayObj         m_exit_filters;   // array of filters that are checked for exit
-   //--- Adjusted parameters
    double            m_side;           // the general side of the indicators
    double            m_exit_direction; //
 
@@ -73,6 +72,7 @@ public:
    bool              AddBaselineSignal(CCustomSignal *filter);
    bool              AddExitSignal(CCustomSignal *filter);
    bool              AddVolumeSignal(CCustomSignal *filter);
+   bool              AddContinueSignal(CCustomSignal *filter);
    bool              AddAtr(uint atr_period = 14);
    //--- methods for generating signals of entering the market
    virtual bool      CheckOpenLong(double &price,double &sl,double &tp,datetime &expiration);
@@ -111,22 +111,26 @@ public:
    bool              BaselineSignalLong()    { return m_baseline && m_baseline.LongSignal(); }
    bool              BaselineSideLong()      { return !m_baseline || m_baseline.LongSide();   }
    bool              BaselineATRChannelLong();
-
+   bool              ContinueSignalLong()    { return m_continue && m_continue.LongSignal();     }
+   
    bool              ConfirmSignalShort()     { return m_confirm && m_confirm.ShortSignal();  }
    bool              ConfirmSideShort()       { return !m_confirm || m_confirm.ShortSide();    }
    bool              Confirm2SideShort()      { return !m_confirm2 || m_confirm2.ShortSide();   }
    bool              ContSignalShort()        { return m_continue && m_continue.ShortSignal(); }
    bool              ExitSignalShort()        { return m_exit && m_exit.ShortSignal();     }
-   bool              ExitSideShort()        { return m_exit && m_exit.ShortSide();     }
+   bool              ExitSideShort()          { return m_exit && m_exit.ShortSide();     }
    bool              BaselineSignalShort()    { return m_baseline && m_baseline.ShortSignal(); }
    bool              BaselineSideShort()      { return !m_baseline || m_baseline.ShortSide();   }
    bool              BaselineATRChannelShort();
+   bool              ContinueSignalShort()    { return m_continue && m_continue.ShortSignal();     }
+
 
    CCustomSignal     *ConfirmSignal()  { return m_confirm; }
    CCustomSignal     *Confirm2Signal() { return m_confirm2; }
    CCustomSignal     *ExitSignal()     { return m_exit; }
    CCustomSignal     *BaselineSignal() { return m_baseline; }
    CCustomSignal     *VolumeSignal()   { return m_volume; }
+   CCustomSignal     *ContinueSignal()   { return m_continue; }
 
    bool              Volume() { return !m_volume || m_volume.LongSide(); }
    virtual bool      LongSide(void)   ;//{ return m_filters.Total() }
@@ -345,6 +349,14 @@ bool CAggSignal::AddVolumeSignal(CCustomSignal *filter)
    if(!AddFilter(filter))
       return false;
    m_volume = filter;
+   return true;
+  }
+
+bool CAggSignal::AddContinueSignal(CCustomSignal *filter)
+  {
+   if(!AddFilter(filter))
+      return false;
+   m_continue = filter;
    return true;
   }
 

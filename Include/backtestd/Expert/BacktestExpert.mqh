@@ -2055,26 +2055,30 @@ int CBacktestExpert::TimeframesFlags(MqlDateTime &time)
 void CBacktestExpert::PrintTransition(void)
   {
 #ifdef _DEBUG
-//             [C: C   CS  C2:C2S B: B   BS  BAC E:  E   V: V
-   printf("%s: [%2s%1s %1s %3s%1s %2s%1s %1s %1s %2s%1s %2s%1s] %13s -> %13s",
+//             [C: C   CS  C2:C2S B: B   BS  BAC E:  E   V: V  Co: Co
+   printf("%6s: [%2s%1s %1s %3s%1s %2s%1s %1s %1s %2s%1s %2s%1s %3s%1s] %13s -> %13s",
           m_symbol.Name(),
-          m_signal.ConfirmSignal()== NULL ? "" : "C:",
-          m_signal.ConfirmSignal()==NULL ? "" : m_signal.ConfirmSignalLong() ? "▲" : m_signal.ConfirmSignalShort() ? "▼" : "",// ▲ ▼
-          m_signal.ConfirmSignal()== NULL ? "" : m_signal.ConfirmSideLong()        ? "↑" : m_signal.ConfirmSideShort()        ? "↓" : "?",
+          m_signal.ConfirmSignal()== NULL ? " " : "C:",
+          m_signal.ConfirmSignal()==NULL ? " " : m_signal.ConfirmSignalLong() ? "▲" : m_signal.ConfirmSignalShort() ? "▼" : " ", // ▲ ▼
+          m_signal.ConfirmSignal()== NULL ? " " : m_signal.ConfirmSideLong()        ? "↑" : m_signal.ConfirmSideShort()        ? "↓" : "?",
 
-          m_signal.Confirm2Signal() == NULL ? "" : "C2:",
-          m_signal.Confirm2Signal() == NULL ? "" : m_signal.Confirm2SideLong()       ? "↑" : m_signal.Confirm2SideShort()        ? "↓" : "?",
+          m_signal.Confirm2Signal() == NULL ? " " : "C2:",
+          m_signal.Confirm2Signal() == NULL ? " " : m_signal.Confirm2SideLong()       ? "↑" : m_signal.Confirm2SideShort()        ? "↓" : "?",
 
-          m_signal.BaselineSignal() == NULL ? "" : "B:",
-          m_signal.BaselineSignal() == NULL ? "" : m_signal.BaselineSignalLong()     ? "▲" : m_signal.BaselineSignalShort()     ? "▼" : "",
-          m_signal.BaselineSignal() == NULL ? "" : m_signal.BaselineSideLong()       ? "↑" : m_signal.BaselineSideShort()       ? "↓" : "?",
-          m_signal.BaselineSignal() == NULL ? "" : m_signal.BaselineATRChannelLong() ? "√" : m_signal.BaselineATRChannelShort() ? "√" : "X",
+          m_signal.BaselineSignal() == NULL ? " " : "B:",
+          m_signal.BaselineSignal() == NULL ? " " : m_signal.BaselineSignalLong()     ? "▲" : m_signal.BaselineSignalShort()     ? "▼" : " ",
+          m_signal.BaselineSignal() == NULL ? " " : m_signal.BaselineSideLong()       ? "↑" : m_signal.BaselineSideShort()       ? "↓" : "?",
+          m_signal.BaselineSignal() == NULL ? " " : m_signal.BaselineATRChannelLong() ? "√" : m_signal.BaselineATRChannelShort() ? "√" : "X",
 
-          m_signal.ExitSignal()     == NULL ? "" : "E:",
-          m_signal.ExitSignal()     == NULL ? "" : m_signal.ExitSignalLong()         ? "▲" : m_signal.ExitSignalShort()         ? "▼" : "",
+          m_signal.ExitSignal()     == NULL ? " " : "E:",
+          m_signal.ExitSignal()     == NULL ? " " : m_signal.ExitSignalLong()         ? "▲" : m_signal.ExitSignalShort()         ? "▼" : " ",
 
-          m_signal.VolumeSignal()   == NULL ? "" : "V:",
-          m_signal.VolumeSignal()   == NULL ? "" : m_signal.Volume()                 ? "√" : "X",
+          m_signal.VolumeSignal()   == NULL ? " " : "V:",
+          m_signal.VolumeSignal()   == NULL ? " " : m_signal.Volume()                 ? "√" : "X",
+
+          m_signal.ContinueSignal()     == NULL ? " " : "Co:",
+          m_signal.ContinueSignal()     == NULL ? " " : m_signal.ContinueSignalLong() ? "▲" : m_signal.ContinueSignalShort()         ? "▼" : " ",
+
           StateName(m_state),
           StateName(m_next_state)
          );

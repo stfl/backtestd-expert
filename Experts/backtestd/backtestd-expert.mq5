@@ -77,21 +77,21 @@ input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop 
 input string Confirm_Indicator = ""; // Name of Confirmation Indicator to use
 input ENUM_SIGNAL_CLASS Confirm_SignalClass = Preset; // Type|Class of Indicator
 input uint Confirm_Shift = 0;                         // Shift in Bars
-input double Confirm_input0 = 0.;                     // Confirm double input 0
-input double Confirm_input1 = 0.;                     // Confirm double input 1
-input double Confirm_input2 = 0.;                     // Confirm double input 2
-input double Confirm_input3 = 0.;                     // Confirm double input 3
-input double Confirm_input4 = 0.;                     // Confirm double input 4
-input double Confirm_input5 = 0.;                     // Confirm double input 5
-input double Confirm_input6 = 0.;                     // Confirm double input 6
-input double Confirm_input7 = 0.;                     // Confirm double input 7
-input double Confirm_input8 = 0.;                     // Confirm double input 8
-input double Confirm_input9 = 0.;                     // Confirm double input 9
-input double Confirm_input10 = 0.;                    // Confirm double input 10
-input double Confirm_input11 = 0.;                    // Confirm double input 11
-input double Confirm_input12 = 0.;                    // Confirm double input 12
-input double Confirm_input13 = 0.;                    // Confirm double input 13
-input double Confirm_input14 = 0.;                    // Confirm double input 14
+input double Confirm_input0 = 0.;                     // Confirm input 0
+input double Confirm_input1 = 0.;                     // Confirm input 1
+input double Confirm_input2 = 0.;                     // Confirm input 2
+input double Confirm_input3 = 0.;                     // Confirm input 3
+input double Confirm_input4 = 0.;                     // Confirm input 4
+input double Confirm_input5 = 0.;                     // Confirm input 5
+input double Confirm_input6 = 0.;                     // Confirm input 6
+input double Confirm_input7 = 0.;                     // Confirm input 7
+input double Confirm_input8 = 0.;                     // Confirm input 8
+input double Confirm_input9 = 0.;                     // Confirm input 9
+input double Confirm_input10 = 0.;                    // Confirm input 10
+input double Confirm_input11 = 0.;                    // Confirm input 11
+input double Confirm_input12 = 0.;                    // Confirm input 12
+input double Confirm_input13 = 0.;                    // Confirm input 13
+input double Confirm_input14 = 0.;                    // Confirm input 14
 double Confirm_inputs[15];
 input int Confirm_buffer0 = -1;
 input int Confirm_buffer1 = -1;
@@ -109,21 +109,21 @@ double Confirm_param[5];
 input string Confirm2_Indicator = ""; // Name of 2nd Confirmation Indicator to use
 input ENUM_SIGNAL_CLASS Confirm2_SignalClass = Preset;   // Type|Class of Indicator
 input uint Confirm2_Shift = 0;      // Confirm2 Shift in Bars
-input double Confirm2_input0 = 0.;  // Confirm2 double input 0
-input double Confirm2_input1 = 0.;  // Confirm2 double input 1
-input double Confirm2_input2 = 0.;  // Confirm2 double input 2
-input double Confirm2_input3 = 0.;  // Confirm2 double input 3
-input double Confirm2_input4 = 0.;  // Confirm2 double input 4
-input double Confirm2_input5 = 0.;  // Confirm2 double input 5
-input double Confirm2_input6 = 0.;  // Confirm2 double input 6
-input double Confirm2_input7 = 0.;  // Confirm2 double input 7
-input double Confirm2_input8 = 0.;  // Confirm2 double input 8
-input double Confirm2_input9 = 0.;  // Confirm2 double input 9
-input double Confirm2_input10 = 0.; // Confirm2 double input 10
-input double Confirm2_input11 = 0.; // Confirm2 double input 11
-input double Confirm2_input12 = 0.; // Confirm2 double input 12
-input double Confirm2_input13 = 0.; // Confirm2 double input 13
-input double Confirm2_input14 = 0.; // Confirm2 double input 14
+input double Confirm2_input0 = 0.;  // Confirm2 input 0
+input double Confirm2_input1 = 0.;  // Confirm2 input 1
+input double Confirm2_input2 = 0.;  // Confirm2 input 2
+input double Confirm2_input3 = 0.;  // Confirm2 input 3
+input double Confirm2_input4 = 0.;  // Confirm2 input 4
+input double Confirm2_input5 = 0.;  // Confirm2 input 5
+input double Confirm2_input6 = 0.;  // Confirm2 input 6
+input double Confirm2_input7 = 0.;  // Confirm2 input 7
+input double Confirm2_input8 = 0.;  // Confirm2 input 8
+input double Confirm2_input9 = 0.;  // Confirm2 input 9
+input double Confirm2_input10 = 0.; // Confirm2 input 10
+input double Confirm2_input11 = 0.; // Confirm2 input 11
+input double Confirm2_input12 = 0.; // Confirm2 input 12
+input double Confirm2_input13 = 0.; // Confirm2 input 13
+input double Confirm2_input14 = 0.; // Confirm2 input 14
 double Confirm2_inputs[15];
 input int Confirm2_buffer0 = -1;
 input int Confirm2_buffer1 = -1;
@@ -141,21 +141,21 @@ double Confirm2_param[5];
 input string Exit_Indicator = ""; // Name of Exit Indicator to use
 input ENUM_SIGNAL_CLASS Exit_SignalClass = Preset; // Type|Class of Indicator
 input uint Exit_Shift = 0;                         // Exit Shift in Bars
-input double Exit_input0 = 0.;                     // Exit double input 0
-input double Exit_input1 = 0.;                     // Exit double input 1
-input double Exit_input2 = 0.;                     // Exit double input 2
-input double Exit_input3 = 0.;                     // Exit double input 3
-input double Exit_input4 = 0.;                     // Exit double input 4
-input double Exit_input5 = 0.;                     // Exit double input 5
-input double Exit_input6 = 0.;                     // Exit double input 6
-input double Exit_input7 = 0.;                     // Exit double input 7
-input double Exit_input8 = 0.;                     // Exit double input 8
-input double Exit_input9 = 0.;                     // Exit double input 9
-input double Exit_input10 = 0.;                    // Exit double input 10
-input double Exit_input11 = 0.;                    // Exit double input 11
-input double Exit_input12 = 0.;                    // Exit double input 12
-input double Exit_input13 = 0.;                    // Exit double input 13
-input double Exit_input14 = 0.;                    // Exit double input 14
+input double Exit_input0 = 0.;                     // Exit input 0
+input double Exit_input1 = 0.;                     // Exit input 1
+input double Exit_input2 = 0.;                     // Exit input 2
+input double Exit_input3 = 0.;                     // Exit input 3
+input double Exit_input4 = 0.;                     // Exit input 4
+input double Exit_input5 = 0.;                     // Exit input 5
+input double Exit_input6 = 0.;                     // Exit input 6
+input double Exit_input7 = 0.;                     // Exit input 7
+input double Exit_input8 = 0.;                     // Exit input 8
+input double Exit_input9 = 0.;                     // Exit input 9
+input double Exit_input10 = 0.;                    // Exit input 10
+input double Exit_input11 = 0.;                    // Exit input 11
+input double Exit_input12 = 0.;                    // Exit input 12
+input double Exit_input13 = 0.;                    // Exit input 13
+input double Exit_input14 = 0.;                    // Exit input 14
 double Exit_inputs[15];
 input int Exit_buffer0 = -1;
 input int Exit_buffer1 = -1;
@@ -173,21 +173,21 @@ double Exit_param[5];
 input string Baseline_Indicator = ""; // Name of Baseline Indicator to use
 input ENUM_SIGNAL_CLASS Baseline_SignalClass = Preset; // Type|Class of Indicator
 input uint Baseline_Shift = 0;      // Baseline Shift in Bars
-input double Baseline_input0 = 0.;  // Baseline double input 0
-input double Baseline_input1 = 0.;  // Baseline double input 1
-input double Baseline_input2 = 0.;  // Baseline double input 2
-input double Baseline_input3 = 0.;  // Baseline double input 3
-input double Baseline_input4 = 0.;  // Baseline double input 4
-input double Baseline_input5 = 0.;  // Baseline double input 5
-input double Baseline_input6 = 0.;  // Baseline double input 6
-input double Baseline_input7 = 0.;  // Baseline double input 7
-input double Baseline_input8 = 0.;  // Baseline double input 8
-input double Baseline_input9 = 0.;  // Baseline double input 9
-input double Baseline_input10 = 0.; // Baseline double input 10
-input double Baseline_input11 = 0.; // Baseline double input 11
-input double Baseline_input12 = 0.; // Baseline double input 12
-input double Baseline_input13 = 0.; // Baseline double input 13
-input double Baseline_input14 = 0.; // Baseline double input 14
+input double Baseline_input0 = 0.;  // Baseline input 0
+input double Baseline_input1 = 0.;  // Baseline input 1
+input double Baseline_input2 = 0.;  // Baseline input 2
+input double Baseline_input3 = 0.;  // Baseline input 3
+input double Baseline_input4 = 0.;  // Baseline input 4
+input double Baseline_input5 = 0.;  // Baseline input 5
+input double Baseline_input6 = 0.;  // Baseline input 6
+input double Baseline_input7 = 0.;  // Baseline input 7
+input double Baseline_input8 = 0.;  // Baseline input 8
+input double Baseline_input9 = 0.;  // Baseline input 9
+input double Baseline_input10 = 0.; // Baseline input 10
+input double Baseline_input11 = 0.; // Baseline input 11
+input double Baseline_input12 = 0.; // Baseline input 12
+input double Baseline_input13 = 0.; // Baseline input 13
+input double Baseline_input14 = 0.; // Baseline input 14
 double Baseline_inputs[15];
 input int Baseline_buffer0 = -1;
 input int Baseline_buffer1 = -1;
@@ -205,21 +205,21 @@ double Baseline_param[5];
 input string Volume_Indicator = ""; // Name of Volume Indicator to use
 input ENUM_SIGNAL_CLASS Volume_SignalClass = Preset; // Type|Class of Indicator
 input uint Volume_Shift = 0;                         // Volume Shift in Bars
-input double Volume_input0 = 0.;                     // Volume double input 0
-input double Volume_input1 = 0.;                     // Volume double input 1
-input double Volume_input2 = 0.;                     // Volume double input 2
-input double Volume_input3 = 0.;                     // Volume double input 3
-input double Volume_input4 = 0.;                     // Volume double input 4
-input double Volume_input5 = 0.;                     // Volume double input 5
-input double Volume_input6 = 0.;                     // Volume double input 6
-input double Volume_input7 = 0.;                     // Volume double input 7
-input double Volume_input8 = 0.;                     // Volume double input 8
-input double Volume_input9 = 0.;                     // Volume double input 9
-input double Volume_input10 = 0.;                    // Volume double input 10
-input double Volume_input11 = 0.;                    // Volume double input 11
-input double Volume_input12 = 0.;                    // Volume double input 12
-input double Volume_input13 = 0.;                    // Volume double input 13
-input double Volume_input14 = 0.;                    // Volume double input 14
+input double Volume_input0 = 0.;                     // Volume input 0
+input double Volume_input1 = 0.;                     // Volume input 1
+input double Volume_input2 = 0.;                     // Volume input 2
+input double Volume_input3 = 0.;                     // Volume input 3
+input double Volume_input4 = 0.;                     // Volume input 4
+input double Volume_input5 = 0.;                     // Volume input 5
+input double Volume_input6 = 0.;                     // Volume input 6
+input double Volume_input7 = 0.;                     // Volume input 7
+input double Volume_input8 = 0.;                     // Volume input 8
+input double Volume_input9 = 0.;                     // Volume input 9
+input double Volume_input10 = 0.;                    // Volume input 10
+input double Volume_input11 = 0.;                    // Volume input 11
+input double Volume_input12 = 0.;                    // Volume input 12
+input double Volume_input13 = 0.;                    // Volume input 13
+input double Volume_input14 = 0.;                    // Volume input 14
 double Volume_inputs[15];
 input int Volume_buffer0 = -1;
 input int Volume_buffer1 = -1;
@@ -233,6 +233,38 @@ input double Volume_param2 = 0.;
 input double Volume_param3 = 0.;
 input double Volume_param4 = 0.;
 double Volume_param[5];
+
+input string Continue_Indicator = ""; // Name of Continue Indicator to use
+input ENUM_SIGNAL_CLASS Continue_SignalClass = Preset; // Type|Class of Indicator
+input uint Continue_Shift = 0;                         // Continue Shift in Bars
+input double Continue_input0 = 0.;                     // Continue input 0
+input double Continue_input1 = 0.;                     // Continue input 1
+input double Continue_input2 = 0.;                     // Continue input 2
+input double Continue_input3 = 0.;                     // Continue input 3
+input double Continue_input4 = 0.;                     // Continue input 4
+input double Continue_input5 = 0.;                     // Continue input 5
+input double Continue_input6 = 0.;                     // Continue input 6
+input double Continue_input7 = 0.;                     // Continue input 7
+input double Continue_input8 = 0.;                     // Continue input 8
+input double Continue_input9 = 0.;                     // Continue input 9
+input double Continue_input10 = 0.;                    // Continue input 10
+input double Continue_input11 = 0.;                    // Continue input 11
+input double Continue_input12 = 0.;                    // Continue input 12
+input double Continue_input13 = 0.;                    // Continue input 13
+input double Continue_input14 = 0.;                    // Continue input 14
+double Continue_inputs[15];
+input int Continue_buffer0 = -1;
+input int Continue_buffer1 = -1;
+input int Continue_buffer2 = -1;
+input int Continue_buffer3 = -1;
+input int Continue_buffer4 = -1;
+uint Continue_buffer[5];
+input double Continue_param0 = 0.;
+input double Continue_param1 = 0.;
+input double Continue_param2 = 0.;
+input double Continue_param3 = 0.;
+input double Continue_param4 = 0.;
+double Continue_param[5];
 
 input string Expert_symbol0 = "";
 input string Expert_symbol1 = "";
@@ -433,6 +465,22 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
     }
     signal.AddVolumeSignal(volume_signal);
     printf("Added Volume Indicator " + Volume_Indicator);
+  }
+
+  // -------------- add continue indicator --------------------------------
+  if (StringCompare(Continue_Indicator, "") != 0) {
+    CCustomSignal *continue_signal = CSignalFactory::MakeSignal(
+        Continue_Indicator, Continue_inputs, Continue_buffer, Continue_param,
+        Continue_SignalClass, PERIOD_CURRENT, Continue_Shift);
+
+    if (continue_signal == NULL) {
+      //--- failed
+      printf(__FUNCTION__ + ": error creating signal " + Continue_Indicator);
+      ExtExpert.Deinit();
+      return (INIT_FAILED);
+    }
+    signal.AddContinueSignal(continue_signal);
+    printf("Added Continue Indicator " + Continue_Indicator);
   }
 
   //--- Creation of trailing object
@@ -950,6 +998,34 @@ bool SetupInputArrays() {
   Volume_param[2] = Volume_param2;
   Volume_param[3] = Volume_param3;
   Volume_param[4] = Volume_param4;
+
+  Continue_inputs[0] = Continue_input0;
+  Continue_inputs[1] = Continue_input1;
+  Continue_inputs[2] = Continue_input2;
+  Continue_inputs[3] = Continue_input3;
+  Continue_inputs[4] = Continue_input4;
+  Continue_inputs[5] = Continue_input5;
+  Continue_inputs[6] = Continue_input6;
+  Continue_inputs[7] = Continue_input7;
+  Continue_inputs[8] = Continue_input8;
+  Continue_inputs[9] = Continue_input9;
+  Continue_inputs[10] = Continue_input10;
+  Continue_inputs[11] = Continue_input11;
+  Continue_inputs[12] = Continue_input12;
+  Continue_inputs[13] = Continue_input13;
+  Continue_inputs[14] = Continue_input14;
+
+  Continue_buffer[0] = Continue_buffer0;
+  Continue_buffer[1] = Continue_buffer1;
+  Continue_buffer[2] = Continue_buffer2;
+  Continue_buffer[3] = Continue_buffer3;
+  Continue_buffer[4] = Continue_buffer4;
+
+  Continue_param[0] = Continue_param0;
+  Continue_param[1] = Continue_param1;
+  Continue_param[2] = Continue_param2;
+  Continue_param[3] = Continue_param3;
+  Continue_param[4] = Continue_param4;
 
   Expert_symbols[0] = Expert_symbol0;
   Expert_symbols[1] = Expert_symbol1;
