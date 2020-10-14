@@ -717,7 +717,7 @@ bool CBacktestExpert::Processing(void)
             break;
 
          case WaitContinueLong:
-            if(m_signal.ConfirmSignalLong())
+            if(m_signal.ContinueSignalLong())
               {
                if(m_signal.Confirm2SideLong())
                   m_next_state = Long;
@@ -788,7 +788,7 @@ bool CBacktestExpert::Processing(void)
             break;
 
          case WaitContinueShort:
-            if(m_signal.ConfirmSignalShort())
+            if(m_signal.ContinueSignalShort())
               {
                if(m_signal.Confirm2SideShort())
                   m_next_state = Short;

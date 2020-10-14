@@ -105,7 +105,6 @@ public:
    bool              ConfirmSignalLong()     { return m_confirm && m_confirm.LongSignal();  }
    bool              ConfirmSideLong()       { return !m_confirm  || m_confirm.LongSide();    }
    bool              Confirm2SideLong()      { return !m_confirm2 || m_confirm2.LongSide();   }
-   bool              ContSignalLong()        { return m_continue && m_continue.LongSignal(); }
    bool              ExitSignalLong()        { return m_exit && m_exit.LongSignal();     }
    bool              ExitSideLong()          { return m_exit && m_exit.LongSide();     }
    bool              BaselineSignalLong()    { return m_baseline && m_baseline.LongSignal(); }
@@ -116,7 +115,6 @@ public:
    bool              ConfirmSignalShort()     { return m_confirm && m_confirm.ShortSignal();  }
    bool              ConfirmSideShort()       { return !m_confirm || m_confirm.ShortSide();    }
    bool              Confirm2SideShort()      { return !m_confirm2 || m_confirm2.ShortSide();   }
-   bool              ContSignalShort()        { return m_continue && m_continue.ShortSignal(); }
    bool              ExitSignalShort()        { return m_exit && m_exit.ShortSignal();     }
    bool              ExitSideShort()          { return m_exit && m_exit.ShortSide();     }
    bool              BaselineSignalShort()    { return m_baseline && m_baseline.ShortSignal(); }
