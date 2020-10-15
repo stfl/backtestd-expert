@@ -40,6 +40,33 @@ enum STORE_RESULTS {
     //Trades = 3    // TODO should be easier than SideChanges
 };
 
+enum BACKTEST_MODE {
+//                              ┌───── Trail Delay
+//                              |┌──── Scale Out
+//                              ||┌─── Trailing Stop
+//                              |||┌── Take Profit
+//                              ||||
+    Full             = 0x00, // 0000,   // A single trade
+    TakeProfit       = 0x01, // 0001,   // Take Profit based on ATR
+    Trail            = 0x01, // 0010,   // Trailing Stop, no Take Profit
+    // TrailDelay       = 0x0A, // 1010,   // Trailing Stop after certain distance from Entry
+    // ScaleOut         = 0b0100,   // Scale out -> Take off half of the trade at TP level
+    // ScaleOutTrail    = 0b0110,   // Scale out and add a Trailing Stop
+    // ScaleOutTrailDelay = 0b1110,   // Scale out and add a Trailing Stop when price
+    Manual           = -1,       // No Preset -> Configure with other variables
+};
+
+#define TAKE_FLAG      0
+#define TRAIL_FLAG     1
+#define SCALE_OUT_FLAG 2
+// #define TRAIL_DELAY_FLAG = 3
+
+enum TRAILING_MODE {
+    NoTrail = 0,
+    ATRTrail        = 1,
+    // ATRTrailDelay   = 2,
+};
+
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
 //+------------------------------------------------------------------+
@@ -49,29 +76,35 @@ ulong Expert_MagicNumber = 13876;               //
 bool Expert_EveryTick = false;                  //
 input int Expert_ProcessOnTimeLeft = 10 * 60; // Time in seconds to run before the candle closes
 
-input STORE_RESULTS Expert_Store_Results = None;
+//input
+STORE_RESULTS Expert_Store_Results = None;  // TODO this is probably commented out somewhere
 
-//--- inputs for main signal
-// input int                Signal_ThresholdOpen=100;         // Signal
-// threshold value to open input int                Signal_ThresholdClose=10; //
-// Signal threshold value to close input double             Signal_PriceLevel
-// =0.0;         // Price level to execute a deal
 input int Signal_Expiration = 1;     // Expiration of pending orders (in bars)
 
-input bool Backtest_TPOnAllTrades = false; // set a TP on both trades
-input bool Backtest_SingleTrade = true;    // use only a single trade
-// input bool Backtest_ScaleOut = false;      // scale out half of the trades (TODO NOT IMPLEMENTED)
+input BACKTEST_MODE Backtest_Mode = Manual; // Backtest Trading Preset
 
-input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
+//input
+bool Backtest_TPOnAllTrades = false; // set a TP on both trades
+//input
+bool Backtest_SingleTrade = true; // use only a single trade
+//input
+bool Input_Money_ScaleOut = false;
+bool Money_ScaleOut = Input_Money_ScaleOut;
+input bool Input_Money_AddTakeProfit = false; // set a TP on the trade
+bool Money_AddTakeProfit = Input_Money_AddTakeProfit; // set a TP on the trade
 
-//--- inputs for money
+//--- Money Management
 input double Money_Risk = 0.2; // Risk per trade (For two trades, each trade has this Risk)
 // input double Money_FixLot_Lots = 0.1; // Fixed volume
 input double Money_StopLevel = 1.5; // Stop Loss level ATR multiplier
 input double Money_TakeLevel = 1.0; // Take Profit level ATR multiplier
+
+input TRAILING_MODE Input_Money_TrailingMode = ATRTrail;    // Trailing Stop Mode
+TRAILING_MODE Money_TrailingMode = Input_Money_TrailingMode;
 input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop ATR multiplier
 
-//datetime start_time = TimeCurrent();
+// Algo customizations
+input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
 
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator = ""; // Name of Confirmation Indicator to use
@@ -344,6 +377,8 @@ bool started_storing = false;
 int OnInit() {
   if (!SetupInputArrays())
     return (INIT_FAILED);
+
+  SetupBacktestPreset();
 
   Experts = new CArrayObj;
   for (int i = 0; i < symbols.Total(); i++) {
@@ -854,7 +889,7 @@ void OnTrade() {
 }
 
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| Copy the inputs into an array                                    |
 //+------------------------------------------------------------------+
 bool SetupInputArrays() {
   // init Confirm2 indicator inputs and params
@@ -1124,3 +1159,58 @@ bool SetupInputArrays() {
   return true;
 }
 //+------------------------------------------------------------------+
+
+
+void SetupBacktestPreset() {
+   if (Backtest_Mode != Manual) {
+      UpdateBacktestParamsFromPreset();
+   }
+   PrintBacktestMode();
+}
+
+void UpdateBacktestParamsFromPreset() {
+   Money_AddTakeProfit = HasBitFlag(Backtest_Mode, TAKE_FLAG);
+   Money_ScaleOut = HasBitFlag(Backtest_Mode, SCALE_OUT_FLAG);
+
+   // disable trailing if the preset tells us to
+   if (HasBitFlag(Backtest_Mode, TRAIL_FLAG) == false) {
+      Money_TrailingMode = NoTrail;
+   }
+}
+
+bool HasBitFlag(ulong value, ulong flag_idx) {
+    return (value & (1 << flag_idx)) != 0;
+}
+
+void PrintBacktestMode() {
+#ifdef _DEBUG
+  if (!MQL5InfoInteger(MQL5_OPTIMIZATION)) {
+     Print("We are running the following backtest mode:");
+     PrintBacktestPresetMode();
+     PrintTPMode();
+     PrintTrailingMode();
+     PrintScaleOutMode();
+  }
+#endif
+}
+
+void PrintBacktestPresetMode() {
+   Print("Backtest Preset: ", Backtest_Mode);
+}
+
+void PrintTrailingMode() {
+   Print("Trailing Stop: ",
+         Money_TrailingMode ? "Yes " : "No ",
+         Money_TrailingMode ? DoubleToString(Money_TrailingStopATRLevel) : ""
+         );
+}
+
+void PrintTPMode() {
+   Print("Take Profit: ",
+         Money_AddTakeProfit ? "Yes " : "No ",
+         Money_AddTakeProfit ? DoubleToString(Money_TakeLevel) : "" );
+}
+
+void PrintScaleOutMode() {
+   Print("Scaling Out: ", Money_ScaleOut ? "Yes " : "No ");
+}

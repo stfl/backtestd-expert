@@ -240,6 +240,12 @@ protected:
    bool              OrderTPHit();
    bool              OrderSLHit();
    bool              MoveBreakEven(long position_id);
+   
+   bool PrepareLongParams(double &price, double &sl, double &tp);
+   bool PrepareAndOpenLongTrade();
+
+   bool PrepareShortParams(double &price, double &sl, double &tp);
+   bool PrepareAndOpenShortTrade();
   };
 //+------------------------------------------------------------------+
 //| Constructor                                                      |
@@ -852,77 +858,12 @@ bool CBacktestExpert::Processing(void)
 
    if (m_next_state != m_state) {
      // there has been a transition
-     datetime expiration = TimeCurrent() + m_expiration * PeriodSeconds(m_period);
-     double atr_value = m_signal.GetAtrValue();
-
      if (m_next_state == Long) {
-       double price = m_symbol.Ask();
-       double sl = (m_stop_atr == 0.0) ? 0.0 : price - (m_stop_atr * atr_value);
-       double tp = (m_take_atr == 0.0) ? 0.0 : price + (m_take_atr * atr_value);
-
-       // save tp and sl for scale out mechanism
-       m_pos_take_tp = tp;
-       m_pos_take_sl = sl;
-
-       // m_signal.OpenLongParams(price,sl,tp,expiration);
-       if (!m_trade.SetOrderExpiration(expiration))
-         m_expiration = expiration;
-
-       double lot = LotOpenLong(price, sl);
-       lot = LotCheck(lot, price, ORDER_TYPE_BUY);
-       assert(lot != 0.0, "can't open lot");
-       m_trade.Buy(lot, price, sl, tp);
-
-       res = m_position.SelectByIndex(PositionsTotal() - 1);
-       assert(res, "position was not selected correctly");
-       m_pos_take = m_position.Ticket();
-       string str;
-       Print("watching position: ", m_position.FormatPosition(str));
-
-       if (!Backtest_SingleTrade) {
-         double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
-                          ? 0.0
-                          : price + (2 * m_take_atr * atr_value);
-         m_trade.Buy(lot, price, sl, tp2);
-         res = m_position.SelectByIndex(PositionsTotal() - 1);
-         assert(res, "position was not selected correctly");
-         m_pos_open_end = m_position.Ticket();
-         Print("watching position to modify: #", m_position.FormatPosition(str));
-       }
-
+        PrepareAndOpenLongTrade();
+        // TODO test for restults
      } else if (m_next_state == Short) {
-       double price = m_symbol.Bid();
-       double sl = (m_stop_atr == 0.0) ? 0.0 : price + (m_stop_atr * atr_value);
-       double tp = (m_take_atr == 0.0) ? 0.0 : price - (m_take_atr * atr_value);
-
-       // save tp and sl for scale out mechanism
-       m_pos_take_tp = tp;
-       m_pos_take_sl = sl;
-
-       if (!m_trade.SetOrderExpiration(expiration))
-         m_expiration = expiration;
-
-       double lot = LotOpenShort(price, sl);
-       lot = LotCheck(lot, price, ORDER_TYPE_SELL);
-       assert(lot != 0.0, "can't open lot");
-       m_trade.Sell(lot, price, sl, tp);
-
-       res = m_position.SelectByIndex(PositionsTotal() - 1);
-       assert(res, "position was not selected correctly");
-       m_pos_take = m_position.Ticket();
-       string str;
-       Print("watching position: ", m_position.FormatPosition(str));
-
-       if (!Backtest_SingleTrade) {
-         double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
-                          ? 0.0
-                          : price - (2 * m_take_atr * atr_value);
-         m_trade.Sell(lot, price, sl, tp2);
-         res = m_position.SelectByIndex(PositionsTotal() - 1);
-         assert(res, "position was not selected correctly");
-         m_pos_open_end = m_position.Ticket();
-         Print("watching position to modify: #", m_position.FormatPosition(str));
-       }
+        PrepareAndOpenShortTrade();
+        // TODO test for restults
      }
      
    }
@@ -935,42 +876,6 @@ bool CBacktestExpert::Processing(void)
       m_trailing.StopLevel((int)MathRound(Money_TrailingStopATRLevel * atr_pips));
       CheckTrailingStop();
    }
-//--- TODO check if plased pending orders
-   /*
-      int total=OrdersTotal();
-      if(total!=0)
-        {
-         for(int i=total-1; i>=0; i--)
-           {
-            m_order.SelectByIndex(i);
-            if(m_order.Symbol()!=m_symbol.Name())
-               continue;
-            if(m_order.OrderType()==ORDER_TYPE_BUY_LIMIT || m_order.OrderType()==ORDER_TYPE_BUY_STOP)
-              {
-               //--- check the ability to delete a pending order to buy
-               if(CheckDeleteOrderLong())
-                  return(true);
-               //--- check the possibility of modifying a pending order to buy
-               if(CheckTrailingOrderLong())
-                  return(true);
-              }
-            else
-              {
-               //--- check the ability to delete a pending order to sell
-               if(CheckDeleteOrderShort())
-                  return(true);
-               //--- check the possibility of modifying a pending order to sell
-               if(CheckTrailingOrderShort())
-                  return(true);
-              }
-            //--- return without operations
-            return(false);
-           }
-        } */
-//--- check the possibility of opening a position/setting pending order
-//if(CheckOpen())
-//   return(true);
-//--- return without operations
    return(res);
   }
 //+------------------------------------------------------------------+
@@ -1089,37 +994,6 @@ void CBacktestExpert::OnBookEvent(const string &symbol)
 //--- check process flag
    if(!m_on_book_event_process)
       return;
-  }
-//+------------------------------------------------------------------+
-//| Check for position open or limit/stop order set                  |
-//+------------------------------------------------------------------+
-bool CBacktestExpert::CheckOpen(void)
-  {
-   if(CheckOpenLong())
-      return(true);
-   if(CheckOpenShort())
-      return(true);
-//--- return without operations
-   return(false);
-  }
-//+------------------------------------------------------------------+
-//| Check for long position open or limit/stop order set             |
-//+------------------------------------------------------------------+
-bool CBacktestExpert::CheckOpenLong(void)
-  {
-   double   price=EMPTY_VALUE;
-   double   sl=0.0;
-   double   tp=0.0;
-   datetime expiration=TimeCurrent();
-//--- check signal for long enter operations
-   if(m_signal.CheckOpenLong(price,sl,tp,expiration))
-     {
-      if(!m_trade.SetOrderExpiration(expiration))
-         m_expiration=expiration;
-      return(OpenLong(price,sl,tp));
-     }
-//--- return without operations
-   return(false);
   }
 //+------------------------------------------------------------------+
 //| Check for short position open or limit/stop order set            |
@@ -2309,3 +2183,105 @@ bool CBacktestExpert::MoveBreakEven(long position_id)
                                  m_position.TakeProfit()); // should be 0.0
   }
 //+------------------------------------------------------------------+
+
+
+bool CBacktestExpert::PrepareLongParams(double &price, double &sl, double &tp) {
+   double atr_value = m_signal.GetAtrValue();
+   datetime expiration = TimeCurrent() + m_expiration * PeriodSeconds(m_period);
+   price = m_symbol.Ask();
+   sl = (m_stop_atr == 0.0) ? 0.0 : price - (m_stop_atr * atr_value);
+   tp = (m_take_atr == 0.0) ? 0.0 : price + (m_take_atr * atr_value);
+
+   // save tp and sl for scale out mechanism
+   m_pos_take_tp = tp;
+   m_pos_take_sl = sl;
+
+   // m_signal.OpenLongParams(price,sl,tp,expiration);
+   if (!m_trade.SetOrderExpiration(expiration))
+      m_expiration = expiration;
+      
+   return true;
+}
+
+bool CBacktestExpert::PrepareAndOpenLongTrade() {
+   double price;
+   double sl;
+   double tp;
+
+   PrepareLongParams(price, sl, tp);
+   OpenLong(price, sl, tp);
+
+   // TODO disable position watching
+   bool res = m_position.SelectByIndex(PositionsTotal() - 1);
+   assert(res, "position was not selected correctly");
+   m_pos_take = m_position.Ticket();
+   string str;
+   Print("watching position: ", m_position.FormatPosition(str));
+   
+   /*
+   if (!Backtest_SingleTrade) {
+      double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
+         ? 0.0
+         : price + (2 * m_take_atr * atr_value);
+      OpenLong(price, sl, tp2);
+
+      // TODO disable position watching
+      m_trade.Buy(lot, price, sl, tp2);
+      res = m_position.SelectByIndex(PositionsTotal() - 1);
+      assert(res, "position was not selected correctly");
+      m_pos_open_end = m_position.Ticket();
+      Print("watching position to modify: #", m_position.FormatPosition(str));
+   }
+   */
+   return res;
+}
+
+bool CBacktestExpert::PrepareShortParams(double &price, double &sl, double &tp) {
+   double atr_value = m_signal.GetAtrValue();
+   datetime expiration = TimeCurrent() + m_expiration * PeriodSeconds(m_period);
+   price = m_symbol.Bid();
+   sl = (m_stop_atr == 0.0) ? 0.0 : price + (m_stop_atr * atr_value);
+   tp = (m_take_atr == 0.0) ? 0.0 : price - (m_take_atr * atr_value);
+
+   // save tp and sl for scale out mechanism
+   m_pos_take_tp = tp;
+   m_pos_take_sl = sl;
+
+   if (!m_trade.SetOrderExpiration(expiration))
+      m_expiration = expiration;
+
+   return true;
+}
+
+bool CBacktestExpert::PrepareAndOpenShortTrade() {
+   double price;
+   double sl;
+   double tp;
+
+   PrepareShortParams(price, sl, tp);
+   OpenShort(price, sl, tp);
+
+   // TODO disable position watching
+   bool res = m_position.SelectByIndex(PositionsTotal() - 1);
+   assert(res, "position was not selected correctly");
+   m_pos_take = m_position.Ticket();
+   string str;
+   Print("watching position: ", m_position.FormatPosition(str));
+
+   /*
+   if (!Backtest_SingleTrade) {
+      double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
+         ? 0.0
+         : price - (2 * m_take_atr * atr_value);
+
+      OpenShort(price, sl, tp2);
+
+      // TODO disable position watching
+      res = m_position.SelectByIndex(PositionsTotal() - 1);
+      assert(res, "position was not selected correctly");
+      m_pos_open_end = m_position.Ticket();
+      Print("watching position to modify: #", m_position.FormatPosition(str));
+   }
+   */
+   return res;
+}
