@@ -826,7 +826,7 @@ bool CBacktestExpert::Processing(void)
             break;
 
          default:
-            // ERROR
+            // TODO ERROR handling
             break;
         }
       if(!MQL5InfoInteger(MQL5_OPTIMIZATION))
@@ -842,11 +842,13 @@ bool CBacktestExpert::Processing(void)
             m_pos_open_end = 0;
             m_position = m_position1;
             res = Close();
-            if(!Backtest_SingleTrade)
-              {
-               m_position = m_position2;
-               res = Close();
-              }
+            // TODO rewrite CloseAll() to close all open trades and open orders on the expert's symbol
+           
+            // if(!Backtest_SingleTrade) // TODO
+            //   {
+            //    m_position = m_position2;
+            //    res = Close();
+            //   }
             // assert(res,"Trade did not close properly");
            }
         }
@@ -859,11 +861,9 @@ bool CBacktestExpert::Processing(void)
    if (m_next_state != m_state) {
      // there has been a transition
      if (m_next_state == Long) {
-        PrepareAndOpenLongTrade();
-        // TODO test for restults
+        PrepareAndOpenLongTrade(); // TODO check return
      } else if (m_next_state == Short) {
-        PrepareAndOpenShortTrade();
-        // TODO test for restults
+        PrepareAndOpenShortTrade(); // TODO check return
      }
      
    }
@@ -2211,7 +2211,6 @@ bool CBacktestExpert::PrepareAndOpenLongTrade() {
    PrepareLongParams(price, sl, tp);
    OpenLong(price, sl, tp);
 
-   // TODO disable position watching
    bool res = m_position.SelectByIndex(PositionsTotal() - 1);
    assert(res, "position was not selected correctly");
    m_pos_take = m_position.Ticket();
@@ -2225,7 +2224,6 @@ bool CBacktestExpert::PrepareAndOpenLongTrade() {
          : price + (2 * m_take_atr * atr_value);
       OpenLong(price, sl, tp2);
 
-      // TODO disable position watching
       m_trade.Buy(lot, price, sl, tp2);
       res = m_position.SelectByIndex(PositionsTotal() - 1);
       assert(res, "position was not selected correctly");
@@ -2261,7 +2259,6 @@ bool CBacktestExpert::PrepareAndOpenShortTrade() {
    PrepareShortParams(price, sl, tp);
    OpenShort(price, sl, tp);
 
-   // TODO disable position watching
    bool res = m_position.SelectByIndex(PositionsTotal() - 1);
    assert(res, "position was not selected correctly");
    m_pos_take = m_position.Ticket();
@@ -2276,7 +2273,6 @@ bool CBacktestExpert::PrepareAndOpenShortTrade() {
 
       OpenShort(price, sl, tp2);
 
-      // TODO disable position watching
       res = m_position.SelectByIndex(PositionsTotal() - 1);
       assert(res, "position was not selected correctly");
       m_pos_open_end = m_position.Ticket();

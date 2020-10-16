@@ -40,31 +40,44 @@ enum STORE_RESULTS {
     //Trades = 3    // TODO should be easier than SideChanges
 };
 
-enum BACKTEST_MODE {
-//                              ┌───── Trail Delay
-//                              |┌──── Scale Out
-//                              ||┌─── Trailing Stop
-//                              |||┌── Take Profit
-//                              ||||
-    Full             = 0x00, // 0000,   // A single trade
-    TakeProfit       = 0x01, // 0001,   // Take Profit based on ATR
-    Trail            = 0x01, // 0010,   // Trailing Stop, no Take Profit
-    // TrailDelay       = 0x0A, // 1010,   // Trailing Stop after certain distance from Entry
-    // ScaleOut         = 0b0100,   // Scale out -> Take off half of the trade at TP level
-    // ScaleOutTrail    = 0b0110,   // Scale out and add a Trailing Stop
-    // ScaleOutTrailDelay = 0b1110,   // Scale out and add a Trailing Stop when price
-    Manual           = -1,       // No Preset -> Configure with other variables
+enum TRAILING_MODE {
+    NoTrail   = 0,
+    ATRTrail  = 1,
+    // ATRTrailDelay   = 2,
 };
 
-#define TAKE_FLAG      0
-#define TRAIL_FLAG     1
-#define SCALE_OUT_FLAG 2
-// #define TRAIL_DELAY_FLAG = 3
+enum CUSTOM_METRIC {
+    Metric_WinRate     = 0,  // TP hits/Total Trades ratio
+    Metric_CVaR        = 1,  //
+    Metric_VaR         = 2,  // Value at Risk
+    // Metric_CalmarRatio = 3,  // Calmar Ratio
+};
 
-enum TRAILING_MODE {
-    NoTrail = 0,
-    ATRTrail        = 1,
-    // ATRTrailDelay   = 2,
+struct BACKTEST_MODE_CONFIG {
+   bool take_profit;
+   bool scale_out;
+   TRAILING_MODE trailing_mode;
+   CUSTOM_METRIC metric;
+};
+
+// Define the default metrics
+BACKTEST_MODE_CONFIG Backtest_ModeConfigs[] = {
+   // tp  ,so   ,trail        ,metric
+    {false,false,NoTrail      ,Metric_CVaR},     // Full
+    {true ,false,NoTrail      ,Metric_WinRate},  // TakeProfit
+    {false,false,ATRTrail     ,Metric_CVaR},     // Trail
+    // {false,false,ATRTrailDelay,Metric_CVaR},     // TrailDelay       = 3, // Trailing Stop after certain distance from Entry
+    // {true ,true ,ATRTrailDelay,Metric_CVaR},     // ScaleOut         = 4, // Scale out -> Take off half of the trade at TP level
+};
+
+// A definition of the some backtest presets
+enum BACKTEST_MODE {
+    Full             = 0, // A full trade without Take Profit
+    TakeProfit       = 1, // Take Profit based on ATR, Calculate Win Rate
+    Trail            = 2, // Trailing Stop, no Take Profit
+    // TrailDelay       = 3, // Trailing Stop after certain distance from Entry
+    // ScaleOut         = 4, // Scale out -> Take off half of the trade at TP level
+    Manual           = -1, // Manual configuration (No Preset)
 };
 
 //+------------------------------------------------------------------+
@@ -81,7 +94,10 @@ STORE_RESULTS Expert_Store_Results = None;  // TODO this is probably commented o
 
 input int Signal_Expiration = 1;     // Expiration of pending orders (in bars)
 
-input BACKTEST_MODE Backtest_Mode = Manual; // Backtest Trading Preset
+input BACKTEST_MODE Backtest_ModeSelect = Manual; // Backtest Trading Preset
+input CUSTOM_METRIC Input_Backtest_Metric = Metric_CVaR;
+CUSTOM_METRIC Backtest_Metric = Input_Backtest_Metric;
+input double Backtest_Metric_VaR_Quantile = 0.8;  // Quantile for VaR | CVaR
 
 //input
 bool Backtest_TPOnAllTrades = false; // set a TP on both trades
@@ -105,6 +121,7 @@ input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop 
 
 // Algo customizations
 input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
+
 
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator = ""; // Name of Confirmation Indicator to use
@@ -409,7 +426,7 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
   ExtExpert.OnTradeProcess(true);
   ExtExpert.StopAtrMultiplier(Money_StopLevel);
   // do not set a take profit if we're only testing on a single trade
-  double take_level = (Backtest_SingleTrade == true) ? 0.0 : Money_TakeLevel;
+  double take_level = (Money_AddTakeProfit == true) ? Money_TakeLevel : 0.0;
   ExtExpert.TakeAtrMultiplier(take_level);
 
   // get the AggSignal from the Expert (It has been automatically created at Init())
@@ -579,37 +596,6 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
 //  The handler of the event of completion of another test pass:
 //---------------------------------------------------------------------
 double OnTester() {
-  // custom MAX: % take profit hit of all trades
-  // each trade opens 2 positions, one with tp and one without
-  // => half of the trades are considered
-
-
-  uint tp_cnt = 0;
-  uint sl_cnt = 0;
-  for (int i = 0; i < Experts.Total(); i++) {
-    CBacktestExpert *expert = Experts.At(i);
-    tp_cnt += expert.TakeProfitCnt();
-    sl_cnt += expert.StopLossCnt();
-  }
-
-  if (!MQL5InfoInteger(MQL5_OPTIMIZATION)) {
-    Print("Trades: ", TesterStatistics(STAT_TRADES));
-    Print("SL hit: ", sl_cnt);
-    Print("TP hit: ", tp_cnt);
-    Print("profitable: ", TesterStatistics(STAT_PROFIT_TRADES));
-    Print("%profitable: ", TesterStatistics(STAT_TRADES) == 0.
-                               ? 0.
-                               : TesterStatistics(STAT_PROFIT_TRADES) /
-                                     TesterStatistics(STAT_TRADES));
-    Print("Profit: ", TesterStatistics(STAT_PROFIT));
-  }
-
-  double ret = TesterStatistics(STAT_TRADES) == 0.
-                   ? 0.
-                   : tp_cnt / (TesterStatistics(STAT_TRADES) / 2);
-
-
-
   /*
   if (Expert_Store_Results == SideChanges) {
     CBacktestExpert *expert = Experts.At(0);
@@ -617,70 +603,22 @@ double OnTester() {
   }
   */
 
-  // first ceal will be the initial balance...
-  double balance = 0; // TesterStatistics(STAT_INITIAL_DEPOSIT);
+  switch (Backtest_Metric) {
+        case Metric_VaR:
+           return CalculateVaR(Backtest_Metric_VaR_Quantile);
+        break;
+        case Metric_CVaR:
+           return CalculateCVaR(Backtest_Metric_VaR_Quantile);
+        break;
+        case Metric_WinRate:
+           return CalculateWinRate();
+        break;
+        // case Metric_CalmarRatio:
+        //    return CalculateCalmarRatio();
+        // break;
 
-  // get all Deals from the trading history
-  HistorySelect(0,TimeCurrent());   // load deals
-  int deals_cnt=HistoryDealsTotal();
-  double return_history[];
-  ArrayResize(return_history, deals_cnt);
-  
-  // calculate the return for each trade(deal)
-  for(int i=0; i < deals_cnt; i++) {
-     ulong  deal_ticket = HistoryDealGetTicket(i);
-     double profit = HistoryDealGetDouble(deal_ticket,DEAL_PROFIT);
-     double swap = HistoryDealGetDouble(deal_ticket,DEAL_SWAP);
-     double fee = HistoryDealGetDouble(deal_ticket,DEAL_FEE);
-     double comission = HistoryDealGetDouble(deal_ticket,DEAL_COMMISSION);
-     double net_profit = profit + swap + fee + comission;
-     if (balance != 0.0)
-       return_history[i] = net_profit / balance;
-     
-     // update realized balance
-     balance += net_profit;
-  }
-  ArraySort(return_history);
-
-  // double q80 = MathCeil((double) deals_cnt * (1 - .80));
-  double q95 = MathCeil((double) deals_cnt * (1 - .95));
-  // double q99 = MathCeil((double) deals_cnt * (1 - .99));
-  // double q999= MathCeil((double) deals_cnt * (1 - .999));
-
-  // double var80 = return_history[(int) q80];
-  double var95 = return_history[(int) q95];
-  // double var99 = return_history[(int) q99];
-  // double var999 = return_history[(int) q999];
-
-  // double return_history80[];
-  double return_history95[];
-  // double return_history99[];
-  // double return_history999[];
-
-  // ArrayCopy(return_history80, return_history, 0, 0, (int) q80);
-  ArrayCopy(return_history95, return_history, 0, 0, (int) q95);
-  // ArrayCopy(return_history99, return_history, 0, 0, (int) q99);
-  // ArrayCopy(return_history999, return_history, 0, 0, (int) q999);
-
-  // double cvar80 = MathSum(return_history80) / q80;
-  double cvar95 = MathSum(return_history95) / q95;
-  // double cvar99 = MathSum(return_history99) / q99;
-  // double cvar999 = MathSum(return_history999) / q999;
-
-  /*
-  if (!MQL5InfoInteger(MQL5_OPTIMIZATION)) {
-     printf("(.95):%f\t(.99):%f\t(.999):%f",
-            q95, q99, q999);
-     printf("VaR(.95):%10.4f\tVaR(.99):%10.4f\tVaR(.999):%10.4f",
-            var95, var99, var999);
-     printf("CVaR(.95):%10.4f\tCVaR(.99):%10.4f\tCVaR(.999):%10.4f",
-            cvar95, cvar99, cvar999);
-     printf("balance: %10.4f",
-            balance);
-  }
-  */
-
-  return MathIsValidNumber(cvar95) ? cvar95 * 100 : -1;
+     }
+   return 0.0;
 }
 
 // NOTE write sides to csv
@@ -768,47 +706,14 @@ void OnTimer() {
   // }
 }
 
-//void OnTesterPass() {
-//  if (Expert_Store_Results == SideChanges) {
-//     // lock the mutex and wait INFINITE
-//     // Print("Trying to lock");
-//     // CMutexTryLock lock(mutex);
-//     // if (! lock.Success())
-//     //    return;
-//     // Print("Locked");
-//
-//     frames_received += 1;
-//     datetime t = TimeLocal();
-//     if ((t - frame_time) >= 15) {
-//       // PrintFormat("Time elapsed %ds passes received: %u", (t - frame_time), frames_received);
-//       PrintFormat("Time elapsed %ds", (t - frame_time));
-//       frame_time = t;
-//       started_storing = true;
-//     }
-//
-//     if (started_storing == true) {
-//       // Print("Saving ", frames_received);
-//       DB_Frames.StoreSideChangesArray(2000000);  // limit the number of INSERTS for the intermediate transaction
-//     }
-//     // if (MathMod(frames_received, 10000) == 0) {
-//       // Print("recieved ", frames_received, " passes. Storing intermediate side results");
-//     // }
-//
-//     // because we are receiven MANY frames incrementally store a couple of frames during the backtest
-//  }
-//}
-
 void OnTesterDeinit() {
   // Print("OnTesterDeinit");
   if (Expert_Store_Results == SideChanges) {
      // CMutexLock lock(mutex, (DWORD)INFINITE);
      DB_Frames.StoreSideChangesArray(-1);
   }
-  // Sleep(5);
-  // EventKillTimer();
 }
 
-//+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
 //| Deinitialization function of the expert                          |
@@ -1162,24 +1067,18 @@ bool SetupInputArrays() {
 
 
 void SetupBacktestPreset() {
-   if (Backtest_Mode != Manual) {
+   if (Backtest_ModeSelect != Manual) {
       UpdateBacktestParamsFromPreset();
    }
    PrintBacktestMode();
 }
 
 void UpdateBacktestParamsFromPreset() {
-   Money_AddTakeProfit = HasBitFlag(Backtest_Mode, TAKE_FLAG);
-   Money_ScaleOut = HasBitFlag(Backtest_Mode, SCALE_OUT_FLAG);
-
-   // disable trailing if the preset tells us to
-   if (HasBitFlag(Backtest_Mode, TRAIL_FLAG) == false) {
-      Money_TrailingMode = NoTrail;
-   }
-}
-
-bool HasBitFlag(ulong value, ulong flag_idx) {
-    return (value & (1 << flag_idx)) != 0;
+   BACKTEST_MODE_CONFIG mode_config = Backtest_ModeConfigs[Backtest_ModeSelect];
+   Money_AddTakeProfit = mode_config.take_profit;
+   Money_ScaleOut = mode_config.scale_out;
+   Money_TrailingMode = mode_config.trailing_mode;
+   Backtest_Metric = mode_config.metric;
 }
 
 void PrintBacktestMode() {
@@ -1190,12 +1089,13 @@ void PrintBacktestMode() {
      PrintTPMode();
      PrintTrailingMode();
      PrintScaleOutMode();
+     PrintMetricMode();
   }
 #endif
 }
 
 void PrintBacktestPresetMode() {
-   Print("Backtest Preset: ", Backtest_Mode);
+   Print("Backtest Preset: ", Backtest_ModeSelect, ": ", EnumToString(Backtest_ModeSelect));
 }
 
 void PrintTrailingMode() {
@@ -1214,3 +1114,93 @@ void PrintTPMode() {
 void PrintScaleOutMode() {
    Print("Scaling Out: ", Money_ScaleOut ? "Yes " : "No ");
 }
+
+void PrintMetricMode() {
+   Print("Metric Mode: ", Backtest_Metric, ": ", EnumToString(Backtest_Metric));
+}
+
+/* goes through the deal history and calculates the return for each trade
+ * returns a sorted list of the reaturns -> used for calculating Value at Risk */
+void CalculateReturnHistory(double &return_history[]) {
+   double balance = 0;
+   // get all Deals from the trading history
+   HistorySelect(0,TimeCurrent());   // load deals
+   int deals_cnt=HistoryDealsTotal();
+   ArrayResize(return_history, deals_cnt);
+
+   // calculate the return for each trade(deal)
+   for(int i=0; i < deals_cnt; i++) {
+      ulong  deal_ticket = HistoryDealGetTicket(i);
+      double profit = HistoryDealGetDouble(deal_ticket,DEAL_PROFIT);
+      double swap = HistoryDealGetDouble(deal_ticket,DEAL_SWAP);
+      double fee = HistoryDealGetDouble(deal_ticket,DEAL_FEE);
+      double comission = HistoryDealGetDouble(deal_ticket,DEAL_COMMISSION);
+      double net_profit = profit + swap + fee + comission;
+      if (balance != 0.0)
+         return_history[i] = net_profit / balance;
+
+      // update realized balance
+      balance += net_profit;
+   }
+   ArraySort(return_history);
+}
+
+double CalculateVaR(double quant_level) {
+   double return_history[];
+   CalculateReturnHistory(return_history);
+
+   int deals_cnt=HistoryDealsTotal();
+   double quantile = MathCeil((double) deals_cnt * (1 - quant_level));
+   double VaR = return_history[(int) quantile];
+   return MathIsValidNumber(VaR) ? VaR : -1;
+}
+
+double CalculateCVaR(double quant_level) {
+   double return_history[];
+   CalculateReturnHistory(return_history);
+
+   int deals_cnt=HistoryDealsTotal();
+   double quantile = MathCeil((double) deals_cnt * (1 - quant_level));
+   double return_history_trunc[];
+   ArrayCopy(return_history_trunc, return_history, 0, 0, (int) quantile);
+   double CVaR = MathSum(return_history_trunc) / quantile;
+   return MathIsValidNumber(CVaR) ? CVaR : -1;
+}
+
+double CalculateWinRate() {
+   long num_trades = (long) TesterStatistics(STAT_TRADES);
+   int tp_cnt = 0;
+   int sl_cnt = 0;
+   int reason_client_cnt = 0;
+
+   HistorySelect(0,TimeCurrent());   // load deals
+   int deals_cnt=HistoryDealsTotal();
+   for(int i=0; i < deals_cnt; i++) {
+      ulong  deal_ticket = HistoryDealGetTicket(i);
+      ENUM_DEAL_REASON reason = ENUM_DEAL_REASON(HistoryDealGetInteger(deal_ticket,DEAL_REASON));
+      if (reason == DEAL_REASON_TP) {
+         tp_cnt++;
+      } else if (reason == DEAL_REASON_SL) {
+         sl_cnt++;
+      } else if (reason == DEAL_REASON_CLIENT) {
+         // - the first deal is "Balance"
+         // - if the last trade is cancled due to end-of-test
+         reason_client_cnt++;
+      }
+   }
+
+   num_trades -= (reason_client_cnt - 1);
+   if (num_trades <= 0) return 0.0;
+
+   double win_rate = tp_cnt / (double) num_trades;
+   long strike_out = num_trades - tp_cnt - sl_cnt;  // all trades that did not hit sl/tp
+#ifdef _DEBUG
+   PrintFormat("Number of trades: %l (%d)\nWin rate: %.3f\tStrike: %d\nClosed due to end of test: %d",
+              TesterStatistics(STAT_TRADES), num_trades, win_rate, strike_out, reason_client_cnt - 1);
+   Print("%profitable: ", TesterStatistics(STAT_TRADES) == 0. ? 0.
+         : TesterStatistics(STAT_PROFIT_TRADES) / TesterStatistics(STAT_TRADES));
+#endif
+   return win_rate;
+}
+
+
