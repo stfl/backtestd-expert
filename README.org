@@ -46,12 +46,46 @@ git pull origin master
 :END:
 The EA can be configured with several inputs.
 
-** General Inputs
 
-Some of the general inputs for the EA taken from [[file:Experts/backtestd/backtestd-expert.mq5][backtestd-expert.mq5]].
+** Backtest Trading Logic and Presets
+
+In order to quickly select different backtesting strategies the following can be quickly selected as an input.
+
+#+BEGIN_SRC cpp
+enum BACKTEST_MODE {
+    Full             = 0, // A full trade without Take Profit
+    TakeProfit       = 1, // Take Profit based on ATR, Calculate Win Rate
+    Trail            = 2, // Trailing Stop, no Take Profit
+    Manual           = -1, // Manual configuration (No Preset)
+};
+#+END_SRC
+
+| Preset     | Trade Logic                            | Metric   |
+|------------+----------------------------------------+----------|
+| Manual     | select inputs below                    |          |
+| Full       | A regular trade                        | CVaR     |
+| Trail      | A trade and an ATR based trailing stop | CVaR     |
+| TakeProfit | Add a Take Profit to the trade         | Win Rate |
+
+These are some useful defaults and may be extended or changed in the future.
+When selecting manual, the following inputs can be used to set the trading logic.
+
+*Note:* If something other than Manual is selected, these settings will be ignored!
+
+#+BEGIN_SRC cpp
+input bool Input_Money_AddTakeProfit = true; // set a TP on the trade
+input CUSTOM_METRIC Input_Backtest_Metric = Metric_WinRate;
+input TRAILING_MODE Input_Money_TrailingMode = ATRTrail;    // Trailing Stop Mode
+#+END_SRC
+
+To customize the behaviour of the EA there are several inputs like setting the Stop Loss or Take Profit level...
+These settings are only considered if relevant for the backtest mode.
+
+Check [[file:Experts/backtestd/backtestd-expert.mq5][backtestd-expert.mq5]] for more details ;)
+
 #+BEGIN_SRC cpp
 input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
-input double Money_Risk = 2; // Risk per trade (For two trades, each trade has this Risk)
+input double Money_Risk = 2.0; // Risk per trade
 input double Money_StopLevel = 1.5; // Stop Loss level ATR multiplier
 input double Money_TakeLevel = 1.0; // Take Profit level ATR multiplier
 input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop ATR multiplier
@@ -121,13 +155,13 @@ The EA knows about several classes of indicators and describes them as signal cl
 
 # *Note:* there are more signal classes defined in the code but some of them don't work correctly. The onces in this table should work as expected. If you find a bug please report!
 
-** TwoLinesCross
-** ZeroLineCross
-** LevelCross
-** TwoLevelsCross
-** PriceCross
-** PriceCrossInverted
-** ColorChange
-** Semaphore
-** SaturationLevels
+# ** TwoLinesCross
+# ** ZeroLineCross
+# ** LevelCross
+# ** TwoLevelsCross
+# ** PriceCross
+# ** PriceCrossInverted
+# ** ColorChange
+# ** Semaphore
+# ** SaturationLevels
 # ** SaturationLines
