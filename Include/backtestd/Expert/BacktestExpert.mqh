@@ -60,8 +60,7 @@ public:
    CExpertTrade      *m_trade;                    // trading object
    CAggSignal        *m_signal;                   // trading signals object
    CExpertMoney      *m_money;                    // money manager object
-   // CExpertTrailing  *m_trailing;                 // trailing stops object
-   CTrailingFixedPips  *m_trailing;                 // TODO workaround for ATR trailing stop -> include ATR calculation into CTrailingATR
+   CExpertTrailing   *m_trailing;                 // trailing stops object
    bool              m_check_volume;             // check and decrease trading volume before OrderSend
    //--- indicators
    CIndicators       m_indicators;               // indicator collection to fast recalculations
@@ -105,7 +104,7 @@ public:
    void              CheckVolumeBeforeTrade(const bool flag) { m_check_volume=flag; }
    //--- initialization trading objects
    virtual bool      InitSignal(CExpertSignal *signal=NULL);
-   virtual bool      InitTrailing(CTrailingFixedPips *trailing=NULL);
+   virtual bool      InitTrailing(CExpertTrailing *trailing=NULL);
    virtual bool      InitMoney(CExpertMoney *money=NULL);
    virtual bool      InitTrade(ulong magic,CExpertTrade *trade=NULL);
    //--- deinitialization
@@ -331,7 +330,7 @@ bool CBacktestExpert::Init(string symbol,ENUM_TIMEFRAMES period,bool every_tick,
      Print(__FUNCTION__ + ": error initialization signal object");
      return (false);
    }
-   if (!InitTrailing(new CTrailingFixedPips)) {
+   if (!InitTrailing(new CExpertTrailing)) {
      Print(__FUNCTION__ + ": error initialization trailing object");
      return (false);
    }
@@ -403,7 +402,7 @@ bool CBacktestExpert::InitSignal(CExpertSignal *signal)
 //+------------------------------------------------------------------+
 //| Initialization trailing object                                   |
 //+------------------------------------------------------------------+
-bool CBacktestExpert::InitTrailing(CTrailingFixedPips *trailing)
+bool CBacktestExpert::InitTrailing(CExpertTrailing *trailing)
   {
    if(m_trailing!=NULL)
       delete m_trailing;
@@ -411,8 +410,7 @@ bool CBacktestExpert::InitTrailing(CTrailingFixedPips *trailing)
 //--- initializing trailing object
    if(!m_trailing.Init(GetPointer(m_symbol),m_period,m_adjusted_point))
       return(false);
-// m_trailing.EveryTick(m_every_tick);
-   m_trailing.EveryTick(false);   // FIXME -> this needs to go into the trailing class
+   m_trailing.EveryTick(m_every_tick);
    m_trailing.Magic(m_magic);
 //--- ok
    return(true);
@@ -587,8 +585,6 @@ bool CBacktestExpert::Refresh(void)
 //--- refresh indicators
    m_indicators.Refresh();
    m_signal.RefreshAtr();
-// m_trailing.Refresh();  // FIXME
-
 //--- ok
    return(true);
   }
@@ -870,10 +866,7 @@ bool CBacktestExpert::Processing(void)
 
    m_state=m_next_state;
 
-//--- check if open positions
-   if (SelectPosition()) { //--- open position is available
-      double atr_pips = m_signal.GetAtrValue() / m_adjusted_point;
-      m_trailing.StopLevel((int)MathRound(Money_TrailingStopATRLevel * atr_pips));
+   if (SelectPosition()) {
       CheckTrailingStop();
    }
    return(res);

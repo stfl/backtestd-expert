@@ -19,6 +19,7 @@
 //--- available trailing
 #include <Expert\Trailing\TrailingNone.mqh>
 #include <Expert\Trailing\TrailingFixedPips.mqh>
+#include <backtestd\Trailing\TrailingAtr.mqh>
 //--- available money management
 #include <NewBar\CisNewBar.mqh>
 #include <backtestd\Expert\BacktestExpert.mqh>
@@ -31,6 +32,20 @@
 #ifdef MUTEX
 #include <Mutex/Mutex.mqh>
 #endif
+
+#define CheckPointerOrAbort(ptr)                     \
+if (ptr == NULL) {                                    \
+   printf(__FUNCTION__ + ": error creating ##ptr");   \
+   ExtExpert.Deinit();                                \
+   return (INIT_FAILED);                              \
+}
+
+#define CallCheckedOrAbort(function)                   \
+if(!function) {                                        \
+   printf(__FUNCTION__ + ": error calling ##function");\
+   ExtExpert.Deinit();                                 \
+   return (INIT_FAILED);                               \
+}
 
 enum STORE_RESULTS {
     None = 0,
@@ -110,14 +125,16 @@ input bool Input_Money_AddTakeProfit = false; // set a TP on the trade
 bool Money_AddTakeProfit = Input_Money_AddTakeProfit; // set a TP on the trade
 
 //--- Money Management
-input double Money_Risk = 0.2; // Risk per trade (For two trades, each trade has this Risk)
+input double Money_Risk = 2.0;           // Risk per trade
 // input double Money_FixLot_Lots = 0.1; // Fixed volume
-input double Money_StopLevel = 1.5; // Stop Loss level ATR multiplier
-input double Money_TakeLevel = 1.0; // Take Profit level ATR multiplier
+input double Money_StopLevel = 1.5;     // Stop Loss level ATR multiplier
+input double Money_TakeLevel = 1.0;     // Take Profit level ATR multiplier
 
 input TRAILING_MODE Input_Money_TrailingMode = ATRTrail;    // Trailing Stop Mode
 TRAILING_MODE Money_TrailingMode = Input_Money_TrailingMode;
 input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop ATR multiplier
+//input
+int Money_TrailAtrPeriod = 14;
 
 // Algo customizations
 input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
@@ -536,25 +553,21 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
   }
 
   //--- Creation of trailing object
-  CTrailingFixedPips *trailing = new CTrailingFixedPips;  // init with default values which will be changed later
-  if (trailing == NULL) {
-    //--- failed
-    printf(__FUNCTION__ + ": error creating trailing");
-    ExtExpert.Deinit();
-    return (INIT_FAILED);
+  CExpertTrailing *trailing = NULL;
+  switch (Money_TrailingMode) {
+     case NoTrail:
+        trailing = new CTrailingNone;  // init with default values which will be changed later
+        CheckPointerOrAbort(trailing);
+     break;
+     case ATRTrail:
+        trailing = new CTrailingAtr(Money_TrailingStopATRLevel, Money_TrailAtrPeriod);  // init with default values which will be changed later
+        CheckPointerOrAbort(trailing);
+        //dynamic_cast<CTrailingFixedPips *>(trailing).ProfitLevel(0);
+     break;
   }
 
-  // disable trailing take profit
-  trailing.ProfitLevel(0);
-  //trailing.StopLevel(100);
+  CallCheckedOrAbort(ExtExpert.InitTrailing(trailing));
 
-  //--- Add trailing to expert (will be deleted automatically))
-  if (!ExtExpert.InitTrailing(trailing)) {
-    //--- failed
-    printf(__FUNCTION__ + ": error initializing trailing");
-    ExtExpert.Deinit();
-    return (INIT_FAILED);
-  }
   //--- Set trailing parameters
   //--- Creation of money object
   CMoneyFixedRisk *money = new CMoneyFixedRisk;
