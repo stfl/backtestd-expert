@@ -8,10 +8,10 @@ This Metatrader 5 EA is based on the trading strategy of [[https://nononsensefor
 - All inputs can be used for optimization
 - Testing single indicator (Confirmation or Baseline) can be tested
 - Trailing Stop based on the ATR distance to closing price
-# - Calculate Conditional Value at Risk as Custom Max (good for external analysis)
-- Multicurrency backtesting and genetic optimization over all symbols
+- Multi-currency backtesting and genetic optimization over all symbols
 - Store Side Changes (lines crossing, ...) for indicators to SQLite (this may be buggy)
-- Optimized to test on Open Price only
+- Optimized to test on Open Price for very fast backtesting
+- Calculate VP's win rate or Conditional Value at Risk (CVaR) as Custom Max
 
 ** Disclaimer
 
@@ -23,10 +23,17 @@ Testing the EA for bugs and logical mistakes is highly appreciated.
 I am not selling this EA because I believe in open source software and I don't have the time to polish and promote this EA nor I do want to write extensive documentation.
 
 *This EA is for developers and people who don't scare back from looking at the code*\
-Feel free to fork the repo and adopt to your needs. I would be very happy to receive feedback
+Feel free to fork the repo and adopt to your needs.
+Please send me your changes as a pull request
 
 * Installation
-** checkout source
+** From Release Binary
+Download the release binary from github and put it into the directory ~MQL5/Experts/backtestd/backtestd-expert.ex5~
+
+** Install From Source
+*** checkout source
+
+You can't use git clone because the base directory is the ~MQL5~ root directory.
 
 #+begin_src bash
 cd \Path\To\MQL5
@@ -35,17 +42,16 @@ git remote add origin https://github.com/stfl/backtestd-expert.git
 git pull origin master
 #+end_src
 
-** compile the expert
+*** compile the expert
 
 - Open MetaEditor
-- select the ea and click compile
+- select the EA (~MQL5/Experts/backtestd/backtestd-expert.mq5~) and click compile.
 
-* Configuration :ATTACH:
+* Configuration                                                      :ATTACH:
 :PROPERTIES:
 :ID:       f568e1ce-3bad-471d-b2a8-95ffc23bf052
 :END:
 The EA can be configured with several inputs.
-
 
 ** Backtest Trading Logic and Presets
 
@@ -138,18 +144,18 @@ Everything configured it looks like this.
 The EA knows about several classes of indicators and describes them as signal classes. In the code these are configured as sub-classes of a CustomIndicator class. This allows easy replacing and implementation of a signal class logic.
 
 
-| class              | buffers          | params                                     | Description                                                                                                  |
-|--------------------+------------------+--------------------------------------------+--------------------------------------------------------------------------------------------------------------|
-| Preset             | -                | -                                          | The functionality is defined in the code                                                                     |
-| TwoLinesCross      | [up, down]       | -                                          | Two lines crossing                                                                                           |
-| ZeroLineCross      | [line]           | -                                          | Single line crossing 0                                                                                       |
-| LevelCross         | [line]           | [level]                                    | A line crossing a level                                                                                      |
-| TwoLevelsCross     | [line]           | [up enter, up exit, down enter, down exit] | A Line crossing a two levels                                                                                 |
-| PriceCross         | [line]           | -                                          | The price is crossing a line (Baseline)                                                                      |
-| PriceCrossInverted | [line]           | -                                          | The price is crossing a line, the signal is triggered the other direction                                    |
-| ColorChange        | [line]           | color values: [neutral, up, down]          | Single line changing color                                                                                   |
-| Semaphore          | [line]           | -                                          | Signal signs like arrows on the chart                                                                        |
-| SaturationLevels   | [line]           | [up enter, up exit, down enter, down exit] | A line the enters a saturation (overbought/ oversold) region                                                 |
+| class              | buffers    | params                                     | Description                                                               |
+|--------------------+------------+--------------------------------------------+---------------------------------------------------------------------------|
+| Preset             | -          | -                                          | The functionality is defined in the code                                  |
+| TwoLinesCross      | [up, down] | -                                          | Two lines crossing                                                        |
+| ZeroLineCross      | [line]     | -                                          | Single line crossing 0                                                    |
+| LevelCross         | [line]     | [level]                                    | A line crossing a level                                                   |
+| TwoLevelsCross     | [line]     | [up enter, up exit, down enter, down exit] | A Line crossing a two levels                                              |
+| PriceCross         | [line]     | -                                          | The price is crossing a line (Baseline)                                   |
+| PriceCrossInverted | [line]     | -                                          | The price is crossing a line, the signal is triggered the other direction |
+| ColorChange        | [line]     | color values: [neutral, up, down]          | Single line changing color                                                |
+| Semaphore          | [line]     | -                                          | Signal signs like arrows on the chart                                     |
+| SaturationLevels   | [line]     | [up enter, up exit, down enter, down exit] | A line the enters a saturation (overbought/ oversold) region              |
 # | SaturationLines    | [line, up, down] |                                            | A line the enters a saturation (overbought/ oversold) region. The saturtion region is guarded by other lines |
 
 
