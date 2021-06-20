@@ -831,13 +831,20 @@ bool CBacktestExpert::Processing(void)
       if(m_next_state != m_state)
         {
          // there has been a transition
-         if(m_state == Long || m_state == Short)
-           {
+         if(m_state == Long || m_state == Short) {
+            m_position.SelectByTicket(m_pos_take);
+            Close();
+            m_position.SelectByTicket(m_pos_open_end);
+            Close();
+            
+            m_pos_take=0;
+            m_pos_open_end=0;
+
             // Close current trades to allow reverting the direction
-            m_pos_take = 0;
-            m_pos_open_end = 0;
-            m_position = m_position1;
-            res = Close();
+            //m_pos_take = 0;
+            //m_pos_open_end = 0;
+            //m_position = m_position1;
+            //res = Close();
             // TODO rewrite CloseAll() to close all open trades and open orders on the expert's symbol
            
             // if(!Backtest_SingleTrade) // TODO
@@ -2210,20 +2217,16 @@ bool CBacktestExpert::PrepareAndOpenLongTrade() {
    string str;
    Print("watching position: ", m_position.FormatPosition(str));
    
-   /*
-   if (!Backtest_SingleTrade) {
-      double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
-         ? 0.0
-         : price + (2 * m_take_atr * atr_value);
+   if (Money_ScaleOut) {
+      double tp2 = 0.0;
       OpenLong(price, sl, tp2);
 
-      m_trade.Buy(lot, price, sl, tp2);
       res = m_position.SelectByIndex(PositionsTotal() - 1);
       assert(res, "position was not selected correctly");
       m_pos_open_end = m_position.Ticket();
       Print("watching position to modify: #", m_position.FormatPosition(str));
    }
-   */
+   
    return res;
 }
 
@@ -2258,12 +2261,8 @@ bool CBacktestExpert::PrepareAndOpenShortTrade() {
    string str;
    Print("watching position: ", m_position.FormatPosition(str));
 
-   /*
-   if (!Backtest_SingleTrade) {
-      double tp2 = ((Backtest_TPOnAllTrades == false) || (m_take_atr == 0.0))
-         ? 0.0
-         : price - (2 * m_take_atr * atr_value);
-
+   if (Money_ScaleOut) {
+      double tp2 = 0.0;
       OpenShort(price, sl, tp2);
 
       res = m_position.SelectByIndex(PositionsTotal() - 1);
@@ -2271,6 +2270,6 @@ bool CBacktestExpert::PrepareAndOpenShortTrade() {
       m_pos_open_end = m_position.Ticket();
       Print("watching position to modify: #", m_position.FormatPosition(str));
    }
-   */
+ 
    return res;
 }

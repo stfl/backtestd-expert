@@ -1,7 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                      nnfx-ea.mq5 |
 //|                                    Copyright 2019, Stefan Lendl. |
-//|                                             https://www.mql5.com |
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2020, Stefan Lendl."
 #property version "1.2"
@@ -82,7 +81,7 @@ BACKTEST_MODE_CONFIG Backtest_ModeConfigs[] = {
     {true ,false,NoTrail      ,Metric_WinRate},  // TakeProfit
     {false,false,ATRTrail     ,Metric_CVaR},     // Trail
     // {false,false,ATRTrailDelay,Metric_CVaR},     // TrailDelay       = 3, // Trailing Stop after certain distance from Entry
-    // {true ,true ,ATRTrailDelay,Metric_CVaR},     // ScaleOut         = 4, // Scale out -> Take off half of the trade at TP level
+    {true ,true ,ATRTrail,Metric_CVaR},     // ScaleOut         = 4, // Scale out -> Take off half of the trade at TP level
 };
 
 // A definition of the some backtest presets
@@ -115,17 +114,16 @@ CUSTOM_METRIC Backtest_Metric = Input_Backtest_Metric;
 input double Backtest_Metric_VaR_Quantile = 0.8;  // Quantile for VaR | CVaR
 
 //input
-bool Backtest_TPOnAllTrades = false; // set a TP on both trades
+bool Backtest_TPOnAllTrades = false; // set a TP on both trades -> not used
 //input
-bool Backtest_SingleTrade = true; // use only a single trade
-//input
-bool Input_Money_ScaleOut = false;
+bool Backtest_SingleTrade = false; // use only a single trade -> not used
+input bool Input_Money_ScaleOut = true;  // Scale out | close half of the trade at a take profit level (usually Open+1xATR)
 bool Money_ScaleOut = Input_Money_ScaleOut;
-input bool Input_Money_AddTakeProfit = false; // set a TP on the trade
+input bool Input_Money_AddTakeProfit = true; // set a TP on the trade
 bool Money_AddTakeProfit = Input_Money_AddTakeProfit; // set a TP on the trade
 
 //--- Money Management
-input double Money_Risk = 2.0;           // Risk per trade
+input double Money_Risk = 0.2;           // Risk per trade
 // input double Money_FixLot_Lots = 0.1; // Fixed volume
 input double Money_StopLevel = 1.5;     // Stop Loss level ATR multiplier
 input double Money_TakeLevel = 1.0;     // Take Profit level ATR multiplier
@@ -133,12 +131,11 @@ input double Money_TakeLevel = 1.0;     // Take Profit level ATR multiplier
 input TRAILING_MODE Input_Money_TrailingMode = ATRTrail;    // Trailing Stop Mode
 TRAILING_MODE Money_TrailingMode = Input_Money_TrailingMode;
 input double Money_TrailingStopATRLevel = 2.5; // Distance of the trailing stop ATR multiplier
-//input
+//input 
 int Money_TrailAtrPeriod = 14;
 
 // Algo customizations
 input int Algo_BaselineWait = 7; // candles for the baseline to wait for other indicators to catch up
-
 
 //--- inputs for Confirmation Indicator
 input string Confirm_Indicator = ""; // Name of Confirmation Indicator to use
@@ -585,7 +582,7 @@ int InitExpert(CBacktestExpert *ExtExpert, string symbol) {
     return (INIT_FAILED);
   }
   //--- Set money parameters
-  money.Percent(Money_Risk);
+  money.Percent(Money_ScaleOut ? Money_Risk / 2 : Money_Risk);   // If we want to scale out, we open two trades with each having 50% of the risk
   // money.InitialBalance(TesterStatistics(STAT_INITIAL_DEPOSIT));
   // money.Lots(Money_FixLot_Lots);
   //--- Check all trading objects parameters
